@@ -10,7 +10,6 @@ import SwiftUI
 struct GestureCardView: View {
     let backgroundColor: Color
     let gestureName: String
-    let confidence: Double
     
     var body: some View {
         VStack(spacing: 12) {
@@ -43,5 +42,5 @@ struct GestureCardView: View {
 }
 
 #Preview {
-    GestureCardView(backgroundColor: .red, gestureName: "Rock", confidence: 92.5)
+    GestureCardView(backgroundColor: .red, gestureName: "Rock")
 }

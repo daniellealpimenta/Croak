@@ -11,8 +11,9 @@ import SwiftUI
 struct MLTestApp: App {
     var body: some Scene {
         WindowGroup {
-            DebugContentView()
+//            DebugContentView()
 //            ContentView()
+            TestContentView()
         }
     }
 }

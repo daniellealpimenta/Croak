@@ -1,5 +1,6 @@
 import AVFoundation
 import Vision
+import SwiftUI
 
 class CameraViewModel: NSObject, ObservableObject {
     let session = AVCaptureSession()
@@ -88,6 +89,7 @@ class CameraViewModel: NSObject, ObservableObject {
         
         return nil
     }
+    
 }
 
 extension CameraViewModel: AVCaptureVideoDataOutputSampleBufferDelegate {
