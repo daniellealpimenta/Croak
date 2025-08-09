@@ -44,7 +44,7 @@ class PauseScene: SKScene {
             }
         }
         
-        if touchedNode.name == "Reiniciar" {
+        if touchedNode.name == "ResetButton" {
             print("Botão Reiniciar foi tocado!")
             
             // Carregue uma **nova** cena do arquivo .sks para reiniciar o jogo

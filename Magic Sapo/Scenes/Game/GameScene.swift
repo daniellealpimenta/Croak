@@ -9,6 +9,50 @@ import SpriteKit
 import GameplayKit
 
 class GameScene: SKScene {
+    
+    
+    var timerCount = 0
+    var timerLabel: SKLabelNode!
+    
+    override func didMove(to view: SKView) {
+        
+        if timerLabel == nil {
+            
+            timerLabel = SKLabelNode(fontNamed: "Arial")
+            timerLabel.fontSize = 50
+            timerLabel.fontColor = .white
+            timerLabel.position = CGPoint(x: 0, y: 300)
+            timerLabel.text = "Tempo: \(timerCount)"
+            addChild(timerLabel)
+            
+        } else {
+            
+            // Se o rótulo já existe (em caso de retomada), apenas o atualize e o adicione
+            timerLabel.text = "Tempo: \(timerCount)"
+            addChild(timerLabel)
+        }
+        
+        // Cria a ação de contagem
+        let wait = SKAction.wait(forDuration: 1.0)
+        let countBlock = SKAction.run {
+            self.timerCount += 1
+            self.timerLabel.text = "Tempo: \(self.timerCount)"
+        }
+        
+        // Cria uma sequência de ações: esperar 1s e depois contar. Repete para sempre.
+        let sequence = SKAction.sequence([wait, countBlock])
+        let repeatSequence = SKAction.repeatForever(sequence)
+        
+        // Executa a ação na cena
+        run(repeatSequence, withKey: "timerAction")
+    }
+    
+    override func willMove(from view: SKView) {
+        // Remove a ação do timer
+        removeAction(forKey: "timerAction")
+        // Remove o rótulo da tela para evitar sobreposição
+        timerLabel.removeFromParent()
+    }
 
     // Este método é chamado quando o usuário toca na tela
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
