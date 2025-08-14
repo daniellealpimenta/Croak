@@ -11,22 +11,9 @@
 		3D49B1E42E4BBBAF007DB170 /* MLTest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = MLTest.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		3D2434692E4D26640095208E /* Exceptions for "Magic Sapo" folder in "Magic Sapo" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"Magic-Sapo-Info.plist",
-			);
-			target = 3D4739682E479134005A7C3D /* Magic Sapo */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3D47396B2E479134005A7C3D /* Magic Sapo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				3D2434692E4D26640095208E /* Exceptions for "Magic Sapo" folder in "Magic Sapo" target */,
-			);
 			path = "Magic Sapo";
 			sourceTree = "<group>";
 		};

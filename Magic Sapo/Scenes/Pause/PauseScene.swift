@@ -1,53 +1,71 @@
 //
-// PauseScene.swift
-// Magic Sapo
+//  PauseScene.swift
+//  Magic Sapo
 //
-// Created by Pedro Santos on 09/08/25.
+//  Created by Pedro Santos on 09/08/25.
 //
 
 import SpriteKit
 
+/// A cena que é exibida quando o jogo está pausado.
+/// Ela oferece opções para o jogador: retomar, reiniciar ou sair para o menu principal.
 class PauseScene: SKScene {
     
+    // MARK: - Propriedades
+    
+    /// Uma referência à instância da `GameScene` que estava ativa quando o jogo foi pausado.
+    /// Isso é **crucial** para permitir que o jogador retome o jogo do ponto exato onde parou.
     var gameScene: SKScene?
 
+    // MARK: - Inicialização (Essa parte aqui eu nao entendi)
+    
+    /// Inicializador padrão, necessário quando a cena é carregada de um arquivo.
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
     
+    /// Método público para que a `GameScene` possa "se passar" como referência
+    /// antes da transição para a cena de pausa acontecer.
     func setGameScene(scene: SKScene) {
         self.gameScene = scene
     }
     
+    // MARK: - Ciclo de Vida da Cena
 
+    /// Método chamado quando a cena é apresentada na tela.
     override func didMove(to view: SKView) {
-
+        
     }
     
-    // Esta função é chamada quando o usuário toca na tela
+    // MARK: - Entrada do Usuário
+    
+    /// Esta função é chamada quando o usuário toca na tela.
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         
-        // 1. Pegar o primeiro toque e a sua localização
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         
-        // 2. Encontrar o nó que foi tocado
         let touchedNode = atPoint(location)
         
+        // --- Lógica dos Botões ---
+        
+        // Se o botão "Retomar" for tocado...
         if touchedNode.name == "ReturnButton" {
             print("Botão Retomar foi tocado!")
             
+            // Verifica se temos uma referência válida para a GameScene anterior.
             if let gameScene = self.gameScene {
-                // Use a cena de jogo armazenada para retornar a ela
+                // Usa a cena de jogo armazenada para **retornar** a ela, mantendo o estado do jogo.
                 let transition = SKTransition.fade(withDuration: 0.5)
                 view?.presentScene(gameScene, transition: transition)
             }
         }
         
+        // Se o botão "Reiniciar" for tocado
         if touchedNode.name == "ResetButton" {
             print("Botão Reiniciar foi tocado!")
             
-            // Carregue uma **nova** cena do arquivo .sks para reiniciar o jogo
+            // Carrega uma **nova instância** da GameScene para começar um jogo do zero.
             if let gameScene = SKScene(fileNamed: "GameScene") {
                 gameScene.scaleMode = .aspectFill
                 let transition = SKTransition.fade(withDuration: 1.0)
@@ -55,10 +73,11 @@ class PauseScene: SKScene {
             }
         }
         
+        // Se o botão "Sair" for tocado
         if touchedNode.name == "ExitButton" {
             print("Botão Menu Principal foi tocado!")
             
-            // Carregue a MenuScene a partir do arquivo .sks para voltar ao menu
+            // Carrega a MenuScene para voltar ao menu principal.
             if let menuScene = SKScene(fileNamed: "MenuScene") {
                 menuScene.scaleMode = .aspectFill
                 let transition = SKTransition.fade(withDuration: 1.0)
