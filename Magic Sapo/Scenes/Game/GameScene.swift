@@ -120,7 +120,8 @@ class GameScene: SKScene {
                 return
             }
             
-            //pauseScene.setGameScene(scene: self) // Método para retornar ao jogo depois.
+            pauseScene.setGameScene(scene: self)
+            
             pauseScene.scaleMode = .aspectFill
             let transition = SKTransition.fade(withDuration: 0.5)
             self.view?.presentScene(pauseScene, transition: transition)

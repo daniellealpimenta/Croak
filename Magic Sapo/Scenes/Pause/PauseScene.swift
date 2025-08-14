@@ -17,7 +17,7 @@ class PauseScene: SKScene {
     /// Isso é **crucial** para permitir que o jogador retome o jogo do ponto exato onde parou.
     var gameScene: SKScene?
 
-    // MARK: - Inicialização (Essa parte aqui eu nao entendi)
+    // MARK: - Inicialização
     
     /// Inicializador padrão, necessário quando a cena é carregada de um arquivo.
     required init?(coder aDecoder: NSCoder) {
@@ -27,6 +27,8 @@ class PauseScene: SKScene {
     /// Método público para que a `GameScene` possa "se passar" como referência
     /// antes da transição para a cena de pausa acontecer.
     func setGameScene(scene: SKScene) {
+        // MENSAGEM DE DEPURAÇÃO
+        print("DEBUG (PauseScene): Método 'setGameScene' foi chamado com a cena: \(scene)")
         self.gameScene = scene
     }
     
@@ -34,7 +36,8 @@ class PauseScene: SKScene {
 
     /// Método chamado quando a cena é apresentada na tela.
     override func didMove(to view: SKView) {
-        
+        // MENSAGEM DE DEPURAÇÃO
+        print("DEBUG (PauseScene): 'didMove' foi chamado. O estado de self.gameScene é: \(self.gameScene ?? nil)")
     }
     
     // MARK: - Entrada do Usuário
@@ -51,14 +54,24 @@ class PauseScene: SKScene {
         
         // Se o botão "Retomar" for tocado...
         if touchedNode.name == "ReturnButton" {
-            print("Botão Retomar foi tocado!")
+            // MENSAGENS DE DEPURAÇÃO (INÍCIO)
+            print("--- TOQUE NO BOTÃO RETOMAR ---")
+            print("DEBUG (PauseScene): Bloco 'if' para ReturnButton foi acessado.")
+            print("DEBUG (PauseScene): Verificando self.gameScene... Estado ATUAL: \(self.gameScene ?? nil)")
             
-            // Verifica se temos uma referência válida para a GameScene anterior.
             if let gameScene = self.gameScene {
-                // Usa a cena de jogo armazenada para **retornar** a ela, mantendo o estado do jogo.
+                print("DEBUG (PauseScene): SUCESSO! A referência para gameScene EXISTE: \(gameScene)")
+                print("DEBUG (PauseScene): A view da cena de pausa é: \(self.view ?? nil)")
+                print("DEBUG (PauseScene): Tentando apresentar a GameScene agora...")
+                
                 let transition = SKTransition.fade(withDuration: 0.5)
                 view?.presentScene(gameScene, transition: transition)
+                
+            } else {
+                print("DEBUG (PauseScene): FALHA! A referência para self.gameScene é NULA. Não é possível retornar.")
             }
+            print("--- FIM DO TOQUE ---")
+            // MENSAGENS DE DEPURAÇÃO (FIM)
         }
         
         // Se o botão "Reiniciar" for tocado

@@ -38,23 +38,20 @@ class GameViewController: UIViewController {
     @objc func PauseGame() {
         print("Pausando o jogo")
         
-        super.viewDidLoad()
-        
         // MARK: as! -> Faz um cast formado para o SKView que pode ser vazio
         if let view = self.view as! SKView? {
             
-            // So vou deixar ele pausado caso esteja na GameScene, a MenuScene vai ficar normal
             if let gameScene = view.scene as? GameScene {
 
-                if let pauseScene = SKScene(fileNamed: "PauseScene") {
+                // Forcando um cast para a PauseScene
+                if let pauseScene = SKScene(fileNamed: "PauseScene") as? PauseScene {
+                    
+                    pauseScene.setGameScene(scene: gameScene)
+                    
                     pauseScene.scaleMode = .aspectFill
-                    
-                    
-                    // SO uma transicao
                     let transicao = SKTransition.fade(withDuration: 0.5)
                     view.presentScene(pauseScene, transition: transicao)
                 }
-                
             }
             
         }
