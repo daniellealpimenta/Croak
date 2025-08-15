@@ -13,7 +13,7 @@ import SpriteKit
 /// Define o "contrato" que todo tipo de inimigo deve seguir no jogo.
 /// Garante que qualquer inimigo tenha uma maneira de ser criado e um valor de pontos.
 
-// MARK: Quero adicionar aqui um gesto tambem, a quantidade de inimigos spawnados seria util tambem
+// MARK: Quero adicionar aqui um gesto tambem, a quantidade de inimigos spawnados seria util tambem 
 
 
 protocol Enemy {
@@ -28,4 +28,7 @@ protocol Enemy {
     
     /// Propriedade estática que define quantas moedas o jogador ganha ao derrotar este tipo de inimigo.
     static var coinValue: Int { get }
+  
+    static var gesture: Gestures { get }
+
 }

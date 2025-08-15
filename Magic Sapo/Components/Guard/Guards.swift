@@ -14,20 +14,19 @@ import SpriteKit
 /// Esta struct conforma ao protocolo `Enemy`, fornecendo uma implementação concreta
 /// de como um Guarda deve ser criado e qual sua pontuação.
 struct Guards: Enemy {
-    
+
     // MARK: - Propriedades Estáticas (do Tipo)
     
     /// Define que derrotar um "Guarda" vale 1 ponto.
     /// Esta é uma exigência do protocolo `Enemy`.
     static var pointValue: Int = 1
     
-    /// Define que derrotar um "Guarda" vale 3 moedas.
-    /// Esta é uma exigência do protocolo `Enemy`.
+    /// Exigencia do protocolo Enemy para cada guarda dropar 3 moedas
     static var coinValue: Int = 3
     
     /// Lista de gestos que podem ser associados a um "Guarda".
     /// Quando um "Guarda" é criado, um destes gestos será escolhido aleatoriamente.
-    static let availableGestures = ["Rock", "Two"]
+    static var gesture = Gestures()
 
 
     // MARK: - Método de Criação (Fábrica)
@@ -53,7 +52,7 @@ struct Guards: Enemy {
             }
 
         // 2. Escolhe um nome de gesto aleatório da lista de gestos disponíveis.
-        guard let randomGestureName = availableGestures.randomElement() else {
+        guard let randomGestureName = Gestures.availableGestures.randomElement() else {
             // Se, por algum motivo, não conseguir escolher um gesto, a criação falha.
             return nil
         }

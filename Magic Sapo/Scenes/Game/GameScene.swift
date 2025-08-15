@@ -28,6 +28,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     /// Gerencia a pontuação do jogador.
     var scoreComponent: ScoreComponent!
     
+    /// Gerencia as moedas do jogador.
+    var coinsComponent: CoinsComponent!
+    
     /// Gerencia o fundo da cena.
     var backgroundComponent: BackgroundComponent!
     
@@ -57,6 +60,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             scoreComponent = ScoreComponent(parent: self)
         }
     
+        // Inicializa o componente de moedas.
+        if coinsComponent == nil {
+            coinsComponent = CoinsComponent(parent: self)
+        }
+        
         // Inicializa o spawner de inimigos e começa a criar inimigos.
         self.enemySpawner = EnemySpawner(scene: self)
         self.enemySpawner.startSpawningEnemies()
@@ -141,18 +149,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         enemySpawner.stopSpawningEnemies()
     }
     
+    
     // MARK: - Lógica do Jogo
     
     /// Processa a ação do jogador após fazer um gesto.
     /// - Parameter gesture: A string que representa o gesto feito (ex: "Rock").
+    
     func playerDidMake(gesture: String) {
-        
-        // Tenta matar um inimigo com o gesto.
-        // A função killEnemy retorna os pontos ganhos se um inimigo for morto.
-        if let pointsGained = enemySpawner.killEnemy(withGesture: gesture) {
+        // A variável "rewards" agora é uma tupla: (points: Int, coins: Int)
+        if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
             
-            // Se ganhou pontos, atualiza o placar.
-            scoreComponent.addScore(point: pointsGained)
+            // Tenta matar um inimigo com o gesto.
+            // A função killEnemy retorna os pontos e moedas ganhos se um inimigo for morto.
+            // Acessamos os valores usando .points e .coins
+            scoreComponent.addScore(point: rewards.points)
+            coinsComponent.addCoins(coins: rewards.coins)
+
+            print("Ganhou \(rewards.coins) moedas!")
         }
     }
     
