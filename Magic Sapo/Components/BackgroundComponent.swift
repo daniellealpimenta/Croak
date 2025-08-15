@@ -34,8 +34,13 @@ class BackgroundComponent {
             // ,SKTexture(imageNamed: "Background2"),
         ]
         
+        backgroundFrames.forEach { tex in
+            tex.filteringMode = .nearest
+        }
+        
         // 2. Cria o nó de sprite (a imagem em si) com a primeira textura como base.
         let background = SKSpriteNode(texture: backgroundFrames[0])
+        
         
         // 3. Calcula o fator de escala para que a imagem de fundo preencha a tela
         //    sem distorcer (lógica de "Aspect Fit").

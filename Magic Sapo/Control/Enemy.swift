@@ -25,4 +25,7 @@ protocol Enemy {
 
     /// Propriedade estática que define quantos pontos o jogador ganha ao derrotar este tipo de inimigo.
     static var pointValue: Int { get }
+    
+    /// Propriedade estática que define quantas moedas o jogador ganha ao derrotar este tipo de inimigo.
+    static var coinValue: Int { get }
 }
