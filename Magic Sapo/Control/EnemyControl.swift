@@ -39,7 +39,7 @@ class EnemyControl {
         scene.addChild(enemyEntity)
 
         // Cria a sequência de ações: mover de cima para baixo e depois ser removido.
-        let moveAction = SKAction.move(to: endPosition, duration: 5.0)
+        let moveAction = SKAction.move(to: endPosition, duration: 5)
         let removeAction = SKAction.removeFromParent()
         
         // Essa .sequence faz as funcoes rodarem em sequencia
@@ -57,7 +57,7 @@ class EnemyControl {
     ///   - scene: A cena onde a busca pelo inimigo será feita.
     /// - Returns: O valor em pontos do inimigo destruído, ou nil se nenhum inimigo for encontrado.
     ///
-    public func killEnemy(withGesture gesture: String, in scene: SKScene) -> Int? {
+    public func killEnemy(withGesture gesture: String, in scene: SKScene) -> (points: Int, coins: Int)? {
         
         // Percorre todos os nós filhos da cena para encontrar o inimigo certo.
         for node in scene.children {
@@ -78,8 +78,9 @@ class EnemyControl {
                 // Verifica o nome do nó principal para saber qual tipo de inimigo era.
                 // Isso é necessário para retornar a pontuação correta.
                 if node.name == "Guard" {
+                    
                     // Encontrou, matou, agora retorna os pontos e para o loop.
-                    return Guards.pointValue
+                    return (points: Guards.pointValue, coins: Guards.coinValue)
                 }
                 
                 // Se tivéssemos outros inimigos, adicionaríamos mais 'if's aqui.

@@ -68,7 +68,7 @@ class EnemySpawner {
     
     /// Delega a chamada para matar um inimigo para o `enemyControl`.
     /// A GameScene falará com este método, e ele repassará a ordem.
-    public func killEnemy(withGesture gesture: String) -> Int? {
+    public func killEnemy(withGesture gesture: String) -> (points: Int, coins: Int)? {
         
         guard let scene = self.scene else { return nil }
         // Chama a função em EnemyControl e retorna diretamente o que ela devolver.
