@@ -39,7 +39,17 @@ struct Guards: Enemy {
         // 1. Cria o corpo principal do inimigo (o quadrado vermelho).
         let evilGuard = SKSpriteNode(color: .red, size: CGSize(width: 50, height: 50))
         evilGuard.name = "Guard" // Nome que to usando para achar o tipo de inimigo e dar a pontuação certa.
+        evilGuard.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 50, height: 50))
+        evilGuard.physicsBody?.isDynamic = true
+        evilGuard.physicsBody?.affectedByGravity = false
         evilGuard.position = position
+        
+        // AQUI É ADICIONADo A CONFIGURAÇÃO DE FÍSICA DO INIMIGO
+        if let pb = evilGuard.physicsBody {
+                pb.categoryBitMask = PhysicsCategory.enemy
+                pb.collisionBitMask = PhysicsCategory.none // Inimigos também não precisam empurrar nada
+                pb.contactTestBitMask = PhysicsCategory.frog // Queremos ser notificados do contato com o sapo
+            }
 
         // 2. Escolhe um nome de gesto aleatório da lista de gestos disponíveis.
         guard let randomGestureName = Gestures.availableGestures.randomElement() else {

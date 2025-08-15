@@ -27,7 +27,7 @@ class EnemyControl {
         let startPosition = CGPoint(x: startX, y: startY)
 
         let endX: CGFloat = 0 // Os inimigos se movem em direção ao centro do eixo X
-        let endY = -halfHeight - 50 // -50 para garantir que saia da tela (vai mudar quando tiver o sapo)
+        let endY = -halfHeight + 200 // -50 para garantir que saia da tela (vai mudar quando tiver o sapo)
         let endPosition = CGPoint(x: endX, y: endY)
         
         // Tenta criar a entidade do inimigo usando o método estático do seu tipo.
