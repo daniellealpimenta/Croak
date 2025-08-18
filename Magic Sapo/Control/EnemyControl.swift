@@ -10,6 +10,9 @@ import SpriteKit
 /// como sua criação, movimento e destruição.
 class EnemyControl {
     
+    //    Adicione um array para manter o controle dos inimigos ativos.
+    private(set) var activeEnemies: [SKNode] = []
+    
     // MARK: - Lógica de Criação e Movimento
     
     /// Cria uma instância de um tipo de inimigo específico e a adiciona na cena.
@@ -36,11 +39,16 @@ class EnemyControl {
         }
         
         // Adiciona o inimigo na cena.
+        activeEnemies.append(enemyEntity)
         scene.addChild(enemyEntity)
 
         // Cria a sequência de ações: mover de cima para baixo e depois ser removido.
         let moveAction = SKAction.move(to: endPosition, duration: 5)
-        let removeAction = SKAction.removeFromParent()
+        let removeAction = SKAction.run { [weak self] in
+            // Remove o inimigo da lista de ativos quando ele sai da tela.
+            self?.activeEnemies.removeAll { $0 === enemyEntity }
+            enemyEntity.removeFromParent()
+        }
         
         // Essa .sequence faz as funcoes rodarem em sequencia
         let sequence = SKAction.sequence([moveAction, removeAction])
@@ -58,34 +66,30 @@ class EnemyControl {
     /// - Returns: O valor em pontos do inimigo destruído, ou nil se nenhum inimigo for encontrado.
     ///
     public func killEnemy(withGesture gesture: String, in scene: SKScene) -> (points: Int, coins: Int)? {
-        
         // Percorre todos os nós filhos da cena para encontrar o inimigo certo.
-        for node in scene.children {
-            
-            // Verifica se o nó atual tem um "nó filho" com o nome do gesto.
-            // Essa é a nossa forma de identificar qual inimigo corresponde a qual gesto.
-            if node.childNode(withName: gesture) != nil {
-                
-                // Cria uma animação de morte (desaparecer e diminuir (Aqui a gente vai disparar a animacao de morte quando tiver ela pronta)).
-                let fadeOut = SKAction.fadeOut(withDuration: 0.3)
-                let scaleDown = SKAction.scale(to: 0.1, duration: 0.3)
-                let deathAnimation = SKAction.group([fadeOut, scaleDown])
-                let removeNode = SKAction.removeFromParent()
-                let sequence = SKAction.sequence([deathAnimation, removeNode])
-                
-                node.run(sequence)
-
-                // Verifica o nome do nó principal para saber qual tipo de inimigo era.
-                // Isso é necessário para retornar a pontuação correta.
-                if node.name == "Guard" {
+        for (index, enemy) in activeEnemies.enumerated().reversed() {
                     
-                    // Encontrou, matou, agora retorna os pontos e para o loop.
-                    return (points: Guards.pointValue, coins: Guards.coinValue)
+                    if enemy.childNode(withName: gesture) != nil {
+                        
+                        // Remove o inimigo da lista IMEDIATAMENTE.
+                        // Esta é a correção crucial. Uma vez removido, ele não pode ser encontrado de novo.
+                        let killedEnemy = activeEnemies.remove(at: index)
+                        
+                        // Agora, execute a animação de morte no nó que acabamos de remover.
+                        let fadeOut = SKAction.fadeOut(withDuration: 0.3)
+                        let scaleDown = SKAction.scale(to: 0.1, duration: 0.3)
+                        let deathAnimation = SKAction.group([fadeOut, scaleDown])
+                        let removeNode = SKAction.removeFromParent()
+                        let sequence = SKAction.sequence([deathAnimation, removeNode])
+                        
+                        killedEnemy.run(sequence)
+
+                        if killedEnemy.name == "Guard" {
+                            // Encontrou, matou, agora retorna os pontos e para o loop.
+                            return (points: Guards.pointValue, coins: Guards.coinValue)
+                        }
+                    }
                 }
-                
-                // Se tivéssemos outros inimigos, adicionaríamos mais 'if's aqui.
-            }
-        }
         
         // Se o loop terminar sem encontrar nenhum inimigo para o gesto, retorna nulo.
         return nil

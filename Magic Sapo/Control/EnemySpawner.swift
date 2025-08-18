@@ -36,64 +36,54 @@ class EnemySpawner {
     // MARK: - Controle do Spawning
     
     /// Inicia a criação contínua de inimigos.
-    func startSpawningEnemies() {
+    /// Inicia a criação contínua de inimigos.
+        func startSpawningEnemies() {
+               // Garante que apenas um timer exista por vez.
+               // Se já houver um timer rodando, esta função não faz nada.
+               guard spawnTimer == nil else { return }
+               
+               print("Spawner iniciado.")
+               
+               // Cria um timer que chama a função 'spawnEnemy' a cada 3 segundos.
+               // Usar target/selector deixa o código de start/stop mais limpo.
+               spawnTimer = Timer.scheduledTimer(
+                   timeInterval: 3.0,
+                   target: self,
+                   selector: #selector(spawnEnemy),
+                   userInfo: nil,
+                   repeats: true
+               )
+           }
+        /// Para o timer e interrompe a criação de novos inimigos.
+        func stopSpawningEnemies() {
+            
+            // MARK: Funcao importante para controlar os Spawns (invalidate)
+            spawnTimer?.invalidate() // Invalida o timer.
+            spawnTimer = nil // Limpa a referência ao timer.
+        }
         
-        // Cria um timer que se repete a cada 3 segundos.
-        // [weak self] é crucial para evitar memory leak com o timer.
-        // Vamo ter que mudar essa logica para cada inimigo se pa, pq ele ta spawnando inimigos a cada 3 segundos, mas pode ser que a gente precise criar um Timer aleatorio individual ou sei la
-        spawnTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
+        // MARK: - Ações Públicas
+        
+        /// Delega a chamada para matar um inimigo para o `enemyControl`.
+        /// A GameScene falará com este método, e ele repassará a ordem.
+        public func killEnemy(withGesture gesture: String) -> (points: Int, coins: Int)? {
             
-            // Garante que 'self' (o spawner) e a 'scene' ainda existem.
-            // Essa bomba nao funciona se nao tiver
-            guard let self = self, let scene = self.scene else { return }
+            guard let scene = self.scene else { return nil }
+            // Chama a função em EnemyControl e retorna diretamente o que ela devolver.
+            return enemyControl.killEnemy(withGesture: gesture, in: scene)
+        }
+        /// Método chamado pelo timer para criar um inimigo.
+        /// Precisa ser @objc para ser "visto" pelo seletor do Timer.
+        @objc private func spawnEnemy() {
+            guard let scene = self.scene else {
+                // Se a cena não existir mais, pare o timer para evitar problemas.
+                stopSpawningEnemies()
+                return
+            }
             
-            // Escolhe um tipo de inimigo aleatoriamente da lista de disponíveis.
             if let randomEnemyType = self.availableEnemies.randomElement() {
-                
-                // Pede para o controlador criar o inimigo escolhido na cena.
                 self.enemyControl.createEnemy(ofType: randomEnemyType, in: scene)
             }
         }
-    }
-    
-    /// Para o timer e interrompe a criação de novos inimigos.
-    func stopSpawningEnemies() {
-        
-        // MARK: Funcao importante para controlar os Spawns (invalidate)
-        spawnTimer?.invalidate() // Invalida o timer.
-        spawnTimer = nil // Limpa a referência ao timer.
-    }
-    
-    // MARK: - Ações Públicas
-    
-    /// Delega a chamada para matar um inimigo para o `enemyControl`.
-    /// A GameScene falará com este método, e ele repassará a ordem.
-    public func killEnemy(withGesture gesture: String) -> (points: Int, coins: Int)? {
-        
-        guard let scene = self.scene else { return nil }
-        // Chama a função em EnemyControl e retorna diretamente o que ela devolver.
-        return enemyControl.killEnemy(withGesture: gesture, in: scene)
-    }
 }
-
-// Isso daqui eram as formas anteriores que eu tava fazendo isso
-
-//    public func killEnemy(withGesture gesture: String) {
-//        guard let scene = self.scene else { return }
-//        enemyControl.killEnemy(withGesture: gesture, in: scene)
-//    }
-    
-//    public func killEnemy(withGesture gesture: String) -> Int? {
-//        guard let scene = self.scene else { return nil }
-//
-//        for node in scene.children {
-//
-//            if node.name == "Guard" && node.childNode(withName: gesture) != nil {
-//                node.removeFromParent()
-//                return Guards.pointValue
-//            }
-//        }
-//
-//        return nil
-//    }
     
