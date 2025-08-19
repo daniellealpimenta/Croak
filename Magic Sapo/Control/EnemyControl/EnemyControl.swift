@@ -16,11 +16,19 @@ class EnemyControl {
     //    Adicione um array para manter o controle dos inimigos ativos.
     private(set) var activeEnemies: [SKNode] = []
     
-    // Velocidade, velocidade inicial, estagios
+    // Velocidade, velocidade inicial,
     private var V: CGFloat = 5.0
     private let Vi: CGFloat = 5.0
-    private let scorePerStage: Int = 5
-    private let speedDecreasePerStage: CGFloat = 0.5
+    
+    // Pontuacao para subir de estagio
+    // Para o maximo: limita em 15
+    private let scorePerStage: Int = 75
+    
+    // Padrao 0.02
+    // Para o maximo testa com 0.5
+    private let speedDecreasePerStage: CGFloat = 0.02
+    
+    // Sempre 0.5
     private let accelerationFactor: CGFloat = 0.5
     
     private var lastKnownStage: Int = 0
@@ -92,14 +100,14 @@ class EnemyControl {
                 }
         
         // 2. Calcula a velocidade "base" para o estágio atual.
-        let VPerStage = Vi - (CGFloat(stage) * speedDecreasePerStage)
+        let VPerStage = Vi - (CGFloat(stage) * accelerationFactor)
         
         // 3. Calcula quantos pontos o jogador fez DENTRO do estágio atual.
         let scoreInStage = score % scorePerStage
     
         // 4. Calcula a velocidade final.
         // Começa com a base do estágio e diminui conforme o jogador pontua dentro desse estágio.
-        let newV = VPerStage - (CGFloat(scoreInStage) * accelerationFactor)
+        let newV = VPerStage - (CGFloat(scoreInStage) * speedDecreasePerStage)
 
         // 5. Garante que a duração nunca seja menor que 1.5s para não quebrar o jogo.
         self.V = max(1.5, newV)

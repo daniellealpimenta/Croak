@@ -8,7 +8,7 @@ import SpriteKit
 import GameplayKit
 
 struct PhysicsCategory {
-    static let none: UInt32 = 0         // 0
+    static let none: UInt32 = 0        // 0
     static let frog: UInt32 = 0b1        // 1
     static let enemy: UInt32 = 0b10       // 2
     // Adicione outras categorias aqui se precisar (ex: projétil, parede, etc)
@@ -116,6 +116,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         openPButton.position = CGPoint(x: 400, y: -self.size.height/2 + 100)
         self.addChild(openPButton)
         
+        let pauseButton = SKSpriteNode(imageNamed: "PauseButton") // Certifique-se de que "PauseButton" exista nos seus Assets.
+        pauseButton.name = "PauseButton"
+        pauseButton.size = CGSize(width: 100, height: 100)
+        pauseButton.position = CGPoint(x: self.size.width / 2 - 70, y: self.size.height / 2 - 50)
+        
+        pauseButton.zPosition = 50 // Garante que ele fique acima de outros elementos da UI, se houver.
+        self.addChild(pauseButton)
         
     }
     
@@ -306,7 +313,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 playerDidMake(gesture: "OpenPalm")
             }
 
-     
+    
         }
     
         // Cria os nós que compõem o menu de pausa e os adiciona à cena.
