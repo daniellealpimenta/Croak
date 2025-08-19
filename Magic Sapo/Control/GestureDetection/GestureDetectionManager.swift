@@ -96,15 +96,15 @@ class GestureDetectionManager: NSObject {
         guard self.cameraView == nil else { return }
         
         DispatchQueue.main.async {
-            let cameraViewWidth: CGFloat = 150
+            let cameraViewWidth: CGFloat = 400
             let cameraViewHeight: CGFloat = 200
             let padding: CGFloat = 20
             
             // Cria a UIView que vai conter a imagem da câmera
-            let camView = UIView(frame: CGRect(x: skView.bounds.width - cameraViewWidth - padding,
-                                                y: padding,
-                                                width: cameraViewWidth,
-                                                height: cameraViewHeight))
+            let camView = UIView(frame: CGRect(x: padding,
+                                                            y: skView.bounds.height - cameraViewHeight - padding,
+                                                            width: cameraViewWidth,
+                                                            height: cameraViewHeight))
             
             camView.layer.cornerRadius = 10
             camView.layer.borderColor = UIColor.white.cgColor
