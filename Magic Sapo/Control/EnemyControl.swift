@@ -39,7 +39,7 @@ class EnemyControl {
         scene.addChild(enemyEntity)
 
         // Cria a sequência de ações: mover de cima para baixo e depois ser removido.
-        let moveAction = SKAction.move(to: endPosition, duration: 5)
+        let moveAction = SKAction.move(to: endPosition, duration: 8)
         let removeAction = SKAction.removeFromParent()
         
         // Essa .sequence faz as funcoes rodarem em sequencia

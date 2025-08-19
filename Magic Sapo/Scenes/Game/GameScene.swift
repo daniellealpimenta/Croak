@@ -19,7 +19,7 @@ struct PhysicsCategory {
 /// A cena principal do jogo, onde toda a ação acontece.
 /// Esta classe atua como um "maestro", orquestrando os diferentes componentes
 /// (placar, fundo, inimigos) e respondendo à entrada do jogador.
-class GameScene: SKScene, SKPhysicsContactDelegate {
+class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
     
     // MARK: - Componentes
     
@@ -34,26 +34,34 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     /// Gerencia o fundo da cena.
     var backgroundComponent: BackgroundComponent!
     
+    var gestureManager: GestureDetectionManager!
+    
+    private var cameraPreviewNode: SKEffectNode!
+    
+    // NOVA PROPRIEDADE - para debug (opcional)
+    private var gestureDebugLabel: SKLabelNode?
+    
     /// Gerencia a criação e as ações dos inimigos.
     var enemySpawner: EnemySpawner!
     
     override func sceneDidLoad() {
         self.physicsWorld.contactDelegate = self
-      }
+    }
     
     // MARK: - Ciclo de Vida da Cena
     
     /// Método chamado uma única vez quando a cena é apresentada na tela.
     /// Essa func so serve pra configuracao inicial
     override func didMove(to view: SKView) {
-                
+        
+        backgroundColor = .gray
         // --- Configuração dos Componentes ---
         
         // Inicializa o componente de fundo e o configura.
-        if backgroundComponent == nil {
-            backgroundComponent = BackgroundComponent(parent: self)
-        }
-        backgroundComponent.setupAnimatedBackground()
+//        if backgroundComponent == nil {
+//            backgroundComponent = BackgroundComponent(parent: self)
+//        }
+//        backgroundComponent.setupAnimatedBackground()
         
         // Inicializa o componente de pontuação.
         if scoreComponent == nil {
@@ -69,32 +77,107 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.enemySpawner = EnemySpawner(scene: self)
         self.enemySpawner.startSpawningEnemies()
         
-        // MARK: Vamos trocar pelos gestos do ML depois
+//        let frog = Frog(parent: self)
+//        let frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
         
+        // --- FROG ADAPTATIVO ---
         let frog = Frog(parent: self)
-        
-        let frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+        let frogY = DeviceHelper.isIPhone ? -self.size.height/2 + 120 : -self.size.height/2 + 150
+        let frogNode = frog.createNode(at: CGPoint(x: -30, y: frogY))
         
         if self.childNode(withName: "Frog") == nil{
             self.addChild(frogNode)
         }
 
+        // Configurar detecção de gestos
+        setupGestureDetection()
         
-        // --- Configuração dos Botões de Ação ---
+        if let view = self.view {
+            gestureManager.setupCameraPreview(in: view)
+        }
         
+        // Opcional: Label para debug dos gestos
+        setupGestureDebugUI()
+        
+    }
+    
+    // NOVO MÉTODO: Configuração adaptativa dos botões
+    private func setupAdaptiveButtons() {
+        
+        let buttonSize = CGSize(
+            width: 80 * DeviceHelper.scaleFactor,
+            height: 80 * DeviceHelper.scaleFactor
+        )
+        
+        // Posições adaptativas baseadas no dispositivo
+        let bottomOffset: CGFloat = DeviceHelper.isIPhone ? 80 : 100
+        let horizontalSpacing: CGFloat = DeviceHelper.isIPhone ? 120 : 175
+        
+        // Botão Rock
         let rockButton = SKSpriteNode(imageNamed: "Rock")
-        rockButton.name = "rockButton" // Nome para identificação no toque.
-        rockButton.size = CGSize(width: 80, height: 80)
-        // Posiciona o botão na parte inferior esquerda da tela.
-        rockButton.position = CGPoint(x: -200, y: -self.size.height/2 + 100)
+        rockButton.name = "rockButton"
+        rockButton.size = buttonSize
+        rockButton.position = CGPoint(
+            x: -horizontalSpacing,
+            y: -self.size.height/2 + bottomOffset
+        )
         self.addChild(rockButton)
         
+        // Botão Two
         let twoButton = SKSpriteNode(imageNamed: "Two")
-        twoButton.name = "twoButton" // Nome para identificação no toque.
-        twoButton.size = CGSize(width: 80, height: 80)
-        // Posiciona o botão na parte inferior direita da tela.
-        twoButton.position = CGPoint(x: 150, y: -self.size.height/2 + 100)
+        twoButton.name = "twoButton"
+        twoButton.size = buttonSize
+        twoButton.position = CGPoint(
+            x: horizontalSpacing,
+            y: -self.size.height/2 + bottomOffset
+        )
         self.addChild(twoButton)
+    }
+    
+    private func setupGestureDetection() {
+        gestureManager = GestureDetectionManager()
+        gestureManager.delegate = self
+        gestureManager.startDetection()
+    }
+    
+//    private func setupGestureDebugUI() {
+//        // Label para mostrar qual gesto está sendo detectado (para debug)
+//        gestureDebugLabel = SKLabelNode(fontNamed: "Arial-Bold")
+//        gestureDebugLabel?.fontSize = 20
+//        gestureDebugLabel?.fontColor = .yellow
+//        gestureDebugLabel?.position = CGPoint(x: 0, y: self.size.height/2 - 100)
+//        gestureDebugLabel?.text = "Gesto: Nenhum"
+//        if let label = gestureDebugLabel {
+//            addChild(label)
+//        }
+//    }
+    
+    // VERSÃO ADAPTATIVA do setup de debug UI
+    private func setupGestureDebugUI() {
+        gestureDebugLabel = SKLabelNode(fontNamed: "Arial-Bold")
+        gestureDebugLabel?.fontSize = DeviceHelper.isIPhone ? 16 : 20
+        gestureDebugLabel?.fontColor = .yellow
+        let topOffset: CGFloat = DeviceHelper.isIPhone ? 80 : 100
+        gestureDebugLabel?.position = CGPoint(x: 0, y: self.size.height/3 - topOffset)
+        gestureDebugLabel?.text = "Gesto: Nenhum"
+        
+        if let label = gestureDebugLabel {
+            addChild(label)
+        }
+    }
+    
+    // IMPLEMENTAÇÃO DO DELEGATE - adicione estes métodos:
+        
+    func gestureDetected(_ gesture: String, confidence: Double) {
+        // Atualizar label de debug
+        gestureDebugLabel?.text = "Gesto: \(gesture) (\(Int(confidence * 100))%)"
+        
+        // AQUI É ONDE A MÁGICA ACONTECE - chama o método que já existe!
+        playerDidMake(gesture: gesture)
+    }
+    
+    func gestureDetectionLost() {
+        gestureDebugLabel?.text = "Gesto: Nenhum"
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
@@ -113,26 +196,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             secondBody = contact.bodyA
         }
 
-        if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
-            
-            // 2. ATIVA A TRAVA: Impede que esta lógica seja executada novamente.
-            isPlayerDead = true
-            
-            // 3. EXECUTA A LÓGICA DE GAME OVER (agora de forma segura)
-            // Opcional: Você pode adicionar um pequeno delay para o jogador ver o que aconteceu.
-            let waitAction = SKAction.wait(forDuration: 0.1)
-            let transitionAction = SKAction.run {
-                if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
-                    gameOverScene.scaleMode = .aspectFill
-                    gameOverScene.finalScore = self.scoreComponent.scoreCount
-                    let transition = SKTransition.fade(withDuration: 1.0)
-                    self.view?.presentScene(gameOverScene, transition: transition)
-                }
-            }
-            
-            // Roda a sequência: espera um pouco e depois faz a transição.
-            self.run(SKAction.sequence([waitAction, transitionAction]))
-        }
+//        if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
+//            
+//            // 2. ATIVA A TRAVA: Impede que esta lógica seja executada novamente.
+//            isPlayerDead = true
+//            
+//            // 3. EXECUTA A LÓGICA DE GAME OVER (agora de forma segura)
+//            // Opcional: Você pode adicionar um pequeno delay para o jogador ver o que aconteceu.
+//            let waitAction = SKAction.wait(forDuration: 0.1)
+//            let transitionAction = SKAction.run {
+//                if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
+//                    gameOverScene.scaleMode = .aspectFill
+//                    gameOverScene.finalScore = self.scoreComponent.scoreCount
+//                    let transition = SKTransition.fade(withDuration: 1.0)
+//                    self.view?.presentScene(gameOverScene, transition: transition)
+//                }
+//            }
+//            
+//            // Roda a sequência: espera um pouco e depois faz a transição.
+//            self.run(SKAction.sequence([waitAction, transitionAction]))
+//        }
     }
     
       func didEnd(_ contact: SKPhysicsContact) {
@@ -147,6 +230,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // em uma cena que não está mais visível, o que causaria um crash.
         // MARK: Ta com bug quando desliga o Ipad (continua gerando inimigos)
         enemySpawner.stopSpawningEnemies()
+        
+        gestureManager?.stopDetection()
+        
+        gestureManager?.removeCameraPreview()
     }
     
     
@@ -204,14 +291,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.view?.presentScene(pauseScene, transition: transition)
         }
         
-        // Se o botão "Rock" foi tocado, chama a lógica do jogo para o gesto "Rock".
-        if touchedNode.name == "rockButton" {
-            playerDidMake(gesture: "Rock")
-        }
-        
-        // Se o botão "Two" foi tocado, chama a lógica do jogo para o gesto "Two".
-        if touchedNode.name == "twoButton" {
-            playerDidMake(gesture: "Two")
-        }
+//        // Se o botão "Rock" foi tocado, chama a lógica do jogo para o gesto "Rock".
+//        if touchedNode.name == "rockButton" {
+//            playerDidMake(gesture: "Rock")
+//        }
+//        
+//        // Se o botão "Two" foi tocado, chama a lógica do jogo para o gesto "Two".
+//        if touchedNode.name == "twoButton" {
+//            playerDidMake(gesture: "Two")
+//        }
     }
 }

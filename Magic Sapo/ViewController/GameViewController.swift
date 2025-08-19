@@ -8,6 +8,7 @@
 import UIKit
 import SpriteKit
 import GameplayKit
+import AVFoundation
 
 class GameViewController: UIViewController {
 
@@ -20,8 +21,16 @@ class GameViewController: UIViewController {
         if let view = self.view as! SKView? {
             // Load the SKScene from 'GameScene.sks'
             if let scene = SKScene(fileNamed: "MenuScene") {
+                
+                // CONFIGURAÇÃO ADAPTATIVA DO SCALE MODE
+                if DeviceHelper.isIPhone {
+                    scene.scaleMode = .aspectFill  // Melhor para iPhone
+                } else {
+                    scene.scaleMode = .aspectFit   // Melhor para iPad
+                }
+                
                 // Set the scale mode to scale to fit the window
-                scene.scaleMode = .aspectFill
+//                scene.scaleMode = .aspectFill
                 
                 // Present the scene
                 view.presentScene(scene)
@@ -31,6 +40,39 @@ class GameViewController: UIViewController {
             
             view.showsFPS = true
             view.showsNodeCount = true
+        }
+    }
+    
+    // MARK: - Método para lidar com mudanças de orientação
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        coordinator.animate(alongsideTransition: { _ in
+            // Código executado durante a transição
+        }, completion: { _ in
+            // Código executado após a transição ser completada
+            self.updateCameraOrientation()
+        })
+    }
+    
+    private func updateCameraOrientation() {
+        // Acessa a cena atual e atualiza a orientação da câmera se necessário
+        if let view = self.view as? SKView,
+           let scene = view.scene {
+            
+            // Se a cena atual tem um gesture detection manager, atualize sua orientação
+            // Você pode implementar isso de diferentes formas dependendo de como sua arquitetura está estruturada
+            
+            // Opção 1: Se o GestureDetectionManager está na GameScene
+            if let gameScene = scene as? GameScene {
+                gameScene.gestureManager?.updateOrientation()
+            }
+            
+            // Opção 2: Se você tem uma referência direta no GameViewController
+            // gestureDetectionManager?.updateOrientation()
+            
+            // Opção 3: Usando NotificationCenter para comunicar com as cenas
+            NotificationCenter.default.post(name: NSNotification.Name("OrientationDidChange"), object: nil)
         }
     }
     
@@ -57,11 +99,20 @@ class GameViewController: UIViewController {
         }
     }
 
+//    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+//        if UIDevice.current.userInterfaceIdiom == .phone {
+//            return .allButUpsideDown
+//        } else {
+//            return .all
+//        }
+//    }
+    
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return .allButUpsideDown
+        // Adapta as orientações suportadas baseado no dispositivo
+        if DeviceHelper.isIPhone {
+            return .portrait  // iPhone 
         } else {
-            return .all
+            return .landscapeRight      // iPad
         }
     }
 
