@@ -15,7 +15,7 @@ import CoreML
 class GameViewController2: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     private var captureSession: AVCaptureSession!
-    private var poseClassifier: MLModelV3!
+    private var poseClassifier: MLModelV4!
     private let videoOutputQueue = DispatchQueue(label: "videoOutputQueue", qos: .userInitiated)
 
     private var previewLayer: AVCaptureVideoPreviewLayer!
@@ -54,7 +54,7 @@ class GameViewController2: UIViewController, AVCaptureVideoDataOutputSampleBuffe
             
             do {
                 let configuration = MLModelConfiguration()
-                self.poseClassifier = try MLModelV3(contentsOf: modelURL, configuration: configuration)
+                self.poseClassifier = try MLModelV4(contentsOf: modelURL, configuration: configuration)
                 print("Modelo de gestos carregado com sucesso via URL.")
                 
             } catch {

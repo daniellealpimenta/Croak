@@ -94,10 +94,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
         setupGestureDetection()
         
         // Setup camera preview
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            if let view = self.view {
-                self.gestureManager.setupCameraPreview(in: view)
-            }
+        if let view = self.view {
+            self.gestureManager.setupCameraPreview(in: view)
         }
         
         // Opcional: Label para debug dos gestos
@@ -135,32 +133,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
         if let label = gestureDebugLabel {
             addChild(label)
         }
-    }
-
-    override func didChangeSize(_ oldSize: CGSize) {
-        super.didChangeSize(oldSize)
-        
-        // Reposiciona o preview da câmera quando a orientação muda
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.repositionCameraPreview()
-        }
-    }
-
-    private func repositionCameraPreview() {
-        guard let view = self.view,
-              let cameraView = gestureManager?.cameraView else { return }
-        
-        let cameraViewWidth: CGFloat = 150
-        let cameraViewHeight: CGFloat = 200
-        let padding: CGFloat = 20
-        
-        // Reposiciona baseado no novo tamanho da view
-        cameraView.frame = CGRect(
-            x: view.bounds.width - cameraViewWidth - padding,
-            y: padding,
-            width: cameraViewWidth,
-            height: cameraViewHeight
-        )
     }
         
     func gestureDetected(_ gesture: String, confidence: Double) {

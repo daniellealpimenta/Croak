@@ -15,7 +15,7 @@ import CoreML
 class GestureDetectionManager: NSObject {
     let session = AVCaptureSession()
     let handPoseRequest = VNDetectHumanHandPoseRequest()
-    let model = try! MLModelV3(configuration: MLModelConfiguration()) // SUBSTITUA pelo nome do seu modelo
+    let model = try! MLModelV4(configuration: MLModelConfiguration()) // SUBSTITUA pelo nome do seu modelo
     
     weak var delegate: GestureDetectionDelegate?
     
@@ -33,12 +33,12 @@ class GestureDetectionManager: NSObject {
         setupCamera()
         configureHandPoseRequest()
         
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(orientationChanged),
-            name: UIDevice.orientationDidChangeNotification,
-            object: nil
-        )
+//        NotificationCenter.default.addObserver(
+//            self,
+//            selector: #selector(orientationChanged),
+//            name: UIDevice.orientationDidChangeNotification,
+//            object: nil
+//        )
     }
     
     func configureHandPoseRequest() {
@@ -46,20 +46,20 @@ class GestureDetectionManager: NSObject {
         handPoseRequest.revision = VNDetectHumanHandPoseRequestRevision1
     }
     
-    private func setupOrientationNotification() {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(orientationChanged),
-            name: UIDevice.orientationDidChangeNotification,
-            object: nil
-        )
-    }
-    
-    @objc private func orientationChanged() {
-        DispatchQueue.main.async {
-            self.updateVideoOrientation()
-        }
-    }
+//    private func setupOrientationNotification() {
+//        NotificationCenter.default.addObserver(
+//            self,
+//            selector: #selector(orientationChanged),
+//            name: UIDevice.orientationDidChangeNotification,
+//            object: nil
+//        )
+//    }
+//
+//    @objc private func orientationChanged() {
+//        DispatchQueue.main.async {
+//            self.updateVideoOrientation()
+//        }
+//    }
     
     func setupCamera() {
         session.beginConfiguration()
@@ -116,13 +116,19 @@ class GestureDetectionManager: NSObject {
             let layer = AVCaptureVideoPreviewLayer(session: self.session)
             layer.frame = camView.bounds
             layer.videoGravity = .resizeAspectFill
+            
+            if #available(iOS 17.0, *) {
+                layer.connection?.videoRotationAngle = 180
+            } else {
+                layer.connection?.videoOrientation = .landscapeRight
+            }
 
             self.previewLayer = layer
             camView.layer.addSublayer(layer)
             skView.addSubview(camView)
             
             // Configura orientação inicial
-            self.updateVideoOrientation()
+//            self.updateVideoOrientation()
         }
     }
 
@@ -168,43 +174,43 @@ class GestureDetectionManager: NSObject {
     
     // MARK: - Orientação
         
-    private func currentInterfaceOrientation() -> UIInterfaceOrientation {
-        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            return scene.interfaceOrientation
-        }
-        return .landscapeRight // Default para iPad
-    }
+//    private func currentInterfaceOrientation() -> UIInterfaceOrientation {
+//        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+//            return scene.interfaceOrientation
+//        }
+//        return .landscapeRight // Default para iPad
+//    }
     
-    private func updateVideoOrientation() {
-        guard let connection = previewLayer?.connection else { return }
-        
-        let io = currentInterfaceOrientation()
-        
-        if #available(iOS 17.0, *) {
-            let angle: CGFloat
-            switch io {
-            case .landscapeLeft: angle = 0   // Home à direita
-            case .landscapeRight: angle = 180   // Home à esquerda
-            case .portrait: angle = 270
-            case .portraitUpsideDown: angle = 90
-            default: angle = 0
-            }
-            if connection.isVideoRotationAngleSupported(angle) {
-                connection.videoRotationAngle = angle
-            }
-        } else {
-            guard connection.isVideoOrientationSupported else { return }
-            let videoOrientation: AVCaptureVideoOrientation
-            switch io {
-            case .landscapeLeft: videoOrientation = .landscapeLeft
-            case .landscapeRight: videoOrientation = .landscapeRight
-            case .portrait: videoOrientation = .portrait
-            case .portraitUpsideDown: videoOrientation = .portraitUpsideDown
-            default: videoOrientation = .landscapeRight
-            }
-            connection.videoOrientation = videoOrientation
-        }
-    }
+//    private func updateVideoOrientation() {
+//        guard let connection = previewLayer?.connection else { return }
+//
+//        let io = currentInterfaceOrientation()
+//
+//        if #available(iOS 17.0, *) {
+//            let angle: CGFloat
+//            switch io {
+//            case .landscapeLeft: angle = 0   // Home à direita
+//            case .landscapeRight: angle = 180   // Home à esquerda
+//            case .portrait: angle = 270
+//            case .portraitUpsideDown: angle = 90
+//            default: angle = 0
+//            }
+//            if connection.isVideoRotationAngleSupported(angle) {
+//                connection.videoRotationAngle = angle
+//            }
+//        } else {
+//            guard connection.isVideoOrientationSupported else { return }
+//            let videoOrientation: AVCaptureVideoOrientation
+//            switch io {
+//            case .landscapeLeft: videoOrientation = .landscapeLeft
+//            case .landscapeRight: videoOrientation = .landscapeRight
+//            case .portrait: videoOrientation = .portrait
+//            case .portraitUpsideDown: videoOrientation = .portraitUpsideDown
+//            default: videoOrientation = .landscapeRight
+//            }
+//            connection.videoOrientation = videoOrientation
+//        }
+//    }
     
     private func configureVideoConnection(_ output: AVCaptureVideoDataOutput) {
         guard let connection = output.connection(with: .video) else { return }
@@ -216,7 +222,7 @@ class GestureDetectionManager: NSObject {
         }
         
         // Configura orientação inicial
-        updateVideoOrientation()
+//        updateVideoOrientation()
     }
 
 }
@@ -227,7 +233,8 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
-        let orientation = currentVideoOrientation()
+//        let orientation = currentVideoOrientation()
+        let orientation: CGImagePropertyOrientation = .down
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: orientation, options: [:])
         
         do {
@@ -272,24 +279,24 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
     }
     
     // Orientação para processamento de Vision
-    private func currentVideoOrientation() -> CGImagePropertyOrientation {
-       let deviceOrientation = currentInterfaceOrientation()
-       let cameraPosition: AVCaptureDevice.Position = .front
-       
-       switch deviceOrientation {
-       case .landscapeLeft:
-           // Home à direita - para câmera frontal, usar .up
-           return cameraPosition == .front ? .up : .down
-       case .landscapeRight:
-           // Home à esquerda - para câmera frontal, usar .down
-           return cameraPosition == .front ? .down : .up
-       case .portrait:
-           return cameraPosition == .front ? .leftMirrored : .right
-       case .portraitUpsideDown:
-           return cameraPosition == .front ? .rightMirrored : .left
-       default:
-           return cameraPosition == .front ? .up : .down
-       }
-    }
+//    private func currentVideoOrientation() -> CGImagePropertyOrientation {
+//       let deviceOrientation = currentInterfaceOrientation()
+//       let cameraPosition: AVCaptureDevice.Position = .front
+//       
+//       switch deviceOrientation {
+//       case .landscapeLeft:
+//           // Home à direita - para câmera frontal, usar .up
+//           return cameraPosition == .front ? .up : .down
+//       case .landscapeRight:
+//           // Home à esquerda - para câmera frontal, usar .down
+//           return cameraPosition == .front ? .down : .up
+//       case .portrait:
+//           return cameraPosition == .front ? .leftMirrored : .right
+//       case .portraitUpsideDown:
+//           return cameraPosition == .front ? .rightMirrored : .left
+//       default:
+//           return cameraPosition == .front ? .up : .down
+//       }
+//    }
 }
 
