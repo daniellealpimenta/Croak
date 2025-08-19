@@ -202,6 +202,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // Acessamos os valores usando .points e .coins
             scoreComponent.addScore(point: rewards.points)
             coinsComponent.addCoins(coins: rewards.coins)
+            
+            // Pede ao spawner para atualizar a velocidade dos inimigos
+            // com base na nova pontuação total.
+            enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
 
             print("Ganhou \(rewards.coins) moedas!")
         }

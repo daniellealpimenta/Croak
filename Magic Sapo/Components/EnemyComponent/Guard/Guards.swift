@@ -14,6 +14,7 @@ import SpriteKit
 /// Esta struct conforma ao protocolo `Enemy`, fornecendo uma implementação concreta
 /// de como um Guarda deve ser criado e qual sua pontuação.
 struct Guards: Enemy {
+    
 
     // MARK: - Propriedades Estáticas (do Tipo)
     
@@ -27,6 +28,9 @@ struct Guards: Enemy {
     /// Lista de gestos que podem ser associados a um "Guarda".
     /// Quando um "Guarda" é criado, um destes gestos será escolhido aleatoriamente.
     static var gesture = Gestures()
+    
+    /// Exigencia do protocolo Enemy para velocidade
+    static var speed: Int  = 1
 
 
     // MARK: - Método de Criação (Fábrica)
@@ -50,6 +54,11 @@ struct Guards: Enemy {
                 pb.collisionBitMask = PhysicsCategory.none // Inimigos também não precisam empurrar nada
                 pb.contactTestBitMask = PhysicsCategory.frog // Queremos ser notificados do contato com o sapo
             }
+        
+        // Troquei aqui para o Guarda guardar as moedas/pontos
+        evilGuard.userData = NSMutableDictionary()
+        evilGuard.userData?.setValue(Guards.pointValue, forKey: "points")
+        evilGuard.userData?.setValue(Guards.coinValue, forKey: "coins")
 
         // 2. Escolhe um nome de gesto aleatório da lista de gestos disponíveis.
         guard let randomGestureName = Gestures.availableGestures.randomElement() else {

@@ -47,7 +47,7 @@ class EnemySpawner {
                // Cria um timer que chama a função 'spawnEnemy' a cada 3 segundos.
                // Usar target/selector deixa o código de start/stop mais limpo.
                spawnTimer = Timer.scheduledTimer(
-                   timeInterval: 3.0,
+                   timeInterval: 1.0,
                    target: self,
                    selector: #selector(spawnEnemy),
                    userInfo: nil,
@@ -63,6 +63,12 @@ class EnemySpawner {
         }
         
         // MARK: - Ações Públicas
+    
+        /// Repassa a chamada de atualização de velocidade para o controlador de inimigos.
+        public func updateEnemySpeed(basedOn score: Int) {
+            enemyControl.updateSpeed(basedOn: score)
+        }
+    
         
         /// Delega a chamada para matar um inimigo para o `enemyControl`.
         /// A GameScene falará com este método, e ele repassará a ordem.
