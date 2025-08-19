@@ -8,78 +8,81 @@
 import Foundation
 import SpriteKit
 
-// MARK: - Inimigo: Guards
-
-/// Representa o tipo de inimigo "Guarda".
-/// Esta struct conforma ao protocolo `Enemy`, fornecendo uma implementação concreta
-/// de como um Guarda deve ser criado e qual sua pontuação.
 struct Guards: Enemy {
     
-
-    // MARK: - Propriedades Estáticas (do Tipo)
+    // MARK: - Propriedades Estáticas (Exigidas pelo Protocolo 'Enemy')
     
-    /// Define que derrotar um "Guarda" vale 1 ponto.
-    /// Esta é uma exigência do protocolo `Enemy`.
     static var pointValue: Int = 1
-    
-    /// Exigencia do protocolo Enemy para cada guarda dropar 3 moedas
     static var coinValue: Int = 3
+    static var speed: Int = 1
     
-    /// Lista de gestos que podem ser associados a um "Guarda".
-    /// Quando um "Guarda" é criado, um destes gestos será escolhido aleatoriamente.
+    /// ESTA É A LINHA QUE FALTAVA.
+    /// Adicionando-a de volta, a struct 'Guards' passa a se conformar
+    /// novamente ao protocolo 'Enemy'.
     static var gesture = Gestures()
     
-    /// Exigencia do protocolo Enemy para velocidade
-    static var speed: Int  = 1
+    // MARK: - Propriedades de Animação (Otimização)
+    
+    // Pré-carregamos as texturas da animação apenas uma vez para melhor performance.
+    static let animationFrames: [SKTexture] = {
+        var frames: [SKTexture] = []
+        for i in 1...7 {
+            let textureName = "guard\(i)"
+            frames.append(SKTexture(imageNamed: textureName))
+        }
+        return frames
+    }()
 
-
+    
     // MARK: - Método de Criação (Fábrica)
     
-    /// Cria e configura um nó de sprite para um inimigo "Guarda".
-    /// - Parameter position: A posição inicial onde o inimigo deve ser criado na cena.
-    /// - Returns: Um `SKSpriteNode` totalmente configurado representando o Guarda.
     static func create(at position: CGPoint) -> SKSpriteNode? {
         
-        // 1. Cria o corpo principal do inimigo (o quadrado vermelho).
-        let evilGuard = SKSpriteNode(color: .red, size: CGSize(width: 50, height: 50))
-        evilGuard.name = "Guard" // Nome que to usando para achar o tipo de inimigo e dar a pontuação certa.
-        evilGuard.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 50, height: 50))
-        evilGuard.physicsBody?.isDynamic = true
-        evilGuard.physicsBody?.affectedByGravity = false
+        guard let firstFrame = animationFrames.first else {
+            print("Erro: Texturas de animação para 'Guards' não foram encontradas.")
+            return nil
+        }
+        
+        // 1. Cria o corpo principal do inimigo usando a animação.
+        let evilGuard = SKSpriteNode(texture: firstFrame, size: CGSize(width: 100, height: 100))
+        
+        // 2. Cria e executa a animação em loop.
+        let animationAction = SKAction.animate(with: animationFrames, timePerFrame: 0.1)
+        let loopingAnimation = SKAction.repeatForever(animationAction)
+        evilGuard.run(loopingAnimation)
+        
+        // 3. Aplica as outras configurações
+        evilGuard.name = "Guard"
         evilGuard.position = position
         
-        // AQUI É ADICIONADo A CONFIGURAÇÃO DE FÍSICA DO INIMIGO
-        if let pb = evilGuard.physicsBody {
-                pb.categoryBitMask = PhysicsCategory.enemy
-                pb.collisionBitMask = PhysicsCategory.none // Inimigos também não precisam empurrar nada
-                pb.contactTestBitMask = PhysicsCategory.frog // Queremos ser notificados do contato com o sapo
-            }
+        evilGuard.physicsBody = SKPhysicsBody(rectangleOf: evilGuard.size)
+        evilGuard.physicsBody?.isDynamic = true
+        evilGuard.physicsBody?.affectedByGravity = false
         
-        // Troquei aqui para o Guarda guardar as moedas/pontos
+        if let pb = evilGuard.physicsBody {
+            pb.categoryBitMask = PhysicsCategory.enemy
+            pb.collisionBitMask = PhysicsCategory.none
+            pb.contactTestBitMask = PhysicsCategory.frog
+        }
+        
         evilGuard.userData = NSMutableDictionary()
         evilGuard.userData?.setValue(Guards.pointValue, forKey: "points")
         evilGuard.userData?.setValue(Guards.coinValue, forKey: "coins")
 
-        // 2. Escolhe um nome de gesto aleatório da lista de gestos disponíveis.
+        // Esta linha usa a definição da sua struct Gestures, não a propriedade do protocolo.
+        // Isso está correto, mas é bom saber a diferença.
         guard let randomGestureName = Gestures.availableGestures.randomElement() else {
-            // Se, por algum motivo, não conseguir escolher um gesto, a criação falha.
+            print("Erro: Não foi possível obter um gesto aleatório.")
             return nil
         }
 
-        // 3. Cria o sprite para o gesto (a imagem que aparece acima do inimigo).
         let gestureSprite = SKSpriteNode(imageNamed: randomGestureName)
-        gestureSprite.size = CGSize(width: 40, height: 40)
-        gestureSprite.position = CGPoint(x: 0, y: 60) // Posicionado um pouco acima do corpo do inimigo.
-        
-        // 4. O nome do sprite do gesto é o próprio nome do gesto (ex: "Rock").
-        // É assim que a função `killEnemy` vai saber qual inimigo matar.
+        gestureSprite.size = CGSize(width: 50, height: 50)
+        gestureSprite.position = CGPoint(x: 0, y: 80)
         gestureSprite.name = randomGestureName
         
-        // 5. Adiciona o sprite do gesto como um "filho" do corpo do inimigo.
-        // Agora, quando o corpo se mover, o gesto se moverá junto.
         evilGuard.addChild(gestureSprite)
 
-        // 6. Retorna o inimigo completo (corpo + gesto).
         return evilGuard
     }
 }

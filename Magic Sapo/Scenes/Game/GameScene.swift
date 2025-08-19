@@ -50,6 +50,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     /// Método chamado uma única vez quando a cena é apresentada na tela.
     /// Essa func so serve pra configuracao inicial
     override func didMove(to view: SKView) {
+        
         // Este método é chamado toda vez que a cena é apresentada.
         // Nós só queremos configurar tudo na primeira vez.
         if !sceneIsInitialized {
@@ -94,8 +95,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let twoButton = SKSpriteNode(imageNamed: "Two")
         twoButton.name = "twoButton"
         twoButton.size = CGSize(width: 80, height: 80)
-        twoButton.position = CGPoint(x: 150, y: -self.size.height/2 + 100)
+        twoButton.position = CGPoint(x: 200, y: -self.size.height/2 + 100)
         self.addChild(twoButton)
+        
+        let lButton = SKSpriteNode(imageNamed: "L")
+        lButton.name = "lButton"
+        lButton.size = CGSize(width: 80, height: 80)
+        lButton.position = CGPoint(x: -300, y: -self.size.height/2 + 100)
+        self.addChild(lButton)
+        
+        let hangLButton = SKSpriteNode(imageNamed: "HangLoose")
+        hangLButton.name = "hangLButton"
+        hangLButton.size = CGSize(width: 80, height: 80)
+        hangLButton.position = CGPoint(x: 300, y: -self.size.height/2 + 100)
+        self.addChild(hangLButton)
+        
+        let openPButton = SKSpriteNode(imageNamed: "OpenPalm")
+        openPButton.name = "openPButton"
+        openPButton.size = CGSize(width: 80, height: 80)
+        openPButton.position = CGPoint(x: 400, y: -self.size.height/2 + 100)
+        self.addChild(openPButton)
+        
+        
     }
     
     @objc func pauseGame() {
@@ -271,6 +292,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if touchedNode.name == "twoButton" {
                 playerDidMake(gesture: "Two")
             }
+        
+            // Se o botão "L" foi tocado
+            if touchedNode.name == "lButton" {
+                playerDidMake(gesture: "L")
+            }
+        
+            if touchedNode.name == "hangLButton"{
+                playerDidMake(gesture: "HangLoose")
+            }
+        
+            if touchedNode.name == "openPButton"{
+                playerDidMake(gesture: "OpenPalm")
+            }
+
+     
         }
     
         // Cria os nós que compõem o menu de pausa e os adiciona à cena.
