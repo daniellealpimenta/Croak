@@ -30,5 +30,10 @@ protocol Enemy {
     static var coinValue: Int { get }
   
     static var gesture: Gestures { get }
+    
+    static var speed: Int { get }
+    
+ //   static var gestureQuantity: Int { get }
+    // Vai ficar um em cima do outro
 
 }

@@ -8,7 +8,7 @@ import SpriteKit
 import GameplayKit
 
 struct PhysicsCategory {
-    static let none: UInt32 = 0         // 0
+    static let none: UInt32 = 0        // 0
     static let frog: UInt32 = 0b1        // 1
     static let enemy: UInt32 = 0b10       // 2
     // Adicione outras categorias aqui se precisar (ex: projétil, parede, etc)
@@ -46,7 +46,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
     
     override func sceneDidLoad() {
         self.physicsWorld.contactDelegate = self
-    }
+      }
+    //    Flag para controlar a inicialização da cena.
+    private var sceneIsInitialized = false
+    
+    private var pauseOverlay: SKNode?
     
     // MARK: - Ciclo de Vida da Cena
     
@@ -54,41 +58,39 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
     /// Essa func so serve pra configuracao inicial
     override func didMove(to view: SKView) {
         
-        backgroundColor = .gray
+        // Este método é chamado toda vez que a cena é apresentada.
+        // Nós só queremos configurar tudo na primeira vez.
+        if !sceneIsInitialized {
+            setupScene()
+            sceneIsInitialized = true
+        }
+    }
+    
+    private func setupScene() {
+        print("Configurando a GameScene pela primeira vez.")
+        
+        // --- Adiciona os Observers ---
+        NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppWillResignActive"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(resumeGame), name: NSNotification.Name("AppDidBecomeActive"), object: nil)
+        
+        // --- Mundo da Física ---
+        self.physicsWorld.contactDelegate = self
         
         // --- Configuração dos Componentes ---
+        backgroundComponent = BackgroundComponent(parent: self)
+        backgroundComponent.setupAnimatedBackground()
         
-        // Inicializa o componente de fundo e o configura.
-//        if backgroundComponent == nil {
-//            backgroundComponent = BackgroundComponent(parent: self)
-//        }
-//        backgroundComponent.setupAnimatedBackground()
+        scoreComponent = ScoreComponent(parent: self)
+        coinsComponent = CoinsComponent(parent: self)
         
-        // Inicializa o componente de pontuação.
-        if scoreComponent == nil {
-            scoreComponent = ScoreComponent(parent: self)
-        }
-    
-        // Inicializa o componente de moedas.
-        if coinsComponent == nil {
-            coinsComponent = CoinsComponent(parent: self)
-        }
+        // --- Spawner de Inimigos ---
+        enemySpawner = EnemySpawner(scene: self)
+        enemySpawner.startSpawningEnemies()
         
-        // Inicializa o spawner de inimigos e começa a criar inimigos.
-        self.enemySpawner = EnemySpawner(scene: self)
-        self.enemySpawner.startSpawningEnemies()
-        
-//        let frog = Frog(parent: self)
-//        let frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
-        
-        // --- FROG ADAPTATIVO ---
+        // --- Configuração do Jogador (Sapo) ---
         let frog = Frog(parent: self)
-        let frogY = DeviceHelper.isIPhone ? -self.size.height/2 + 120 : -self.size.height/2 + 150
-        let frogNode = frog.createNode(at: CGPoint(x: -30, y: frogY))
-        
-        if self.childNode(withName: "Frog") == nil{
-            self.addChild(frogNode)
-        }
+        let frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+        self.addChild(frogNode)
 
         // Configurar detecção de gestos
         setupGestureDetection()
@@ -100,6 +102,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
         
         // Opcional: Label para debug dos gestos
         setupGestureDebugUI()
+        
+        // --- Configuração dos Botões de Ação ---
+        let rockButton = SKSpriteNode(imageNamed: "Rock")
+        rockButton.name = "rockButton"
+        rockButton.size = CGSize(width: 80, height: 80)
+        rockButton.position = CGPoint(x: -200, y: -self.size.height/2 + 100)
+        self.addChild(rockButton)
+        
+        let twoButton = SKSpriteNode(imageNamed: "Two")
+        twoButton.name = "twoButton"
+        twoButton.size = CGSize(width: 80, height: 80)
+        twoButton.position = CGPoint(x: 200, y: -self.size.height/2 + 100)
+        self.addChild(twoButton)
+        
+        let lButton = SKSpriteNode(imageNamed: "L")
+        lButton.name = "lButton"
+        lButton.size = CGSize(width: 80, height: 80)
+        lButton.position = CGPoint(x: -300, y: -self.size.height/2 + 100)
+        self.addChild(lButton)
+        
+        let hangLButton = SKSpriteNode(imageNamed: "HangLose")
+        hangLButton.name = "hangLButton"
+        hangLButton.size = CGSize(width: 80, height: 80)
+        hangLButton.position = CGPoint(x: 300, y: -self.size.height/2 + 100)
+        self.addChild(hangLButton)
+        
+        let openPButton = SKSpriteNode(imageNamed: "OpenPalm")
+        openPButton.name = "openPButton"
+        openPButton.size = CGSize(width: 80, height: 80)
+        openPButton.position = CGPoint(x: 400, y: -self.size.height/2 + 100)
+        self.addChild(openPButton)
+        
+        let pauseButton = SKSpriteNode(imageNamed: "PauseButton") // Certifique-se de que "PauseButton" exista nos seus Assets.
+        pauseButton.name = "PauseButton"
+        pauseButton.size = CGSize(width: 100, height: 100)
+        pauseButton.position = CGPoint(x: self.size.width / 2 - 70, y: self.size.height / 2 - 50)
+        
+        pauseButton.zPosition = 50 // Garante que ele fique acima de outros elementos da UI, se houver.
+        self.addChild(pauseButton)
         
     }
     
@@ -146,6 +187,43 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
     func gestureDetectionLost() {
         gestureDebugLabel?.text = "Gesto: Nenhum"
     }
+    
+    @objc func pauseGame() {
+        // 1. Garante que o jogo não está pausado e que a camada de pausa não existe
+        guard !isPaused else { return }
+        
+        print("🛑 PAUSANDO JOGO COMPLETAMENTE")
+        
+        // 2. Para a criação de novos inimigos
+        enemySpawner.stopSpawningEnemies()
+        
+        // 3. Pausa a cena inteira. Isso congela TODAS as ações e a física.
+        // A ordem aqui é crucial. Pausar a cena primeiro garante que nada se mova
+        // enquanto você constrói a tela de pausa.
+        self.isPaused = true
+        
+        // 4. Cria e mostra a camada de pausa (o menu)
+        createPauseOverlay()
+    }
+
+    /// Retoma o jogo.
+    @objc func resumeGame() {
+        // 1. Garante que o jogo está realmente pausado
+        guard isPaused else { return }
+        
+        print("▶️ RETOMANDO JOGO COMPLETAMENTE")
+        
+        // 2. Remove a camada de pausa da tela
+        pauseOverlay?.removeFromParent()
+        pauseOverlay = nil
+        
+        // 3. Despausa a cena
+        self.isPaused = false
+        
+        // 4. Retoma o spawn de novos inimigos
+        enemySpawner.startSpawningEnemies()
+    }
+    
     
     func didBegin(_ contact: SKPhysicsContact) {
         // 1. VERIFICA A TRAVA: Se o jogador já morreu, não faz mais nada.
@@ -216,6 +294,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
             // Acessamos os valores usando .points e .coins
             scoreComponent.addScore(point: rewards.points)
             coinsComponent.addCoins(coins: rewards.coins)
+            
+            // Pede ao spawner para atualizar a velocidade dos inimigos
+            // com base na nova pontuação total.
+            enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
 
             print("Ganhou \(rewards.coins) moedas!")
         }
@@ -227,33 +309,120 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
     // MARK: To usando pros botoes de matar e pause, mas no futuro vai usar so pro pause
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        
-        // Pega o primeiro toque e sua localização na cena.
-        guard let touch = touches.first else { return }
-        let location = touch.location(in: self)
-        
-        // Descobre qual nó (botão, inimigo, etc.) foi tocado.
-        // MARK: Esse atPoint vai ser muito util se a gente for colocar o modo de botoes la
-        let touchedNode = atPoint(location)
-        
-        // --- Verificação dos Botões ---
-        
-        // Lógica para o botão de Pausa.
-        // Nota: O botão em si não está sendo criado nesta cena, mas a lógica para ele está aqui.
-        if touchedNode.name == "PauseButton" {
-            print("Botão Pausar foi tocado!")
-            
-            // Carrega e apresenta a cena de pausa.
-            guard let pauseScene = SKScene(fileNamed: "PauseScene") as? PauseScene else {
-                print("ERRO: Não foi possível carregar a PauseScene.")
+            guard let touch = touches.first else { return }
+            let location = touch.location(in: self)
+            let touchedNode = atPoint(location)
+
+            // --- LÓGICA DE PAUSA ---
+            // Se o jogo está pausado, apenas os botões do menu de pausa devem funcionar.
+            if isPaused {
+                
+                // Se o botão "Retomar" for tocado...
+                if touchedNode.name == "ReturnButton" {
+                    resumeGame()
+                }
+                
+                // Se o botão "Reiniciar" for tocado
+                if touchedNode.name == "ResetButton" {
+                    // Cria e apresenta uma cena de jogo totalmente nova
+                    if let newGameScene = SKScene(fileNamed: "GameScene") as? GameScene {
+                        newGameScene.scaleMode = .aspectFill
+                        let transition = SKTransition.fade(withDuration: 1.0)
+                        view?.presentScene(newGameScene, transition: transition)
+                    }
+                }
+                
+                // Se o botão "Sair" for tocado
+                if touchedNode.name == "ExitButton" {
+                    // Carrega a MenuScene
+                    if let menuScene = SKScene(fileNamed: "MenuScene") {
+                        menuScene.scaleMode = .aspectFill
+                        let transition = SKTransition.fade(withDuration: 1.0)
+                        view?.presentScene(menuScene, transition: transition)
+                    }
+                }
+                
+                // Importante: Sai da função para não processar toques do jogo (como atacar)
                 return
             }
+
+            // --- LÓGICA DO JOGO (só executa se o jogo NÃO estiver pausado) ---
             
-            pauseScene.setGameScene(scene: self)
+            // Se o botão de Pausa do jogo (que fica na HUD) for tocado
+            if touchedNode.name == "PauseButton" {
+                print("Botão Pausar foi tocado!")
+                self.pauseGame()
+            }
             
-            pauseScene.scaleMode = .aspectFill
-            let transition = SKTransition.fade(withDuration: 0.5)
-            self.view?.presentScene(pauseScene, transition: transition)
+            // Se o botão "Rock" foi tocado
+            if touchedNode.name == "rockButton" {
+                playerDidMake(gesture: "Rock")
+            }
+            
+            // Se o botão "Two" foi tocado
+            if touchedNode.name == "twoButton" {
+                playerDidMake(gesture: "Two")
+            }
+        
+            // Se o botão "L" foi tocado
+            if touchedNode.name == "lButton" {
+                playerDidMake(gesture: "L")
+            }
+        
+            if touchedNode.name == "hangLButton"{
+                playerDidMake(gesture: "HangLose")
+            }
+        
+            if touchedNode.name == "openPButton"{
+                playerDidMake(gesture: "OpenPalm")
+            }
+
+    
         }
-    }
+    
+        // Cria os nós que compõem o menu de pausa e os adiciona à cena.
+            private func createPauseOverlay() {
+                // Cria um nó pai para todos os elementos do menu
+                pauseOverlay = SKNode()
+                pauseOverlay?.zPosition = 100 // Garante que fique na frente de tudo
+                
+                // Cria um fundo semitransparente para escurecer o jogo
+                let background = SKSpriteNode(color: .black, size: self.size)
+                background.alpha = 0.7
+                pauseOverlay?.addChild(background)
+                
+                // Adiciona os botões (você pode carregar suas imagens aqui)
+                let resumeButton = SKLabelNode(text: "Retomar")
+                resumeButton.name = "ReturnButton" // Usamos o mesmo nome da sua PauseScene
+                resumeButton.fontName = "Helvetica-Bold"
+                resumeButton.fontSize = 50
+                resumeButton.position = CGPoint(x: 0, y: 100)
+                pauseOverlay?.addChild(resumeButton)
+                
+                let resetButton = SKLabelNode(text: "Reiniciar")
+                resetButton.name = "ResetButton"
+                resetButton.fontName = "Helvetica-Bold"
+                resetButton.fontSize = 50
+                resetButton.position = CGPoint(x: 0, y: 0)
+                pauseOverlay?.addChild(resetButton)
+                
+                let exitButton = SKLabelNode(text: "Sair")
+                exitButton.name = "ExitButton"
+                exitButton.fontName = "Helvetica-Bold"
+                exitButton.fontSize = 50
+                exitButton.position = CGPoint(x: 0, y: -100)
+                pauseOverlay?.addChild(exitButton)
+                
+                // Adiciona a camada completa na cena
+                if let overlay = pauseOverlay {
+                    self.addChild(overlay)
+                }
+            }
+        
+        // Este método é chamado quando a cena é removida da memória.
+        deinit {
+            print("GameScene está sendo removida, limpando os observers.")
+            // Remove todos os observers associados a esta cena para evitar vazamentos de memória.
+            NotificationCenter.default.removeObserver(self)
+        }
 }
