@@ -55,6 +55,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
     override func didMove(to view: SKView) {
         
         backgroundColor = .gray
+        
         // --- Configuração dos Componentes ---
         
         // Inicializa o componente de fundo e o configura.
@@ -99,39 +100,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
         // Opcional: Label para debug dos gestos
         setupGestureDebugUI()
         
-    }
-    
-    // NOVO MÉTODO: Configuração adaptativa dos botões
-    private func setupAdaptiveButtons() {
-        
-        let buttonSize = CGSize(
-            width: 80 * DeviceHelper.scaleFactor,
-            height: 80 * DeviceHelper.scaleFactor
-        )
-        
-        // Posições adaptativas baseadas no dispositivo
-        let bottomOffset: CGFloat = DeviceHelper.isIPhone ? 80 : 100
-        let horizontalSpacing: CGFloat = DeviceHelper.isIPhone ? 120 : 175
-        
-        // Botão Rock
-        let rockButton = SKSpriteNode(imageNamed: "Rock")
-        rockButton.name = "rockButton"
-        rockButton.size = buttonSize
-        rockButton.position = CGPoint(
-            x: -horizontalSpacing,
-            y: -self.size.height/2 + bottomOffset
-        )
-        self.addChild(rockButton)
-        
-        // Botão Two
-        let twoButton = SKSpriteNode(imageNamed: "Two")
-        twoButton.name = "twoButton"
-        twoButton.size = buttonSize
-        twoButton.position = CGPoint(
-            x: horizontalSpacing,
-            y: -self.size.height/2 + bottomOffset
-        )
-        self.addChild(twoButton)
     }
     
     private func setupGestureDetection() {
@@ -196,26 +164,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
             secondBody = contact.bodyA
         }
 
-//        if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
-//            
-//            // 2. ATIVA A TRAVA: Impede que esta lógica seja executada novamente.
-//            isPlayerDead = true
-//            
-//            // 3. EXECUTA A LÓGICA DE GAME OVER (agora de forma segura)
-//            // Opcional: Você pode adicionar um pequeno delay para o jogador ver o que aconteceu.
-//            let waitAction = SKAction.wait(forDuration: 0.1)
-//            let transitionAction = SKAction.run {
-//                if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
-//                    gameOverScene.scaleMode = .aspectFill
-//                    gameOverScene.finalScore = self.scoreComponent.scoreCount
-//                    let transition = SKTransition.fade(withDuration: 1.0)
-//                    self.view?.presentScene(gameOverScene, transition: transition)
-//                }
-//            }
-//            
-//            // Roda a sequência: espera um pouco e depois faz a transição.
-//            self.run(SKAction.sequence([waitAction, transitionAction]))
-//        }
+        if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
+            
+            // 2. ATIVA A TRAVA: Impede que esta lógica seja executada novamente.
+            isPlayerDead = true
+            
+            // 3. EXECUTA A LÓGICA DE GAME OVER (agora de forma segura)
+            // Opcional: Você pode adicionar um pequeno delay para o jogador ver o que aconteceu.
+            let waitAction = SKAction.wait(forDuration: 0.1)
+            let transitionAction = SKAction.run {
+                if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
+                    gameOverScene.scaleMode = .aspectFill
+                    gameOverScene.finalScore = self.scoreComponent.scoreCount
+                    let transition = SKTransition.fade(withDuration: 1.0)
+                    self.view?.presentScene(gameOverScene, transition: transition)
+                }
+            }
+            
+            // Roda a sequência: espera um pouco e depois faz a transição.
+            self.run(SKAction.sequence([waitAction, transitionAction]))
+        }
     }
     
       func didEnd(_ contact: SKPhysicsContact) {
@@ -290,15 +258,5 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
             let transition = SKTransition.fade(withDuration: 0.5)
             self.view?.presentScene(pauseScene, transition: transition)
         }
-        
-//        // Se o botão "Rock" foi tocado, chama a lógica do jogo para o gesto "Rock".
-//        if touchedNode.name == "rockButton" {
-//            playerDidMake(gesture: "Rock")
-//        }
-//        
-//        // Se o botão "Two" foi tocado, chama a lógica do jogo para o gesto "Two".
-//        if touchedNode.name == "twoButton" {
-//            playerDidMake(gesture: "Two")
-//        }
     }
 }

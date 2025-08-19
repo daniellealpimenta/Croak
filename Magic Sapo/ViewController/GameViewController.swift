@@ -43,39 +43,6 @@ class GameViewController: UIViewController {
         }
     }
     
-    // MARK: - Método para lidar com mudanças de orientação
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        
-        coordinator.animate(alongsideTransition: { _ in
-            // Código executado durante a transição
-        }, completion: { _ in
-            // Código executado após a transição ser completada
-            self.updateCameraOrientation()
-        })
-    }
-    
-    private func updateCameraOrientation() {
-        // Acessa a cena atual e atualiza a orientação da câmera se necessário
-        if let view = self.view as? SKView,
-           let scene = view.scene {
-            
-            // Se a cena atual tem um gesture detection manager, atualize sua orientação
-            // Você pode implementar isso de diferentes formas dependendo de como sua arquitetura está estruturada
-            
-            // Opção 1: Se o GestureDetectionManager está na GameScene
-            if let gameScene = scene as? GameScene {
-                gameScene.gestureManager?.updateOrientation()
-            }
-            
-            // Opção 2: Se você tem uma referência direta no GameViewController
-            // gestureDetectionManager?.updateOrientation()
-            
-            // Opção 3: Usando NotificationCenter para comunicar com as cenas
-            NotificationCenter.default.post(name: NSNotification.Name("OrientationDidChange"), object: nil)
-        }
-    }
-    
     // O erro era a falta do @objc (pesquisar dps)
     @objc func PauseGame() {
         print("Pausando o jogo")

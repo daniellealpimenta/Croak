@@ -93,41 +93,10 @@ class GestureDetectionManager: NSObject {
             let layer = AVCaptureVideoPreviewLayer(session: self.session)
             layer.frame = camView.bounds
             layer.videoGravity = .resizeAspectFill
-            
-            // CORREÇÃO DA ORIENTAÇÃO
-           self.updatePreviewOrientation(layer: layer)
-            
+
             self.previewLayer = layer
             camView.layer.addSublayer(layer)
             skView.addSubview(camView)
-        }
-    }
-    
-    private func updatePreviewOrientation(layer: AVCaptureVideoPreviewLayer) {
-        // Configura a orientação baseada no dispositivo
-        if DeviceHelper.isIPhone {
-            // iPhone - modo portrait
-            layer.connection?.videoRotationAngle = 0
-        } else {
-            // iPad - modo landscape
-            layer.connection?.videoRotationAngle = 90
-        }
-        
-        // Também atualiza a orientação da conexão do video output para manter consistência
-        if let videoConnection = self.videoOutput?.connection(with: .video) {
-            if DeviceHelper.isIPhone {
-                videoConnection.videoRotationAngle = 0
-            } else {
-                videoConnection.videoRotationAngle = 90
-            }
-        }
-    }
-    
-    // Função para atualizar orientação quando o dispositivo rotaciona
-    func updateOrientation() {
-        guard let previewLayer = self.previewLayer else { return }
-        DispatchQueue.main.async {
-            self.updatePreviewOrientation(layer: previewLayer)
         }
     }
 
