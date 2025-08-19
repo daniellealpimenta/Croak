@@ -22,7 +22,7 @@ class EnemyControl {
     
     // Pontuacao para subir de estagio
     // Para o maximo: limita em 15
-    private let scorePerStage: Int = 75
+    private let scorePerStage: Int = 15
     
     // Padrao 0.02
     // Para o maximo testa com 0.5

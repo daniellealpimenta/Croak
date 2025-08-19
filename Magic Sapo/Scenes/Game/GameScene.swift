@@ -103,41 +103,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
         // Opcional: Label para debug dos gestos
         setupGestureDebugUI()
         
-        // --- Configuração dos Botões de Ação ---
-        let rockButton = SKSpriteNode(imageNamed: "Rock")
-        rockButton.name = "rockButton"
-        rockButton.size = CGSize(width: 80, height: 80)
-        rockButton.position = CGPoint(x: -200, y: -self.size.height/2 + 100)
-        self.addChild(rockButton)
-        
-        let twoButton = SKSpriteNode(imageNamed: "Two")
-        twoButton.name = "twoButton"
-        twoButton.size = CGSize(width: 80, height: 80)
-        twoButton.position = CGPoint(x: 200, y: -self.size.height/2 + 100)
-        self.addChild(twoButton)
-        
-        let lButton = SKSpriteNode(imageNamed: "L")
-        lButton.name = "lButton"
-        lButton.size = CGSize(width: 80, height: 80)
-        lButton.position = CGPoint(x: -300, y: -self.size.height/2 + 100)
-        self.addChild(lButton)
-        
-        let hangLButton = SKSpriteNode(imageNamed: "HangLose")
-        hangLButton.name = "hangLButton"
-        hangLButton.size = CGSize(width: 80, height: 80)
-        hangLButton.position = CGPoint(x: 300, y: -self.size.height/2 + 100)
-        self.addChild(hangLButton)
-        
-        let openPButton = SKSpriteNode(imageNamed: "OpenPalm")
-        openPButton.name = "openPButton"
-        openPButton.size = CGSize(width: 80, height: 80)
-        openPButton.position = CGPoint(x: 400, y: -self.size.height/2 + 100)
-        self.addChild(openPButton)
-        
         let pauseButton = SKSpriteNode(imageNamed: "PauseButton") // Certifique-se de que "PauseButton" exista nos seus Assets.
         pauseButton.name = "PauseButton"
         pauseButton.size = CGSize(width: 100, height: 100)
-        pauseButton.position = CGPoint(x: self.size.width / 2 - 70, y: self.size.height / 2 - 50)
+        pauseButton.position = CGPoint(x: self.size.width / 2 - 70, y: self.size.height / 2 - 70)
         
         pauseButton.zPosition = 50 // Garante que ele fique acima de outros elementos da UI, se houver.
         self.addChild(pauseButton)
