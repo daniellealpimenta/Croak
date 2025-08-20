@@ -2,56 +2,31 @@
 //  LoseScene.swift
 //  Magic Sapo
 //
-//  Created by Daniel Leal PImenta on 15/08/25.
+//  Created by Daniel Leal Pimenta on 15/08/25.
 //
 
 import SpriteKit
 
-/// A cena do menu principal. É a primeira tela que o jogador vê.
-/// Sua principal responsabilidade é exibir o título e o botão de "Jogar"
-/// e iniciar a transição para a `GameScene` quando o botão é pressionado.
 class GameOverScene: SKScene {
 
     // MARK: - Propriedades
     
-    /// Uma referência à instância da `GameScene` que estava ativa quando o jogo foi pausado.
-    /// Isso é **crucial** para permitir que o jogador retome o jogo do ponto exato onde parou.
-    var gameScene: SKScene?
+    /// Guarda o nome do arquivo da cena que levou ao Game Over (ex: "GameScene" ou "ButtonMode").
+    var previousSceneName: String?
     
     var finalScore: Int = 0
 
-    // MARK: - Inicialização
-    
-    /// Inicializador padrão, necessário quando a cena é carregada de um arquivo.
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        
-    }
-
-    /// Método público para que a `GameScene` possa "se passar" como referência
-    /// antes da transição para a cena de pausa acontecer.
-    func setGameScene(scene: SKScene) {
-        // MENSAGEM DE DEPURAÇÃO
-        print("DEBUG (PauseScene): Método 'setGameScene' foi chamado com a cena: \(scene)")
-        self.gameScene = scene
-    }
-    
     // MARK: - Ciclo de Vida da Cena
 
-    /// Método chamado quando a cena é apresentada na tela.
     override func didMove(to view: SKView) {
-        // MENSAGEM DE DEPURAÇÃO
+        // Atualiza o label da pontuação final
         if let scoreLabel = self.childNode(withName: "//scoreValue") as? SKLabelNode {
-            
-            // 3. ATUALIZE O TEXTO DO LABEL
-            //    Agora você usa a variável 'finalScore' para definir o texto.
             scoreLabel.text = "\(finalScore)"
         }
     }
     
     // MARK: - Entrada do Usuário
     
-    /// Esta função é chamada quando o usuário toca na tela.
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         
         guard let touch = touches.first else { return }
@@ -65,11 +40,18 @@ class GameOverScene: SKScene {
         if touchedNode.name == "ResetButton" {
             print("Botão Reiniciar foi tocado!")
             
-            // Carrega uma **nova instância** da GameScene para começar um jogo do zero.
-            if let gameScene = SKScene(fileNamed: "GameScene") {
-                gameScene.scaleMode = .aspectFill
+            // CORREÇÃO: Usa a variável 'previousSceneName' para carregar a cena correta.
+            if let sceneNameToLoad = previousSceneName, let newGameScene = SKScene(fileNamed: sceneNameToLoad) {
+                newGameScene.scaleMode = .aspectFill
                 let transition = SKTransition.fade(withDuration: 1.0)
-                view?.presentScene(gameScene, transition: transition)
+                view?.presentScene(newGameScene, transition: transition)
+            } else {
+                // Se por algum motivo o nome da cena não foi passado, volta ao menu principal como segurança.
+                print("Erro: Nome da cena anterior não encontrado. Voltando para o Menu.")
+                if let menuScene = SKScene(fileNamed: "MenuScene") {
+                    menuScene.scaleMode = .aspectFill
+                    view?.presentScene(menuScene, transition: .fade(withDuration: 1.0))
+                }
             }
         }
         

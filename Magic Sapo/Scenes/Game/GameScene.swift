@@ -7,13 +7,6 @@
 import SpriteKit
 import GameplayKit
 
-struct PhysicsCategory {
-    static let none: UInt32 = 0        // 0
-    static let frog: UInt32 = 0b1        // 1
-    static let enemy: UInt32 = 0b10       // 2
-    // Adicione outras categorias aqui se precisar (ex: projétil, parede, etc)
-}
-
 // MARK: Essa bomba ta grande demais ja, tem que dar um jeito de diminuir
 
 /// A cena principal do jogo, onde toda a ação acontece.
@@ -196,7 +189,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
     
     func didBegin(_ contact: SKPhysicsContact) {
         // 1. VERIFICA A TRAVA: Se o jogador já morreu, não faz mais nada.
-        // Esta é a parte mais importante da solução.
         guard !isPlayerDead else { return }
 
         let firstBody: SKPhysicsBody
@@ -216,12 +208,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
             isPlayerDead = true
             
             // 3. EXECUTA A LÓGICA DE GAME OVER (agora de forma segura)
-            // Opcional: Você pode adicionar um pequeno delay para o jogador ver o que aconteceu.
             let waitAction = SKAction.wait(forDuration: 0.1)
             let transitionAction = SKAction.run {
                 if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
                     gameOverScene.scaleMode = .aspectFill
                     gameOverScene.finalScore = self.scoreComponent.scoreCount
+                    
+                    // --- LINHA ADICIONADA ---
+                    // Informa para a próxima cena qual modo de jogo deve ser reiniciado.
+                    gameOverScene.previousSceneName = "GameScene"
+                    
                     let transition = SKTransition.fade(withDuration: 1.0)
                     self.view?.presentScene(gameOverScene, transition: transition)
                 }
