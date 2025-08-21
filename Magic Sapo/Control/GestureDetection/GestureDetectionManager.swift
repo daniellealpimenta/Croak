@@ -15,7 +15,7 @@ import CoreML
 class GestureDetectionManager: NSObject {
     let session = AVCaptureSession()
     let handPoseRequest = VNDetectHumanHandPoseRequest()
-    let model = try! MLModelV4(configuration: MLModelConfiguration()) // SUBSTITUA pelo nome do seu modelo
+    let model = try! MLModelV6(configuration: MLModelConfiguration()) // SUBSTITUA pelo nome do seu modelo
     
     weak var delegate: GestureDetectionDelegate?
     
