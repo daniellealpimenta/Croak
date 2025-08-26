@@ -133,32 +133,6 @@ class GestureDetectionManager: NSObject {
         skView.addSubview(camView)
     }
     
-    func expandCameraPreviewToFullScreen(in skView: SKView) {
-            // 1. Garante que a cameraView já foi criada.
-            guard let camView = self.cameraView else {
-                print("A cameraView ainda não foi inicializada e não pode ser expandida.")
-                return
-            }
-            
-            // 2. Garante que a atualização da UI seja feita na thread principal.
-            DispatchQueue.main.async {
-                // 3. Define o novo frame como sendo a tela inteira.
-                let fullScreenFrame = skView.bounds
-                
-                // 4. Anima a transição para o novo frame.
-                UIView.animate(withDuration: 0.4, animations: {
-                    camView.frame = fullScreenFrame
-                    
-                    // Remove a borda e o canto arredondado para o modo de tela cheia.
-                    camView.layer.cornerRadius = 0
-                    camView.layer.borderWidth = 0
-                    
-                    // Ajusta o frame da camada de preview para preencher a nova view.
-                    self.previewLayer?.frame = camView.bounds
-                })
-            }
-        }
-    
     private func addHandOverlay(to parentView: UIView) {
         // Cria o ImageView para a mão
         let handImageView = UIImageView()
@@ -184,14 +158,36 @@ class GestureDetectionManager: NSObject {
         NSLayoutConstraint.activate([
             handImageView.centerXAnchor.constraint(equalTo: parentView.centerXAnchor),
             handImageView.centerYAnchor.constraint(equalTo: parentView.centerYAnchor),
-            handImageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: 0.6), // 60% da largura
-            handImageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: 0.8) // 80% da altura
+            handImageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: 0.4), // 60% da largura
+            handImageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: 0.6) // 80% da altura
         ])
-        
-        // Opcional: Adicionar uma animação sutil de "pulsação"
-//        addPulseAnimation(to: handImageView)
     }
-
+    
+    func expandCameraPreviewToFullScreen(in skView: SKView) {
+        // 1. Garante que a cameraView já foi criada.
+        guard let camView = self.cameraView else {
+            print("A cameraView ainda não foi inicializada e não pode ser expandida.")
+            return
+        }
+        
+        // 2. Garante que a atualização da UI seja feita na thread principal.
+        DispatchQueue.main.async {
+            // 3. Define o novo frame como sendo a tela inteira.
+            let fullScreenFrame = skView.bounds
+            
+            // 4. Anima a transição para o novo frame.
+            UIView.animate(withDuration: 0.4, animations: {
+                camView.frame = fullScreenFrame
+                
+                // Remove a borda e o canto arredondado para o modo de tela cheia.
+                camView.layer.cornerRadius = 0
+                camView.layer.borderWidth = 0
+                
+                // Ajusta o frame da camada de preview para preencher a nova view.
+                self.previewLayer?.frame = camView.bounds
+            })
+        }
+    }
 
     /// Remove a janela de preview da câmera da tela.
     func removeCameraPreview() {
