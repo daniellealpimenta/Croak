@@ -49,4 +49,9 @@ class ScoreComponent {
         self.scoreCount += point
         self.scoreLabel.text = "Pontuação: \(self.scoreCount)"
     }
+    
+    func decreaseScore(point: Int) {
+        self.scoreCount -= point
+        self.scoreLabel.text = "Pontuação: \(self.scoreCount)"
+    }
 }

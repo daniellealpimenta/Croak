@@ -40,21 +40,12 @@ class GameViewController: UIViewController {
         }
     }
     
-
-//    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-//        if UIDevice.current.userInterfaceIdiom == .phone {
-//            return .allButUpsideDown
-//        } else {
-//            return .all
-//        }
-//    }
-    
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         // Adapta as orientações suportadas baseado no dispositivo
         if DeviceHelper.isIPhone {
             return .portrait  // iPhone 
         } else {
-            return .landscapeRight      // iPad
+            return .landscapeRight  // iPad
         }
     }
 

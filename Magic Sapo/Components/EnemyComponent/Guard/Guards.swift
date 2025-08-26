@@ -14,12 +14,12 @@ struct Guards: Enemy {
     
     static var pointValue: Int = 1
     static var coinValue: Int = 3
-    static var speed: Int = 1
+    static var speed: Double = 1.0
     
     /// ESTA É A LINHA QUE FALTAVA.
     /// Adicionando-a de volta, a struct 'Guards' passa a se conformar
     /// novamente ao protocolo 'Enemy'.
-    static var gesture = Gestures()
+    static var gestures: [String] = Gestures.availableGestures
     
     // MARK: - Propriedades de Animação (Otimização)
     
@@ -68,10 +68,11 @@ struct Guards: Enemy {
         evilGuard.userData = NSMutableDictionary()
         evilGuard.userData?.setValue(Guards.pointValue, forKey: "points")
         evilGuard.userData?.setValue(Guards.coinValue, forKey: "coins")
+        evilGuard.userData?.setValue(1, forKey: "health")
 
         // Esta linha usa a definição da sua struct Gestures, não a propriedade do protocolo.
         // Isso está correto, mas é bom saber a diferença.
-        guard let randomGestureName = Gestures.availableGestures.randomElement() else {
+        guard let randomGestureName = self.gestures.randomElement() else {
             print("Erro: Não foi possível obter um gesto aleatório.")
             return nil
         }
