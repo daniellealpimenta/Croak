@@ -12,7 +12,7 @@ import GameplayKit
 /// A cena principal do jogo, onde toda a ação acontece.
 /// Esta classe atua como um "maestro", orquestrando os diferentes componentes
 /// (placar, fundo, inimigos) e respondendo à entrada do jogador.
-class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
+class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, ScoreHavingScene {
     
     // MARK: - Componentes
     

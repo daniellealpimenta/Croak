@@ -29,9 +29,9 @@ protocol Enemy {
     /// Propriedade estática que define quantas moedas o jogador ganha ao derrotar este tipo de inimigo.
     static var coinValue: Int { get }
   
-    static var gesture: Gestures { get }
+    static var gestures: [String] { get }
     
-    static var speed: Int { get }
+    static var speed: Double { get }
     
  //   static var gestureQuantity: Int { get }
     // Vai ficar um em cima do outro
