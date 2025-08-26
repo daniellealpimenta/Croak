@@ -14,6 +14,7 @@ import GameplayKit
 /// (placar, fundo, inimigos) e respondendo à entrada do jogador.
 class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
     
+    var startInGestureMode = false
     // MARK: - Componentes
     
     private var isPlayerDead = false
@@ -104,6 +105,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
         pauseButton.zPosition = 50 // Garante que ele fique acima de outros elementos da UI, se houver.
         self.addChild(pauseButton)
         
+        if startInGestureMode {
+            enterGestureValidationMode()
+        }
+    }
+    
+    func enterGestureValidationMode() {
+            print("Iniciando modo de validação de gestos...")
+            
+            // Garante que temos uma referência à view principal da cena.
+            guard let view = self.view else { return }
+            
+            // Chama a função de expansão que criamos no Passo 1
+            gestureManager?.expandCameraPreviewToFullScreen(in: view)
     }
     
     private func setupGestureDetection() {
@@ -202,30 +216,30 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
             secondBody = contact.bodyA
         }
 
-        if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
-            
-            // 2. ATIVA A TRAVA: Impede que esta lógica seja executada novamente.
-            isPlayerDead = true
-            
-            // 3. EXECUTA A LÓGICA DE GAME OVER (agora de forma segura)
-            let waitAction = SKAction.wait(forDuration: 0.1)
-            let transitionAction = SKAction.run {
-                if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
-                    gameOverScene.scaleMode = .aspectFill
-                    gameOverScene.finalScore = self.scoreComponent.scoreCount
-                    
-                    // --- LINHA ADICIONADA ---
-                    // Informa para a próxima cena qual modo de jogo deve ser reiniciado.
-                    gameOverScene.previousSceneName = "GameScene"
-                    
-                    let transition = SKTransition.fade(withDuration: 1.0)
-                    self.view?.presentScene(gameOverScene, transition: transition)
-                }
-            }
-            
-            // Roda a sequência: espera um pouco e depois faz a transição.
-            self.run(SKAction.sequence([waitAction, transitionAction]))
-        }
+//        if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
+//            
+//            // 2. ATIVA A TRAVA: Impede que esta lógica seja executada novamente.
+//            isPlayerDead = true
+//            
+//            // 3. EXECUTA A LÓGICA DE GAME OVER (agora de forma segura)
+//            let waitAction = SKAction.wait(forDuration: 0.1)
+//            let transitionAction = SKAction.run {
+//                if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
+//                    gameOverScene.scaleMode = .aspectFill
+//                    gameOverScene.finalScore = self.scoreComponent.scoreCount
+//                    
+//                    // --- LINHA ADICIONADA ---
+//                    // Informa para a próxima cena qual modo de jogo deve ser reiniciado.
+//                    gameOverScene.previousSceneName = "GameScene"
+//                    
+//                    let transition = SKTransition.fade(withDuration: 1.0)
+//                    self.view?.presentScene(gameOverScene, transition: transition)
+//                }
+//            }
+//            
+//            // Roda a sequência: espera um pouco e depois faz a transição.
+//            self.run(SKAction.sequence([waitAction, transitionAction]))
+//        }
     }
     
       func didEnd(_ contact: SKPhysicsContact) {

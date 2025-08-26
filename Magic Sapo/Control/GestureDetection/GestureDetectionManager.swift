@@ -95,42 +95,103 @@ class GestureDetectionManager: NSObject {
         // Garante que não vamos criar a view múltiplas vezes
         guard self.cameraView == nil else { return }
         
-        DispatchQueue.main.async {
-            let cameraViewWidth: CGFloat = 400
-            let cameraViewHeight: CGFloat = 200
-            let padding: CGFloat = 20
-            
-            // Cria a UIView que vai conter a imagem da câmera
-            let camView = UIView(frame: CGRect(x: padding,
-                                                            y: skView.bounds.height - cameraViewHeight - padding,
-                                                            width: cameraViewWidth,
-                                                            height: cameraViewHeight))
-            
-            camView.layer.cornerRadius = 10
-            camView.layer.borderColor = UIColor.white.cgColor
-            camView.layer.borderWidth = 2
-            camView.clipsToBounds = true
-            self.cameraView = camView
-            
-            // Cria a camada de preview usando a SESSÃO DA CÂMERA JÁ EXISTENTE
-            let layer = AVCaptureVideoPreviewLayer(session: self.session)
-            layer.frame = camView.bounds
-            layer.videoGravity = .resizeAspectFill
-            
-            if #available(iOS 17.0, *) {
-                layer.connection?.videoRotationAngle = 180
-            } else {
-                layer.connection?.videoOrientation = .landscapeRight
-            }
-
-            self.previewLayer = layer
-            camView.layer.addSublayer(layer)
-            skView.addSubview(camView)
-            
-            // Configura orientação inicial
-//            self.updateVideoOrientation()
+        // REMOVEMOS O DispatchQueue.main.async DAQUI
+        
+        let cameraViewWidth: CGFloat = 400
+        let cameraViewHeight: CGFloat = 200
+        let padding: CGFloat = 20
+        
+        // Cria a UIView que vai conter a imagem da câmera
+        let camView = UIView(frame: CGRect(x: padding,
+                                        y: skView.bounds.height - cameraViewHeight - padding,
+                                        width: cameraViewWidth,
+                                        height: cameraViewHeight))
+        
+        camView.layer.cornerRadius = 10
+        camView.layer.borderColor = UIColor.white.cgColor
+        camView.layer.borderWidth = 2
+        camView.clipsToBounds = true
+        self.cameraView = camView // A view agora é criada imediatamente
+        
+        // Cria a camada de preview usando a SESSÃO DA CÂMERA JÁ EXISTENTE
+        let layer = AVCaptureVideoPreviewLayer(session: self.session)
+        layer.frame = camView.bounds
+        layer.videoGravity = .resizeAspectFill
+        
+        if #available(iOS 17.0, *) {
+            layer.connection?.videoRotationAngle = 180
+        } else {
+            layer.connection?.videoOrientation = .landscapeRight
         }
+
+        self.previewLayer = layer
+        camView.layer.addSublayer(layer)
+        
+        // ADICIONA A IMAGEM DA MÃO COMO OVERLAY
+        self.addHandOverlay(to: camView)
+        
+        skView.addSubview(camView)
     }
+    
+    func expandCameraPreviewToFullScreen(in skView: SKView) {
+            // 1. Garante que a cameraView já foi criada.
+            guard let camView = self.cameraView else {
+                print("A cameraView ainda não foi inicializada e não pode ser expandida.")
+                return
+            }
+            
+            // 2. Garante que a atualização da UI seja feita na thread principal.
+            DispatchQueue.main.async {
+                // 3. Define o novo frame como sendo a tela inteira.
+                let fullScreenFrame = skView.bounds
+                
+                // 4. Anima a transição para o novo frame.
+                UIView.animate(withDuration: 0.4, animations: {
+                    camView.frame = fullScreenFrame
+                    
+                    // Remove a borda e o canto arredondado para o modo de tela cheia.
+                    camView.layer.cornerRadius = 0
+                    camView.layer.borderWidth = 0
+                    
+                    // Ajusta o frame da camada de preview para preencher a nova view.
+                    self.previewLayer?.frame = camView.bounds
+                })
+            }
+        }
+    
+    private func addHandOverlay(to parentView: UIView) {
+        // Cria o ImageView para a mão
+        let handImageView = UIImageView()
+        
+        // Carrega a imagem da mão (substitua "hand_outline" pelo nome da sua imagem)
+        if let handImage = UIImage(named: "hand-outline-white") {
+            handImageView.image = handImage
+        } else {
+            print("⚠️ Imagem 'hand_outline' não encontrada nos assets")
+            // Fallback: criar uma imagem simples programaticamente se necessário
+            handImageView.backgroundColor = UIColor.white.withAlphaComponent(0.3)
+        }
+        
+        // Configurações do ImageView
+        handImageView.contentMode = .scaleAspectFit
+        handImageView.translatesAutoresizingMaskIntoConstraints = false
+        handImageView.alpha = 0.6 // Transparência para não cobrir muito a câmera
+        
+        // Adiciona ao container
+        parentView.addSubview(handImageView)
+        
+        // Constraints para centralizar e dimensionar
+        NSLayoutConstraint.activate([
+            handImageView.centerXAnchor.constraint(equalTo: parentView.centerXAnchor),
+            handImageView.centerYAnchor.constraint(equalTo: parentView.centerYAnchor),
+            handImageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: 0.6), // 60% da largura
+            handImageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: 0.8) // 80% da altura
+        ])
+        
+        // Opcional: Adicionar uma animação sutil de "pulsação"
+//        addPulseAnimation(to: handImageView)
+    }
+
 
     /// Remove a janela de preview da câmera da tela.
     func removeCameraPreview() {
