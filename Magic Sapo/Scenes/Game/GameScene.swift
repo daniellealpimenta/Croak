@@ -113,12 +113,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
     func enterGestureValidationMode() {
             print("Iniciando modo de validação de gestos...")
             
-            // Garante que temos uma referência à view principal da cena.
             guard let view = self.view else { return }
             
-            // Chama a função de expansão que criamos no Passo 1
+            // 1. Expande a câmera para tela cheia.
             gestureManager?.expandCameraPreviewToFullScreen(in: view)
-    }
+            
+            // 2. Cria uma sequência de ações: esperar e depois executar um bloco de código.
+            let waitAction = SKAction.wait(forDuration: 3.0)
+            let shrinkAction = SKAction.run { [weak self] in
+                // Garante que a cena e a view ainda existem quando este bloco for executado.
+                guard let self = self, let view = self.view else { return }
+                print("Passaram 3 segundos. Retornando a câmera para a posição original.")
+                // Chama a nova função para encolher a câmera.
+                self.gestureManager?.shrinkCameraPreviewToOriginal(in: view)
+            }
+            
+            // 3. Executa a sequência na cena.
+            self.run(SKAction.sequence([waitAction, shrinkAction]))
+        }
     
     private func setupGestureDetection() {
         gestureManager = GestureDetectionManager()

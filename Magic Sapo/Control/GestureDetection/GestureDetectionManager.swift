@@ -23,6 +23,8 @@ class GestureDetectionManager: NSObject {
     var cameraView: UIView?
     private var videoOutput: AVCaptureVideoDataOutput?
     
+    private var originalCameraFrame: CGRect?
+    
     // Configurações para melhorar a precisão
     private let confidenceThreshold: Double = 0.95
     private let bufferSize = 5
@@ -95,23 +97,27 @@ class GestureDetectionManager: NSObject {
         // Garante que não vamos criar a view múltiplas vezes
         guard self.cameraView == nil else { return }
         
-        // REMOVEMOS O DispatchQueue.main.async DAQUI
-        
         let cameraViewWidth: CGFloat = 400
         let cameraViewHeight: CGFloat = 200
         let padding: CGFloat = 20
         
-        // Cria a UIView que vai conter a imagem da câmera
-        let camView = UIView(frame: CGRect(x: padding,
-                                        y: skView.bounds.height - cameraViewHeight - padding,
-                                        width: cameraViewWidth,
-                                        height: cameraViewHeight))
+        // 1. Cria o frame (a posição e o tamanho) para a câmera.
+        let frame = CGRect(x: padding,
+                           y: skView.bounds.height - cameraViewHeight - padding,
+                           width: cameraViewWidth,
+                           height: cameraViewHeight)
+        
+        // 2. AQUI ESTÁ A CORREÇÃO: Salva o frame na nossa propriedade.
+        self.originalCameraFrame = frame
+        
+        // 3. Usa o frame que acabamos de criar para inicializar a UIView.
+        let camView = UIView(frame: frame)
         
         camView.layer.cornerRadius = 10
         camView.layer.borderColor = UIColor.white.cgColor
         camView.layer.borderWidth = 2
         camView.clipsToBounds = true
-        self.cameraView = camView // A view agora é criada imediatamente
+        self.cameraView = camView
         
         // Cria a camada de preview usando a SESSÃO DA CÂMERA JÁ EXISTENTE
         let layer = AVCaptureVideoPreviewLayer(session: self.session)
@@ -154,6 +160,29 @@ class GestureDetectionManager: NSObject {
                     camView.layer.borderWidth = 0
                     
                     // Ajusta o frame da camada de preview para preencher a nova view.
+                    self.previewLayer?.frame = camView.bounds
+                })
+            }
+        }
+    
+    func shrinkCameraPreviewToOriginal(in skView: SKView) {
+            // 1. Garante que a view da câmera e o frame original existam.
+            guard let camView = self.cameraView, let originalFrame = self.originalCameraFrame else {
+                print("A cameraView ou o frame original não foram inicializados.")
+                return
+            }
+            
+            // 2. Garante que a atualização da UI seja feita na thread principal.
+            DispatchQueue.main.async {
+                // 3. Anima a transição de volta para o frame original.
+                UIView.animate(withDuration: 0.4, animations: {
+                    camView.frame = originalFrame
+                    
+                    // Restaura a aparência original (borda e cantos arredondados).
+                    camView.layer.cornerRadius = 10
+                    camView.layer.borderWidth = 2
+                    
+                    // Ajusta o frame da camada de preview para preencher a view menor.
                     self.previewLayer?.frame = camView.bounds
                 })
             }
