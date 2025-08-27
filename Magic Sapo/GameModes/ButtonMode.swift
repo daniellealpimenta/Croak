@@ -12,7 +12,7 @@ import GameplayKit
 /// A cena principal do jogo, onde toda a ação acontece.
 /// Esta classe atua como um "maestro", orquestrando os diferentes componentes
 /// (placar, fundo, inimigos) e respondendo à entrada do jogador.
-class ButtonScene: SKScene, SKPhysicsContactDelegate {
+class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene {
     
     // MARK: - Componentes
     
@@ -234,6 +234,17 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate {
             enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
 
             print("Ganhou \(rewards.coins) moedas!")
+        }else {
+            // --- LÓGICA DE PENALIDADE ATUALIZADA ---
+            // ERRO: O gesto não acertou nenhum inimigo válido.
+            // Verificamos se a jogada veio de um botão antes de aplicar a penalidade.
+            // SÓ aplica a penalidade se a pontuação for maior que 0.
+            if scoreComponent.scoreCount > 0 {
+                print("Gesto errado com botão! Aplicando penalidade.")
+                scoreComponent.decreaseScore(point: 1)
+            } else {
+                print("Gesto errado com botão, mas a pontuação já é 0. Nenhuma penalidade aplicada.")
+            }
         }
     }
     

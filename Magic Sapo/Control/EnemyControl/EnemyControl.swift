@@ -125,59 +125,76 @@ class EnemyControl {
     ///   - scene: A cena onde a busca pelo inimigo será feita.
     /// - Returns: O valor em pontos do inimigo destruído, ou nil se nenhum inimigo for encontrado.
     ///
+    // Em EnemyControl.swift
+
     public func killEnemy(withGesture gesture: String, in scene: SKScene) -> (points: Int, coins: Int)? {
+        
+        // Define a "Kill Zone" para que os inimigos só possam ser atingidos em uma área específica.
+        let killZoneTopY: CGFloat = scene.size.height / 2 - 150
+        let killZoneBottomY: CGFloat = -scene.size.height / 2 + 300
+        
+        var totalPoints = 0
+        var totalCoins = 0
+        var anyEnemyHit = false
+        
+        // Itera por todos os inimigos ativos.
+        for (index, enemy) in activeEnemies.enumerated().reversed() {
             
-            // --- PASSO 1: Crie variáveis para acumular as recompensas ---
-            var totalPoints = 0
-            var totalCoins = 0
-            var enemiesWereKilled = false
-
-            // Percorre todos os inimigos ativos, de trás para frente para evitar problemas ao remover itens do array.
-            for (index, enemy) in activeEnemies.enumerated().reversed() {
+            // Pula o inimigo se ele não estiver dentro da zona de ataque.
+            guard enemy.position.y < killZoneTopY && enemy.position.y > killZoneBottomY else {
+                continue
+            }
+            
+            // Verifica se o inimigo possui um gesto correspondente.
+            if let gestureNode = enemy.childNode(withName: gesture) {
                 
-                // Verifica se o inimigo atual corresponde ao gesto.
-                if enemy.childNode(withName: gesture) != nil {
+                anyEnemyHit = true
+                
+                // --- CORREÇÃO PRINCIPAL CONTRA O BUG DE TOQUES RÁPIDOS ---
+                // 1. "Desarma" o gesto imediatamente, mudando seu nome.
+                //    Isso impede que o mesmo toque rápido seja contado duas vezes.
+                gestureNode.name = "hit"
+                
+                // 2. Roda a animação de remoção visual do gesto.
+                gestureNode.run(SKAction.sequence([
+                    SKAction.scale(to: 0, duration: 0.2),
+                    SKAction.removeFromParent()
+                ]))
+                
+                // 3. Acessa o contador 'health' e o diminui em 1.
+                if let health = enemy.userData?["health"] as? Int {
+                    let newHealth = health - 1
+                    enemy.userData?.setValue(newHealth, forKey: "health")
                     
-                    // --- PASSO 2: Processe CADA inimigo encontrado ---
-                    
-                    // Marca que encontramos pelo menos um inimigo.
-                    enemiesWereKilled = true
-                    
-                    // Remove o inimigo da lista de ativos.
-                    let killedEnemy = activeEnemies.remove(at: index)
-                    
-                    
-                    // Aqui eu cancelo a acao do boneco de se locomover
-                    killedEnemy.removeAllActions()
-                    
-                    // Roda a animação de morte (exatamente como antes).
-                    let fadeOut = SKAction.fadeOut(withDuration: 0.3)
-                    let scaleDown = SKAction.scale(to: 0.1, duration: 0.3)
-                    let deathAnimation = SKAction.group([fadeOut, scaleDown])
-                    let removeNode = SKAction.removeFromParent()
-                    let sequence = SKAction.sequence([deathAnimation, removeNode])
-                    
-                    killedEnemy.run(sequence)
-
-                    // Acumula os pontos e moedas.
-                    // Checagem pelo tipo e nome do nó
-                    if let points = killedEnemy.userData?.value(forKey: "points") as? Int {
-                        totalPoints += points
-                    }
-                    if let coins = killedEnemy.userData?.value(forKey: "coins") as? Int {
-                        totalCoins += coins
+                    // 4. Se a vida chegou a zero, o inimigo é derrotado.
+                    if newHealth <= 0 {
+                        let killedEnemy = activeEnemies.remove(at: index)
+                        
+                        // Roda a animação de morte do inimigo.
+                        let deathAnimation = SKAction.group([
+                            SKAction.fadeOut(withDuration: 0.3),
+                            SKAction.scale(to: 0.1, duration: 0.3)
+                        ])
+                        killedEnemy.run(SKAction.sequence([deathAnimation, SKAction.removeFromParent()]))
+                        
+                        // Acumula os pontos e moedas.
+                        if killedEnemy.name == "Guard" {
+                            totalPoints += Guards.pointValue
+                            totalCoins += Guards.coinValue
+                        } else if killedEnemy.name == "Thief" {
+                            totalPoints += Thief.pointValue
+                            totalCoins += Thief.coinValue
+                        }
                     }
                 }
             }
-            
-            // --- PASSO 3: Retorne o resultado DEPOIS que o loop terminar ---
-            
-            // Se matamos pelo menos um inimigo, retorne a soma total das recompensas.
-            if enemiesWereKilled {
-                return (points: totalPoints, coins: totalCoins)
-            }
-            
-            // Se o loop terminou e nenhum inimigo foi morto, retorne nulo.
+        }
+        
+        // Retorna os ganhos totais se algum inimigo foi atingido.
+        if anyEnemyHit {
+            return (points: totalPoints, coins: totalCoins)
+        } else {
             return nil
         }
+    }
 }
