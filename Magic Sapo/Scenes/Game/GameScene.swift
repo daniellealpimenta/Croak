@@ -270,7 +270,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate {
         gestureManager?.removeCameraPreview()
     }
     
-    
     // MARK: - Lógica do Jogo
     
     /// Processa a ação do jogador após fazer um gesto.
