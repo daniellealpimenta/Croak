@@ -212,8 +212,8 @@ class GestureDetectionManager: NSObject {
         NSLayoutConstraint.activate([
             handImageView.centerXAnchor.constraint(equalTo: parentView.centerXAnchor),
             handImageView.centerYAnchor.constraint(equalTo: parentView.centerYAnchor),
-            handImageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: 0.6), // 60% da largura
-            handImageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: 0.8) // 80% da altura
+            handImageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: 0.4), // 60% da largura
+            handImageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: 0.6) // 80% da altura
         ])
         
         // Opcional: Adicionar uma animação sutil de "pulsação"

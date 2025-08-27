@@ -14,6 +14,8 @@ import GameplayKit
 /// (placar, fundo, inimigos) e respondendo à entrada do jogador.
 class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, ScoreHavingScene {
     
+    private var countdownLabel: UILabel?
+    
     var startInGestureMode = false
     // MARK: - Componentes
     
@@ -97,6 +99,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         // Opcional: Label para debug dos gestos
         setupGestureDebugUI()
         
+        setupCountdownLabel()
+        
         let pauseButton = SKSpriteNode(imageNamed: "PauseButton") // Certifique-se de que "PauseButton" exista nos seus Assets.
         pauseButton.name = "PauseButton"
         pauseButton.size = CGSize(width: 100, height: 100)
@@ -110,6 +114,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
     }
     
+    private func setupCountdownLabel() {
+        // Garante que a view principal do jogo exista
+        guard let view = self.view else { return }
+
+        // Cria uma UILabel, o equivalente a SKLabelNode no UIKit
+        let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 100)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.isHidden = true // Começa invisível
+
+        // Adiciona a label na view principal, por cima de tudo
+        view.addSubview(label)
+        self.countdownLabel = label
+
+        // Configura as "constraints" para garantir que a label fique sempre centralizada
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
+            label.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20)
+        ])
+    }
+    
     func enterGestureValidationMode() {
             print("Iniciando modo de validação de gestos...")
             
@@ -118,18 +147,44 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             // 1. Expande a câmera para tela cheia.
             gestureManager?.expandCameraPreviewToFullScreen(in: view)
             
-            // 2. Cria uma sequência de ações: esperar e depois executar um bloco de código.
-            let waitAction = SKAction.wait(forDuration: 3.0)
-            let shrinkAction = SKAction.run { [weak self] in
-                // Garante que a cena e a view ainda existem quando este bloco for executado.
+            // 2. Prepara o timer.
+            countdownLabel?.text = "5"
+            countdownLabel?.isHidden = false
+            var countdown = 5
+            
+            // 3. Define a ação que será repetida a cada segundo.
+            let updateAction = SKAction.run { [weak self] in
+                countdown -= 1
+                self?.countdownLabel?.text = "\(countdown)"
+                
+            
+            }
+            
+            // Ação de esperar 1 segundo.
+            let waitAction = SKAction.wait(forDuration: 1.0)
+            
+            // Combina a espera e a atualização em uma única ação.
+            let sequencePerSecond = SKAction.sequence([waitAction, updateAction])
+            
+            // Repete a sequência 2 vezes (para contar 2 e 1).
+            let countdownSequence = SKAction.repeat(sequencePerSecond, count: 5)
+            
+            // 4. Define as ações finais após o timer.
+            let finalActions = SKAction.run { [weak self] in
                 guard let self = self, let view = self.view else { return }
-                print("Passaram 3 segundos. Retornando a câmera para a posição original.")
-                // Chama a nova função para encolher a câmera.
+                print("Passaram 5 segundos. Retornando a câmera para a posição original.")
+                
+                // Esconde o label do timer.
+                self.countdownLabel?.isHidden = true
+                
+                // Chama a função para encolher a câmera.
                 self.gestureManager?.shrinkCameraPreviewToOriginal(in: view)
             }
             
-            // 3. Executa a sequência na cena.
-            self.run(SKAction.sequence([waitAction, shrinkAction]))
+            // 5. Executa a sequência completa na cena.
+            // A lógica é: Roda a contagem (de 3 para 2, de 2 para 1), espera o último segundo,
+            // e então executa as ações finais.
+            self.run(SKAction.sequence([countdownSequence, waitAction, finalActions]))
         }
     
     private func setupGestureDetection() {
