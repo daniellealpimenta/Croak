@@ -140,6 +140,7 @@ class GestureDetectionManager: NSObject {
     }
     
     func expandCameraPreviewToFullScreen(in skView: SKView) {
+        delegate?.cameraWillExpand()
             // 1. Garante que a cameraView já foi criada.
             guard let camView = self.cameraView else {
                 print("A cameraView ainda não foi inicializada e não pode ser expandida.")
@@ -184,6 +185,8 @@ class GestureDetectionManager: NSObject {
                     
                     // Ajusta o frame da camada de preview para preencher a view menor.
                     self.previewLayer?.frame = camView.bounds
+                }, completion: {[weak self] _ in
+                self?.delegate?.cameraDidShrink()
                 })
             }
         }
@@ -212,8 +215,8 @@ class GestureDetectionManager: NSObject {
         NSLayoutConstraint.activate([
             handImageView.centerXAnchor.constraint(equalTo: parentView.centerXAnchor),
             handImageView.centerYAnchor.constraint(equalTo: parentView.centerYAnchor),
-            handImageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: 0.4), // 60% da largura
-            handImageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: 0.6) // 80% da altura
+            handImageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: 0.4), // 40% da largura
+            handImageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: 0.6) // 60% da altura
         ])
         
         // Opcional: Adicionar uma animação sutil de "pulsação"

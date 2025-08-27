@@ -13,7 +13,19 @@ import GameplayKit
 /// Esta classe atua como um "maestro", orquestrando os diferentes componentes
 /// (placar, fundo, inimigos) e respondendo à entrada do jogador.
 class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, ScoreHavingScene {
+    func cameraWillExpand() {
+        print("Câmera vai expandir, pausando o jogo.")
+        self.isPaused = true
+        enemySpawner.stopSpawningEnemies()
+    }
     
+    func cameraDidShrink() {
+        print("Câmera encolheu, despausando o jogo.")
+        self.isPaused = false
+        enemySpawner.startSpawningEnemies()
+    }
+    
+    private var instructionLabel: UILabel?
     private var countdownLabel: UILabel?
     
     var startInGestureMode = false
@@ -100,6 +112,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         setupGestureDebugUI()
         
         setupCountdownLabel()
+        setupInstructionLabel()
         
         let pauseButton = SKSpriteNode(imageNamed: "PauseButton") // Certifique-se de que "PauseButton" exista nos seus Assets.
         pauseButton.name = "PauseButton"
@@ -139,6 +152,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         ])
     }
     
+    private func setupInstructionLabel() {
+        guard let view = self.view else { return }
+        
+        let label = UILabel()
+        label.text = "Mantenha sua mão na área enquanto joga!"
+        label.font = UIFont.systemFont(ofSize: 30, weight: .medium)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.isHidden = true
+        
+        view.addSubview(label)
+        self.instructionLabel = label
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50)
+        ])
+    }
+    
     func enterGestureValidationMode() {
             print("Iniciando modo de validação de gestos...")
             
@@ -150,6 +184,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             // 2. Prepara o timer.
             countdownLabel?.text = "5"
             countdownLabel?.isHidden = false
+        instructionLabel?.isHidden = false
             var countdown = 5
             
             // 3. Define a ação que será repetida a cada segundo.
@@ -176,6 +211,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                 
                 // Esconde o label do timer.
                 self.countdownLabel?.isHidden = true
+                self.instructionLabel?.isHidden = true
                 
                 // Chama a função para encolher a câmera.
                 self.gestureManager?.shrinkCameraPreviewToOriginal(in: view)
