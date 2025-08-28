@@ -10,9 +10,9 @@ import Foundation
 // Coloque este enum em um arquivo separado ou no topo de um arquivo relevante
 enum Layer: CGFloat {
     case background = -10
-    case player = 1
-    case points = 2       
-    case enemies = 3
+    case player = 4
+    case points = 1
+    case enemies = 2
     case ui = 5
-    case effects = 4
+    case effects = 3
 }

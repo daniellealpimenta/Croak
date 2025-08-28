@@ -88,6 +88,8 @@ struct Guards: Enemy {
         return evilGuard
     }
     
+    // Em Guards.swift
+
     static let deathAnimation: [SKTexture] = {
         var frames: [SKTexture] = []
         for i in 1...4 {
@@ -96,5 +98,4 @@ struct Guards: Enemy {
         }
         return frames
     }()
-
 }

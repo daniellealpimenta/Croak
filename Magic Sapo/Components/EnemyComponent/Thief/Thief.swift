@@ -24,7 +24,7 @@ class Thief: Enemy {
     
     static func create(at position: CGPoint) -> SKSpriteNode? {
         // 1. Cria o nó principal do Ladrão (usando uma cor como placeholder)
-        let thiefNode = SKSpriteNode(color: .purple, size: CGSize(width: 50, height: 50))
+        let thiefNode = SKSpriteNode(color: .purple, size: CGSize(width: 100, height: 100))
         thiefNode.name = "Thief"
         thiefNode.position = position
         
@@ -32,6 +32,7 @@ class Thief: Enemy {
         thiefNode.physicsBody = SKPhysicsBody(rectangleOf: thiefNode.size)
         thiefNode.physicsBody?.isDynamic = true
         thiefNode.physicsBody?.affectedByGravity = false
+        thiefNode.zPosition = Layer.enemies.rawValue
         
         if let pb = thiefNode.physicsBody {
             pb.categoryBitMask = PhysicsCategory.enemy

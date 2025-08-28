@@ -170,9 +170,13 @@ class EnemyControl {
                         killedEnemy.removeAllActions()
                         
                         if killedEnemy.name == "Guard" {
-                            let guardDeathAnimation = SKAction.animate(with: Guards.deathAnimation, timePerFrame: 0.1)
                             
-                            killedEnemy.run(SKAction.sequence([guardDeathAnimation, SKAction.removeFromParent()]))
+                            let animateFrames = SKAction.animate(with: Guards.deathAnimation, timePerFrame: 0.1)
+                            let fadeOut = SKAction.fadeOut(withDuration: 0.5)
+                            
+                            let combinedDeathAnimation = SKAction.group([animateFrames, fadeOut])
+                                      
+                            killedEnemy.run(SKAction.sequence([combinedDeathAnimation, SKAction.removeFromParent()]))
                             
                             totalPoints += Guards.pointValue
                             totalCoins += Guards.coinValue
