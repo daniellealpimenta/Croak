@@ -54,6 +54,7 @@ struct Guards: Enemy {
         // 3. Aplica as outras configurações
         evilGuard.name = "Guard"
         evilGuard.position = position
+        evilGuard.zPosition = Layer.enemies.rawValue
         
         evilGuard.physicsBody = SKPhysicsBody(rectangleOf: evilGuard.size)
         evilGuard.physicsBody?.isDynamic = true
@@ -86,4 +87,15 @@ struct Guards: Enemy {
 
         return evilGuard
     }
+    
+    // Em Guards.swift
+
+    static let deathAnimation: [SKTexture] = {
+        var frames: [SKTexture] = []
+        for i in 1...4 {
+            let textureName = "guardDeath\(i)"
+            frames.append(SKTexture(imageNamed: textureName))
+        }
+        return frames
+    }()
 }

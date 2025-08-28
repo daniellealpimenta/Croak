@@ -22,7 +22,11 @@ class MenuScene: SKScene {
         let location = touch.location(in: self)
         let touchedNode = atPoint(location)
         
-        // --- TRANSIÇÃO PARA O MODO GESTURE ---
+        // --- LINHA DE DEBUG ---
+        // Adicione esta linha para ver no console o nome exato do nó que está sendo tocado.
+        print("Nó tocado: \(touchedNode.name ?? "Nenhum nome")")
+        
+        // O resto do seu código continua igual...
         if touchedNode.name == "GestureMode" {
             print("Botão GestureMode foi tocado!")
             
@@ -36,25 +40,15 @@ class MenuScene: SKScene {
                 let transition = SKTransition.fade(withDuration: 1.0)
                 view?.presentScene(gameScene, transition: transition)
             }
+        }
+        
+        if touchedNode.name == "ButtonMode" {
+            print("Botão ButtonMode foi tocado!")
             
-            // --- NOVA TRANSIÇÃO PARA O MODO BUTTON ---
-            // Adicione esta parte
-            if touchedNode.name == "ButtonMode" {
-                print("Botão ButtonMode foi tocado!")
-                
-                // 1. Carrega a ButtonScene a partir do seu arquivo .sks.
-                // O nome do arquivo é "ButtonMode.sks", mas a classe associada é "ButtonScene".
-                if let buttonScene = SKScene(fileNamed: "ButtonMode") {
-                    
-                    // 2. Define o modo de escala.
-                    buttonScene.scaleMode = .aspectFill
-                    
-                    // 3. Cria a transição.
-                    let transition = SKTransition.fade(withDuration: 1.0)
-                    
-                    // 4. Apresenta a nova cena.
-                    view?.presentScene(buttonScene, transition: transition)
-                }
+            if let buttonScene = SKScene(fileNamed: "ButtonMode") {
+                buttonScene.scaleMode = .aspectFill
+                let transition = SKTransition.fade(withDuration: 1.0)
+                view?.presentScene(buttonScene, transition: transition)
             }
         }
     }
