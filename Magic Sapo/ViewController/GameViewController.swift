@@ -14,6 +14,13 @@ class GameViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+                print("--- LISTANDO FONTES DISPONÍVEIS NO APP ---")
+                for family in UIFont.familyNames.sorted() {
+                    let names = UIFont.fontNames(forFamilyName: family)
+                    print("Família: \(family) | Nomes: \(names)")
+                }
+                print("--- FIM DA LISTA DE FONTES ---")
                 
         if let view = self.view as! SKView? {
             // Load the SKScene from 'GameScene.sks'

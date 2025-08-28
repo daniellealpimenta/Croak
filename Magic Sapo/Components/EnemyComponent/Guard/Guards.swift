@@ -87,4 +87,14 @@ struct Guards: Enemy {
 
         return evilGuard
     }
+    
+    static let deathAnimation: [SKTexture] = {
+        var frames: [SKTexture] = []
+        for i in 1...4 {
+            let textureName = "guardDeath\(i)"
+            frames.append(SKTexture(imageNamed: textureName))
+        }
+        return frames
+    }()
+
 }
