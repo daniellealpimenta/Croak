@@ -22,7 +22,7 @@ class EnemyControl {
     
     // Pontuacao para subir de estagio
     // Para o maximo: limita em 15
-    private let scorePerStage: Int = 15
+    private let scorePerStage: Int = 75
     
     // Padrao 0.02
     // Para o maximo testa com 0.5
@@ -90,14 +90,14 @@ class EnemyControl {
         let stage = score / scorePerStage
         
         if stage > lastKnownStage {
-                    print("-----------------------------------------")
-                    print("🏆🏆🏆 MUDANÇA DE ESTÁGIO! 🏆🏆🏆")
-                    print("Score atingiu \(score). Entrando no Estágio \(stage).")
-                    print("-----------------------------------------")
-                    
-                    // Atualiza nossa memória para o novo estágio.
-                    lastKnownStage = stage
-                }
+            print("-----------------------------------------")
+            print("🏆🏆🏆 MUDANÇA DE ESTÁGIO! 🏆🏆🏆")
+            print("Score atingiu \(score). Entrando no Estágio \(stage).")
+            print("-----------------------------------------")
+            
+            // Atualiza nossa memória para o novo estágio.
+            lastKnownStage = stage
+        }
         
         // 2. Calcula a velocidade "base" para o estágio atual.
         let VPerStage = Vi - (CGFloat(stage) * accelerationFactor)
@@ -111,7 +111,7 @@ class EnemyControl {
 
         // 5. Garante que a duração nunca seja menor que 1.5s para não quebrar o jogo.
         self.V = max(1.5, newV)
-         
+        
         print("Score: \(score) | Stage: \(stage) | VperStage: \(VPerStage) | Final V: \(self.V)")
         print("Nova velocidade base V: \(self.V)")
     }
@@ -124,9 +124,6 @@ class EnemyControl {
     ///   - gesture: O nome do gesto (ex: "Two", "Rock",etc (Tão nesse padrão de Letra maiuscula no inicio)) que deve corresponder ao nome do nó filho do inimigo.
     ///   - scene: A cena onde a busca pelo inimigo será feita.
     /// - Returns: O valor em pontos do inimigo destruído, ou nil se nenhum inimigo for encontrado.
-    ///
-    // Em EnemyControl.swift
-
     public func killEnemy(withGesture gesture: String, in scene: SKScene) -> (points: Int, coins: Int)? {
         
         // Define a "Kill Zone" para que os inimigos só possam ser atingidos em uma área específica.
@@ -170,20 +167,34 @@ class EnemyControl {
                     if newHealth <= 0 {
                         let killedEnemy = activeEnemies.remove(at: index)
                         
-                        // Roda a animação de morte do inimigo.
-                        let deathAnimation = SKAction.group([
-                            SKAction.fadeOut(withDuration: 0.3),
-                            SKAction.scale(to: 0.1, duration: 0.3)
-                        ])
-                        killedEnemy.run(SKAction.sequence([deathAnimation, SKAction.removeFromParent()]))
+                        killedEnemy.removeAllActions()
                         
-                        // Acumula os pontos e moedas.
                         if killedEnemy.name == "Guard" {
+                            
+                            let animateFrames = SKAction.animate(with: Guards.deathAnimation, timePerFrame: 0.1)
+                            let fadeOut = SKAction.fadeOut(withDuration: 0.5)
+                            
+                            let combinedDeathAnimation = SKAction.group([animateFrames, fadeOut])
+                                      
+                            killedEnemy.run(SKAction.sequence([combinedDeathAnimation, SKAction.removeFromParent()]))
+                            
                             totalPoints += Guards.pointValue
                             totalCoins += Guards.coinValue
+                            
                         } else if killedEnemy.name == "Thief" {
+
+                            let genericDeathAnimation = SKAction.group([
+                                SKAction.fadeOut(withDuration: 0.3),
+                                SKAction.scale(to: 0.1, duration: 0.3)
+                            ])
+                            killedEnemy.run(SKAction.sequence([genericDeathAnimation, SKAction.removeFromParent()]))
+
                             totalPoints += Thief.pointValue
                             totalCoins += Thief.coinValue
+                            
+                        } else {
+
+                            killedEnemy.removeFromParent()
                         }
                     }
                 }

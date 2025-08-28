@@ -117,8 +117,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         let pauseButton = SKSpriteNode(imageNamed: "PauseButton") // Certifique-se de que "PauseButton" exista nos seus Assets.
         pauseButton.name = "PauseButton"
-        pauseButton.size = CGSize(width: 100, height: 100)
-        pauseButton.position = CGPoint(x: self.size.width / 2 - 70, y: self.size.height / 2 - 70)
+        pauseButton.size = CGSize(width: 75, height: 75)
+        pauseButton.position = CGPoint(x: 450, y: 300)
+        pauseButton.zPosition = Layer.ui.rawValue
         
         pauseButton.zPosition = 50 // Garante que ele fique acima de outros elementos da UI, se houver.
         self.addChild(pauseButton)
@@ -459,26 +460,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                 background.alpha = 0.7
                 pauseOverlay?.addChild(background)
                 
+                let pauseFence = SKSpriteNode(imageNamed: "placa")
+                pauseFence.size = CGSize(width: 650, height: 700)
+                pauseFence.position = CGPoint(x: 10, y: -100)
+                pauseFence.zPosition = 0
+                pauseOverlay?.addChild(pauseFence)
+                
                 // Adiciona os botões (você pode carregar suas imagens aqui)
-                let resumeButton = SKLabelNode(text: "Retomar")
+                let resumeButton = SKSpriteNode(imageNamed: "play")
                 resumeButton.name = "ReturnButton" // Usamos o mesmo nome da sua PauseScene
-                resumeButton.fontName = "Helvetica-Bold"
-                resumeButton.fontSize = 50
-                resumeButton.position = CGPoint(x: 0, y: 100)
+                resumeButton.size = CGSize(width: 150, height: 150)
+                resumeButton.position = CGPoint(x: 150, y: 0)
+                resumeButton.zPosition = 1
                 pauseOverlay?.addChild(resumeButton)
                 
-                let resetButton = SKLabelNode(text: "Reiniciar")
+                let resetButton = SKSpriteNode(imageNamed: "reiniciar")
                 resetButton.name = "ResetButton"
-                resetButton.fontName = "Helvetica-Bold"
-                resetButton.fontSize = 50
+                resetButton.size = CGSize(width: 150, height: 150)
                 resetButton.position = CGPoint(x: 0, y: 0)
+                resetButton.zPosition = 1
                 pauseOverlay?.addChild(resetButton)
                 
-                let exitButton = SKLabelNode(text: "Sair")
+                let exitButton = SKSpriteNode(imageNamed: "sair")
                 exitButton.name = "ExitButton"
-                exitButton.fontName = "Helvetica-Bold"
-                exitButton.fontSize = 50
-                exitButton.position = CGPoint(x: 0, y: -100)
+                exitButton.size = CGSize(width: 150, height: 150)
+                exitButton.position = CGPoint(x: -150, y: 0)
+                exitButton.zPosition = 1
                 pauseOverlay?.addChild(exitButton)
                 
                 // Adiciona a camada completa na cena
