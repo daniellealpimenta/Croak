@@ -13,6 +13,7 @@ import GameplayKit
 /// Esta classe atua como um "maestro", orquestrando os diferentes componentes
 /// (placar, fundo, inimigos) e respondendo à entrada do jogador.
 class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, ScoreHavingScene {
+    
     func cameraWillExpand() {
         print("Câmera vai expandir, pausando o jogo.")
         self.isPaused = true
@@ -183,17 +184,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             gestureManager?.expandCameraPreviewToFullScreen(in: view)
             
             // 2. Prepara o timer.
-            countdownLabel?.text = "5"
+            countdownLabel?.text = "3"
             countdownLabel?.isHidden = false
             instructionLabel?.isHidden = false
-            var countdown = 5
+            var countdown = 3
             
             // 3. Define a ação que será repetida a cada segundo.
             let updateAction = SKAction.run { [weak self] in
                 countdown -= 1
                 self?.countdownLabel?.text = "\(countdown)"
-                
-            
             }
             
             // Ação de esperar 1 segundo.
@@ -203,7 +202,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             let sequencePerSecond = SKAction.sequence([waitAction, updateAction])
             
             // Repete a sequência 2 vezes (para contar 2 e 1).
-            let countdownSequence = SKAction.repeat(sequencePerSecond, count: 5)
+            let countdownSequence = SKAction.repeat(sequencePerSecond, count: 3)
             
             // 4. Define as ações finais após o timer.
             let finalActions = SKAction.run { [weak self] in
@@ -229,18 +228,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         gestureManager.delegate = self
         gestureManager.startDetection()
     }
-    
-//    private func setupGestureDebugUI() {
-//        // Label para mostrar qual gesto está sendo detectado (para debug)
-//        gestureDebugLabel = SKLabelNode(fontNamed: "Arial-Bold")
-//        gestureDebugLabel?.fontSize = 20
-//        gestureDebugLabel?.fontColor = .yellow
-//        gestureDebugLabel?.position = CGPoint(x: 0, y: self.size.height/2 - 100)
-//        gestureDebugLabel?.text = "Gesto: Nenhum"
-//        if let label = gestureDebugLabel {
-//            addChild(label)
-//        }
-//    }
     
     // VERSÃO ADAPTATIVA do setup de debug UI
     private func setupGestureDebugUI() {
