@@ -365,7 +365,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                 
                 // Adiciona os botões (você pode carregar suas imagens aqui)
                 let resumeButton = SKSpriteNode(imageNamed: "play")
-                resumeButton.name = "ReturnButton" // Usamos o mesmo nome da sua PauseScene
+                resumeButton.name = "ReturnButton"
                 resumeButton.size = CGSize(width: 150, height: 150)
                 resumeButton.position = CGPoint(x: 150, y: 0)
                 resumeButton.zPosition = 1
