@@ -11,12 +11,13 @@ struct Frog {
     var texture: [SKTexture]
     var size: CGSize
     private var parent: SKScene?
+    var colisionSize: CGSize
     
     init(parent: SKScene) {
         self.texture = [SKTexture(image: .frog0), SKTexture(image: .frog1), SKTexture(image: .frog2), SKTexture(image: .frog3)]
         self.size = CGSize(width: 150, height: 150)
         self.parent = parent
-        
+        self.colisionSize = CGSize(width: 50, height: 50)
         self.texture.forEach { tex in
             tex.filteringMode = .nearest
         }
@@ -25,10 +26,11 @@ struct Frog {
     
     func createNode(at position: CGPoint) -> SKSpriteNode {
         let frog = SKSpriteNode(texture: texture[0], size: size)
-        frog.physicsBody = SKPhysicsBody(rectangleOf: size)
+        frog.physicsBody = SKPhysicsBody(rectangleOf: colisionSize)
         frog.physicsBody?.isDynamic = true
         frog.physicsBody?.affectedByGravity = false
         frog.position = position
+        frog.zPosition = Layer.player.rawValue
         frog.name = "Frog"
         
         if let pb = frog.physicsBody {

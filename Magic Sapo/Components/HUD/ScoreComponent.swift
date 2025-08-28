@@ -30,11 +30,12 @@ class ScoreComponent {
         self.scoreCount = 0
         
         // Cria e estiliza o nó de texto (SKLabelNode).
-        self.scoreLabel = SKLabelNode(fontNamed: "PixelifySans-Regular")
-        self.scoreLabel.fontSize = 50
-        self.scoreLabel.fontColor = .white
-        self.scoreLabel.position = CGPoint(x: 0, y: 300) 
-        self.scoreLabel.text = "Pontuação: \(self.scoreCount)"
+        self.scoreLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
+        self.scoreLabel.fontSize = 90
+        self.scoreLabel.fontColor = UIColor(red: 0.294, green: 0.529, blue: 0.192, alpha: 1.0)
+        self.scoreLabel.position = CGPoint(x: 0, y: 250)
+        self.scoreLabel.text = "\(self.scoreCount)"
+        self.scoreLabel.zPosition = Layer.points.rawValue
         
         // Adiciona o label diretamente na cena para que ele se torne visível.
         self.parentScene.addChild(self.scoreLabel)
@@ -47,11 +48,11 @@ class ScoreComponent {
     /// Deixei ela aqui pra gente poder chamar ela de qualquer inimigo, passando so quantos pontos aquele inimigo dropou
     func addScore(point: Int) {
         self.scoreCount += point
-        self.scoreLabel.text = "Pontuação: \(self.scoreCount)"
+        self.scoreLabel.text = "\(self.scoreCount)"
     }
     
     func decreaseScore(point: Int) {
         self.scoreCount -= point
-        self.scoreLabel.text = "Pontuação: \(self.scoreCount)"
+        self.scoreLabel.text = "\(self.scoreCount)"
     }
 }
