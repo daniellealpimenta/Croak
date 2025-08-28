@@ -5,6 +5,8 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>PixelifySans-Regular.ttf</string>
+		<string>ari-w9500.ttf</string>
+		<string>ari-w9500-bold.ttf</string>
 	</array>
 </dict>
 </plist>

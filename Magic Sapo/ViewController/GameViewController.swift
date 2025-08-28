@@ -21,9 +21,9 @@ class GameViewController: UIViewController {
                 
                 // CONFIGURAÇÃO ADAPTATIVA DO SCALE MODE
                 if DeviceHelper.isIPhone {
-                    scene.scaleMode = .aspectFill  // Melhor para iPhone
+                    scene.scaleMode = .aspectFit  // Melhor para iPhone
                 } else {
-                    scene.scaleMode = .aspectFit   // Melhor para iPad
+                    scene.scaleMode = .aspectFill   // Melhor para iPad
                 }
                 
                 // Set the scale mode to scale to fit the window
@@ -53,3 +53,10 @@ class GameViewController: UIViewController {
         return true
     }
 }
+
+//        print("--- LISTANDO FONTES DISPONÍVEIS NO APP ---")
+//        for family in UIFont.familyNames.sorted() {
+//            let names = UIFont.fontNames(forFamilyName: family)
+//            print("Família: \(family) | Nomes: \(names)")
+//        }
+//        print("--- FIM DA LISTA DE FONTES ---")

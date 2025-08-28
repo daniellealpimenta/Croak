@@ -54,6 +54,7 @@ struct Guards: Enemy {
         // 3. Aplica as outras configurações
         evilGuard.name = "Guard"
         evilGuard.position = position
+        evilGuard.zPosition = Layer.enemies.rawValue
         
         evilGuard.physicsBody = SKPhysicsBody(rectangleOf: evilGuard.size)
         evilGuard.physicsBody?.isDynamic = true

@@ -98,8 +98,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         let pauseButton = SKSpriteNode(imageNamed: "PauseButton") // Certifique-se de que "PauseButton" exista nos seus Assets.
         pauseButton.name = "PauseButton"
-        pauseButton.size = CGSize(width: 100, height: 100)
-        pauseButton.position = CGPoint(x: self.size.width / 2 - 70, y: self.size.height / 2 - 70)
+        pauseButton.size = CGSize(width: 75, height: 75)
+        pauseButton.position = CGPoint(x: 450, y: 300)
+        pauseButton.zPosition = Layer.ui.rawValue
         
         pauseButton.zPosition = 50 // Garante que ele fique acima de outros elementos da UI, se houver.
         self.addChild(pauseButton)
