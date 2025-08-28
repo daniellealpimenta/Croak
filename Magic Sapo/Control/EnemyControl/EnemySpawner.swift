@@ -26,6 +26,8 @@ class EnemySpawner {
     /// O timer que dispara a criação de inimigos em intervalos regulares.
     var spawnTimer: Timer?
     
+    private var lastThiefSpawnScore = -1
+    
     // MARK: - Inicialização
     
     init(scene: SKScene) {
@@ -93,18 +95,28 @@ class EnemySpawner {
             return
         }
         
-        // Se chegamos aqui, a referência é válida.
         let currentScore = scoreScene.scoreComponent.scoreCount
         
-        var spawnableEnemies: [Enemy.Type] = []
-        spawnableEnemies.append(Guards.self)
-        
-        if currentScore >= 15 {
-            spawnableEnemies.append(Thief.self)
+        // --- MUDANÇA 2: Lógica de Escolha Refatorada ---
+        var enemyToSpawn: Enemy.Type?
+
+        // Condições para spawnar um Ladrão:
+        // 1. A pontuação é >= 15
+        // 2. A pontuação é um múltiplo de 10
+        // 3. AINDA NÃO criamos um Ladrão para esta pontuação exata.
+        if currentScore >= 15 && currentScore % 10 == 0 && currentScore != lastThiefSpawnScore {
+            enemyToSpawn = Thief.self
+            // Atualiza nossa "memória" para a pontuação atual.
+            lastThiefSpawnScore = currentScore
+            print("Um Ladrão foi escolhido para spawnar, com \(currentScore) pontos")
+        } else {
+            // Se não for para criar um Ladrão, crie um Guarda.
+            enemyToSpawn = Guards.self
         }
         
-        if let randomEnemyType = spawnableEnemies.randomElement() {
-            self.enemyControl.createEnemy(ofType: randomEnemyType, in: actualScene)
+        // Cria o inimigo que foi escolhido.
+        if let enemyType = enemyToSpawn {
+            self.enemyControl.createEnemy(ofType: enemyType, in: actualScene)
         }
     }
 }
