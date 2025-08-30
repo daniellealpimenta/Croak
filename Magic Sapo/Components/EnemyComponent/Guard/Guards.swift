@@ -88,6 +88,52 @@ struct Guards: Enemy {
         return evilGuard
     }
     
+    static func createdByMage(at position: CGPoint, withGesture gestureName: String) -> SKSpriteNode? {
+            
+            guard let firstFrame = animationFrames.first else {
+                print("Erro: Texturas de animação para 'Guards' não foram encontradas.")
+                return nil
+            }
+            
+            // 1. Cria o corpo principal do inimigo.
+            let evilGuard = SKSpriteNode(texture: firstFrame, size: CGSize(width: 100, height: 100))
+            
+            // 2. Cria e executa a animação em loop.
+            let animationAction = SKAction.animate(with: animationFrames, timePerFrame: 0.1)
+            let loopingAnimation = SKAction.repeatForever(animationAction)
+            evilGuard.run(loopingAnimation)
+            
+            // 3. Aplica as outras configurações.
+            evilGuard.name = "Guard"
+            evilGuard.position = position
+            evilGuard.zPosition = Layer.enemies.rawValue
+            
+            evilGuard.physicsBody = SKPhysicsBody(rectangleOf: evilGuard.size)
+            evilGuard.physicsBody?.isDynamic = true
+            evilGuard.physicsBody?.affectedByGravity = false
+            
+            if let pb = evilGuard.physicsBody {
+                pb.categoryBitMask = PhysicsCategory.enemy
+                pb.collisionBitMask = PhysicsCategory.none
+                pb.contactTestBitMask = PhysicsCategory.frog
+            }
+            
+            evilGuard.userData = NSMutableDictionary()
+            evilGuard.userData?.setValue(Guards.pointValue, forKey: "points")
+            evilGuard.userData?.setValue(Guards.coinValue, forKey: "coins")
+            evilGuard.userData?.setValue(1, forKey: "health")
+
+            // --- MUDANÇA: Usa o gesto fornecido em vez de escolher um aleatório aqui. ---
+            let gestureSprite = SKSpriteNode(imageNamed: gestureName)
+            gestureSprite.size = CGSize(width: 50, height: 50)
+            gestureSprite.position = CGPoint(x: 0, y: 80)
+            gestureSprite.name = gestureName // O nome do nó do gesto é o próprio nome do gesto.
+            
+            evilGuard.addChild(gestureSprite)
+
+            return evilGuard
+        }
+    
     // Em Guards.swift
 
     static let deathAnimation: [SKTexture] = {

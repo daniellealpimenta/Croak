@@ -7,12 +7,13 @@
 import SpriteKit
 import GameplayKit
 
+
 // MARK: Essa bomba ta grande demais ja, tem que dar um jeito de diminuir
 
 /// A cena principal do jogo, onde toda a ação acontece.
 /// Esta classe atua como um "maestro", orquestrando os diferentes componentes
 /// (placar, fundo, inimigos) e respondendo à entrada do jogador.
-class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene {
+class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, BossFightScene {
     
     // MARK: - Componentes
     
@@ -29,6 +30,10 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene {
     
     /// Gerencia a criação e as ações dos inimigos.
     var enemySpawner: EnemySpawner!
+    
+    private var gameState: GameState = .normalPlay
+    private var mageControl: MageControl?
+    private var scoreAtLastBossDefeat = 0
     
     override func sceneDidLoad() {
         self.physicsWorld.contactDelegate = self
@@ -221,31 +226,89 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene {
     
     func playerDidMake(gesture: String) {
         // A variável "rewards" agora é uma tupla: (points: Int, coins: Int)
-        if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
-            
-            // Tenta matar um inimigo com o gesto.
-            // A função killEnemy retorna os pontos e moedas ganhos se um inimigo for morto.
-            // Acessamos os valores usando .points e .coins
-            scoreComponent.addScore(point: rewards.points)
-            coinsComponent.addCoins(coins: rewards.coins)
-            
-            // Pede ao spawner para atualizar a velocidade dos inimigos
-            // com base na nova pontuação total.
-            enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
-
-            print("Ganhou \(rewards.coins) moedas!")
-        }else {
-            // --- LÓGICA DE PENALIDADE ATUALIZADA ---
-            // ERRO: O gesto não acertou nenhum inimigo válido.
-            // Verificamos se a jogada veio de um botão antes de aplicar a penalidade.
-            // SÓ aplica a penalidade se a pontuação for maior que 0.
-            if scoreComponent.scoreCount > 0 {
-                print("Gesto errado com botão! Aplicando penalidade.")
-                scoreComponent.decreaseScore(point: 1)
-            } else {
-                print("Gesto errado com botão, mas a pontuação já é 0. Nenhuma penalidade aplicada.")
+//        if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
+//            
+//            // Tenta matar um inimigo com o gesto.
+//            // A função killEnemy retorna os pontos e moedas ganhos se um inimigo for morto.
+//            // Acessamos os valores usando .points e .coins
+//            scoreComponent.addScore(point: rewards.points)
+//            coinsComponent.addCoins(coins: rewards.coins)
+//            
+//            // Pede ao spawner para atualizar a velocidade dos inimigos
+//            // com base na nova pontuação total.
+//            enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
+//
+//            print("Ganhou \(rewards.coins) moedas!")
+//        }else {
+//            // --- LÓGICA DE PENALIDADE ATUALIZADA ---
+//            // ERRO: O gesto não acertou nenhum inimigo válido.
+//            // Verificamos se a jogada veio de um botão antes de aplicar a penalidade.
+//            // SÓ aplica a penalidade se a pontuação for maior que 0.
+//            if scoreComponent.scoreCount > 0 {
+//                print("Gesto errado com botão! Aplicando penalidade.")
+//                scoreComponent.decreaseScore(point: 1)
+//            } else {
+//                print("Gesto errado com botão, mas a pontuação já é 0. Nenhuma penalidade aplicada.")
+//            }
+//        }
+            switch gameState {
+                case .bossFight:
+                    // Durante a batalha, apenas o chefe responde.
+                    mageControl?.handlePlayer(gesture: gesture)
+                    
+                case .normalPlay, .clearingField:
+                    // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
+                    if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
+                        scoreComponent.addScore(point: rewards.points)
+                        coinsComponent.addCoins(coins: rewards.coins)
+                        
+                        enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
+                        
+                    } else {
+                        if scoreComponent.scoreCount > 0 {
+                            print("Gesto errado com botão! Aplicando penalidade.")
+                            scoreComponent.decreaseScore(point: 1)
+                        } else {
+                            print("Gesto errado com botão, mas a pontuação já é 0. Nenhuma penalidade aplicada.")
+                        }
+                    }
+                }
+                
+                // Após cada jogada, verifica se é hora de iniciar a luta do chefe
+        checkToStartBossEncounter()
+    }
+    
+    private func checkToStartBossEncounter() {
+           let score = scoreComponent.scoreCount
+           
+           // Se as condições forem atendidas, muda para o estado de LIMPEZA.
+            let scoreSinceLastBoss = score - scoreAtLastBossDefeat
+                
+            // A condição agora é muito mais simples e robusta.
+            if gameState == .normalPlay && scoreSinceLastBoss >= 5 { // Use 5 para testar
+                print("--- PREPARANDO PARA O CHEFE! Limpando inimigos restantes... ---")
+                
+                // Não precisamos mais atualizar 'lastBossTriggerScore'.
+                
+                gameState = .clearingField
+                
+                mageControl = MageControl(scene: self, spawner: self.enemySpawner)
+                mageControl?.startBossEncounter()
             }
+       }
+    
+    func enterBossFightState() {
+            print("A cena entrou no estado de Batalha do Chefe.")
+            self.gameState = .bossFight
         }
+    
+    func bossFightDidEnd() {
+        print("--- CHEFE DERROTADO! Retornando ao jogo normal. ---")
+        self.scoreAtLastBossDefeat = self.scoreComponent.scoreCount
+        
+        mageControl = nil
+        gameState = .normalPlay
+        enemySpawner.startSpawningEnemies()
     }
     
     // MARK: - Entrada do Usuário
