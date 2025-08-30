@@ -1,5 +1,5 @@
 //
-//  ScoreComponent.swift
+//  CoinsComponent.swift
 //  Magic Sapo
 //
 //  Created by Pedro Santos on 13/08/25.
@@ -7,68 +7,91 @@
 
 import SpriteKit
 
-/// Um componente que gerencia o estado e a exibição da pontuação do jogador.
+/// Um componente que gerencia o estado e a exibição das moedas do jogador.
 class CoinsComponent {
     
     // MARK: - Propriedades
     
-    /// O valor numérico atual da pontuação.
     var coinsCount: Int
-    
-    /// O nó de texto (label) que exibe a pontuação na tela.
     var coinsLabel: SKLabelNode
-    
-    /// O nó de imagem que representa a moeda.
-    var coinIcon: SKSpriteNode // <<< NOVA PROPRIEDADE
-    
-    /// Uma referência à cena principal onde o placar será exibido.
+    var coinIcon: SKSpriteNode
     private var parentScene: SKScene
     
     // MARK: - Inicialização
-    
-    /// Configura o placar inicial.
-    /// - Parameter parent: A cena que será a "dona" deste componente de moedas.
+
+    /// Configura o placar de moedas no canto superior esquerdo da tela.
+    /// - Parameter parent: A cena que será a "dona" deste componente.
     init(parent: SKScene) {
         self.parentScene = parent
         self.coinsCount = 0
         
-        // --- 1. Cria e estiliza o nó de texto (SKLabelNode) para as moedas. ---
+        // --- 1. Cria e estiliza os nós. ---
         self.coinsLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
-        self.coinsLabel.fontSize = 50
+        self.coinIcon = SKSpriteNode(imageNamed: "Coin")
+        
+        // Lógica de tamanho adaptativo
+        switch UIDevice.current.userInterfaceIdiom {
+        case .phone:
+            self.coinsLabel.fontSize = 35
+            self.coinIcon.size = CGSize(width: 35, height: 35)
+        case .pad:
+            self.coinsLabel.fontSize = 70
+            self.coinIcon.size = CGSize(width: 60, height: 60)
+        default:
+            self.coinsLabel.fontSize = 70
+            self.coinIcon.size = CGSize(width: 60, height: 60)
+        }
+        
         self.coinsLabel.fontColor = .yellow
         self.coinsLabel.horizontalAlignmentMode = .left
-        self.coinsLabel.verticalAlignmentMode = .center 
-        // A posição será ajustada após a criação do ícone.
+        self.coinsLabel.verticalAlignmentMode = .center
         self.coinsLabel.text = "\(self.coinsCount)"
-        self.coinsLabel.zPosition = Layer.ui.rawValue // Define as moedas para a camada 100
         
-        // --- 2. Cria o nó de imagem para a moeda. ---
-        // Certifique-se de ter um asset de imagem chamado "coinIcon" (ou o nome que você usar)
-        self.coinIcon = SKSpriteNode(imageNamed: "Coin")
-        self.coinIcon.size = CGSize(width: 60, height: 60)
-        self.coinIcon.anchorPoint = CGPoint(x: 0, y: 0.5)
+        self.coinIcon.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        
+        // Garante que a UI fique na frente
+        self.coinsLabel.zPosition = Layer.ui.rawValue
         self.coinIcon.zPosition = Layer.ui.rawValue
-    
-        // A posição base para o conjunto (ícone + label)
-        let basePosition = CGPoint(x: -450, y: 300) // Sua posição original
+
+        // --- 2. LÓGICA DE POSICIONAMENTO ADAPTATIVO ---
         
-        // Posição do ícone: Começa na basePosition
-        self.coinIcon.position = basePosition
+        switch UIDevice.current.userInterfaceIdiom {
+        case .phone:
+            // --- Lógica para iPhone: Posicionar no centro ---
+            self.coinIcon.position = CGPoint(x: -150, y: 300)
+            
+            // Posiciona o LABEL da moeda à direita do ícone (que está no centro).
+            self.coinsLabel.position = CGPoint(
+                x: self.coinIcon.position.x + self.coinIcon.size.width / 2 + 10,
+                y: self.coinIcon.position.y
+            )
+            
+        default: // iPad e outros casos
+            // --- Lógica para iPad: Manter no canto superior esquerdo ---
+            let sceneWidth = parentScene.size.width
+            let yPosition: CGFloat = 250
+            let leftMargin: CGFloat = 50
+            
+            // Posiciona o ÍCONE da moeda no canto superior esquerdo.
+            self.coinIcon.position = CGPoint(
+                x: -450,
+                y: 300
+            )
+            
+            // Posiciona o LABEL da moeda à direita do ícone.
+            self.coinsLabel.position = CGPoint(
+                x: self.coinIcon.position.x + self.coinIcon.size.width / 2 + 10,
+                y: self.coinIcon.position.y
+            )
+        }
         
-        // Posição do label: Fica à direita do ícone, com um pequeno espaçamento
-        self.coinsLabel.position = CGPoint(
-            x: self.coinIcon.position.x + self.coinIcon.size.width + 10,
-            y: basePosition.y
-        )
-        
+        // --- 3. Adiciona os nós na cena ---
         self.parentScene.addChild(self.coinIcon)
         self.parentScene.addChild(self.coinsLabel)
     }
-
+    
     // MARK: - Métodos Públicos
     
-    /// Adiciona um valor à qnt de moedas total e atualiza o texto na tela.
-    /// - Parameter coins: A quantidade de moedas a ser adicionada.
     func addCoins(coins: Int) {
         self.coinsCount += coins
         self.coinsLabel.text = "\(self.coinsCount)"
