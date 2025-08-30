@@ -96,15 +96,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         setupCountdownLabel()
         setupInstructionLabel()
         
-        let pauseButton = SKSpriteNode(imageNamed: "PauseButton") // Certifique-se de que "PauseButton" exista nos seus Assets.
-        pauseButton.name = "PauseButton"
-        pauseButton.size = CGSize(width: 75, height: 75)
-        pauseButton.position = CGPoint(x: 450, y: 300)
-        pauseButton.zPosition = Layer.ui.rawValue
-        
-        pauseButton.zPosition = 50 // Garante que ele fique acima de outros elementos da UI, se houver.
-        self.addChild(pauseButton)
-        
         if startInGestureMode {
             enterGestureValidationMode()
         }
