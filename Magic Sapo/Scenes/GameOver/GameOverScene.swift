@@ -8,6 +8,7 @@
 import SpriteKit
 
 class GameOverScene: SKScene {
+    
 
     // MARK: - Propriedades
     

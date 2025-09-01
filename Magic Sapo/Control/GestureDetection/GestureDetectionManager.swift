@@ -21,9 +21,9 @@ class GestureDetectionManager: NSObject {
 //    private var isProcessingCorrectGesture = false
     
     enum HandFeedbackStatus {
-        case neutral // Mão branca, gesto errado
-        case correct // Mão verde, gesto correto
-        case incorrect
+        case neutral // Mão branca
+        case correct // Mão verde
+        case incorrect // Mão vermelha
     }
     
     weak var delegate: GestureDetectionDelegate?
@@ -248,24 +248,6 @@ class GestureDetectionManager: NSObject {
             }
         }
     }
-    
-//    func makeGestureInValidation(gesture: String) {
-//        if gesture == "OpenPalm" {
-//            if !isProcessingCorrectGesture {
-//                print("Acertou o gesto 'OpenPalm'! ✅")
-//                updateHandFeedback(status: .correct)
-//                isProcessingCorrectGesture = true
-//            }
-//        } else {
-//            if isProcessingCorrectGesture {
-//                print("Perdeu o gesto correto, voltando para branco. ❌")
-//            } else {
-//                print("Gesto errado! Faça o gesto 'OpenPalm'. ❌")
-//            }
-//            updateHandFeedback(status: .neutral)
-//            isProcessingCorrectGesture = false
-//        }
-//    }
 
     /// Remove a janela de preview da câmera da tela.
     func removeCameraPreview() {

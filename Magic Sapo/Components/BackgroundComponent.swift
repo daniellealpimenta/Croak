@@ -6,6 +6,7 @@
 //
 
 import SpriteKit
+import UIKit // 1. Importe o UIKit para acessar informações do dispositivo.
 
 /// Um componente responsável por configurar e gerenciar o fundo (background) da cena.
 class BackgroundComponent {
@@ -23,41 +24,58 @@ class BackgroundComponent {
     
     // MARK: - Configuração do Background
     
-    /// Cria, dimensiona, posiciona e anima o fundo da cena.
+    /// Cria, dimensiona, posiciona e anima o fundo da cena, adaptando a imagem para iPhone ou iPad.
     func setupAnimatedBackground() {
         
-        // Me pro chat deixar em forma de passo a passo pq a gente vai ter que repetir esse codigo pra cada animacao se pa
+        // 2. Determina qual nome de imagem usar.
+        let backgroundBaseName: String
         
-        // 1. Carrega as texturas (imagens) que serão usadas na animação.
+        // Verificamos o "idioma" da interface do usuário do dispositivo atual.
+        switch UIDevice.current.userInterfaceIdiom {
+        case .phone:
+            // O dispositivo é um iPhone.
+            backgroundBaseName = "Background_iphone"
+        case .pad:
+            // O dispositivo é um iPad.
+            backgroundBaseName = "Background_ipad"
+        default:
+
+            backgroundBaseName = "Background_ipad"
+        }
+        
+        
+        // 3. Carrega as texturas (imagens) que serão usadas na animação.
+        //    Agora usamos a variável `backgroundBaseName` que definimos acima.
         let backgroundFrames: [SKTexture] = [
-            SKTexture(imageNamed: "Background")
-            // ,SKTexture(imageNamed: "Background2"),
+            SKTexture(imageNamed: backgroundBaseName)
+            // Se você tiver animações diferentes para cada dispositivo, pode fazer:
+            // SKTexture(imageNamed: "\(backgroundBaseName)_Frame2"),
         ]
         
         backgroundFrames.forEach { tex in
             tex.filteringMode = .nearest
         }
         
-        // 2. Cria o nó de sprite (a imagem em si) com a primeira textura como base.
+        // 4. Cria o nó de sprite (a imagem em si) com a primeira textura como base.
         let background = SKSpriteNode(texture: backgroundFrames[0])
         
         
-        // 3. Calcula o fator de escala para que a imagem de fundo preencha a tela
+        // 5. Calcula o fator de escala para que a imagem de fundo preencha a tela
         //    sem distorcer (lógica de "Aspect Fit").
+        //    Esta lógica continua a mesma e funciona perfeitamente.
         let scaleFactor = min(parentScene.size.width / background.size.width, parentScene.size.height / background.size.height)
         background.setScale(scaleFactor)
         
-        // 4. Centraliza o fundo na tela e define seu zPosition.
-        //    zPosition = -1 garante que o fundo fique atrás de TODOS os outros elementos.
+        // 6. Centraliza o fundo na tela e define seu zPosition.
         background.position = CGPoint(x: parentScene.frame.midX, y: parentScene.frame.midY)
         background.zPosition = -1
         parentScene.addChild(background)
         
-        // 5. Cria a ação de animação que troca entre os frames carregados.
-        let animationAction = SKAction.animate(with: backgroundFrames, timePerFrame: 0.5)
-        let repeatAction = SKAction.repeatForever(animationAction) // Faz a animação rodar em loop.
-        
-        // 6. Executa a animação no nó do fundo.
-        background.run(repeatAction)
+        // 7. Cria e executa a animação (se houver mais de um frame).
+        if backgroundFrames.count > 1 {
+            let animationAction = SKAction.animate(with: backgroundFrames, timePerFrame: 0.5)
+            let repeatAction = SKAction.repeatForever(animationAction)
+            background.run(repeatAction)
+        }
     }
 }
