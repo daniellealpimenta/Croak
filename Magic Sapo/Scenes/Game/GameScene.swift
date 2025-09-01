@@ -28,6 +28,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     var isOnGestureValidationMode = false
     
+    var gestureValidationTimer: Timer?
+    var countdownValue: Int = 3
+    private var isProcessingCorrectGesture = false
+    
     private var instructionLabel: UILabel?
     private var countdownLabel: UILabel?
     
@@ -186,45 +190,98 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         isOnGestureValidationMode = true
         gestureManager?.expandCameraPreviewToFullScreen(in: view)
         
-        // 2. Prepara o timer.
-        countdownLabel?.text = "3"
+        countdownValue = 3
+        countdownLabel?.text = "\(countdownValue)"
         countdownLabel?.isHidden = false
         instructionLabel?.isHidden = false
-        var countdown = 3
+    }
+    
+//   func enterGestureValidationMode() {
+//        print("Iniciando modo de validação de gestos...")
+//
+//        guard let view = self.view else { return }
+//
+//        // 1. Expande a câmera para tela cheia.
+//        isOnGestureValidationMode = true
+//        gestureManager?.expandCameraPreviewToFullScreen(in: view)
+//
+//        // 2. Prepara o timer.
+//        countdownLabel?.text = "3"
+//        countdownLabel?.isHidden = false
+//        instructionLabel?.isHidden = false
+//        var countdown = 3
+//
+//        // 3. Define a ação que será repetida a cada segundo.
+//        let updateAction = SKAction.run { [weak self] in
+//            countdown -= 1
+//            self?.countdownLabel?.text = "\(countdown)"
+//        }
+//
+//        // Ação de esperar 1 segundo.
+//        let waitAction = SKAction.wait(forDuration: 1.0)
+//
+//        // Combina a espera e a atualização em uma única ação.
+//        let sequencePerSecond = SKAction.sequence([waitAction, updateAction])
+//
+//        // Repete a sequência 2 vezes (para contar 2 e 1).
+//        let countdownSequence = SKAction.repeat(sequencePerSecond, count: 3)
+//
+//        // 4. Define as ações finais após o timer.
+//        let finalActions = SKAction.run { [weak self] in
+//            guard let self = self, let view = self.view else { return }
+//            print("Passaram 5 segundos. Retornando a câmera para a posição original.")
+//            
+//            // Esconde o label do timer.
+//            self.countdownLabel?.isHidden = true
+//            self.instructionLabel?.isHidden = true
+//            
+//            // Chama a função para encolher a câmera.
+//            isOnGestureValidationMode = false
+//            self.gestureManager?.shrinkCameraPreviewToOriginal(in: view)
+//    }
+//    
+//    // 5. Executa a sequência completa na cena.
+//    // A lógica é: Roda a contagem (de 3 para 2, de 2 para 1), espera o último segundo,
+//    // e então executa as ações finais.
+//    self.run(SKAction.sequence([countdownSequence, waitAction, finalActions]))
+//}
+
+    
+    private func startOrContinueValidationCountdown() {
+        // Se já tem timer rodando, não faz nada
+        if gestureValidationTimer != nil { return }
         
-        // 3. Define a ação que será repetida a cada segundo.
-        let updateAction = SKAction.run { [weak self] in
-            countdown -= 1
-            self?.countdownLabel?.text = "\(countdown)"
-        }
-        
-        // Ação de esperar 1 segundo.
-        let waitAction = SKAction.wait(forDuration: 1.0)
-        
-        // Combina a espera e a atualização em uma única ação.
-        let sequencePerSecond = SKAction.sequence([waitAction, updateAction])
-        
-        // Repete a sequência 2 vezes (para contar 2 e 1).
-        let countdownSequence = SKAction.repeat(sequencePerSecond, count: 3)
-        
-        // 4. Define as ações finais após o timer.
-        let finalActions = SKAction.run { [weak self] in
-            guard let self = self, let view = self.view else { return }
-            print("Passaram 5 segundos. Retornando a câmera para a posição original.")
+        gestureValidationTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+            guard let self = self else { return }
             
-            // Esconde o label do timer.
-            self.countdownLabel?.isHidden = true
-            self.instructionLabel?.isHidden = true
+            self.countdownValue -= 1
+            self.countdownLabel?.text = "\(self.countdownValue)"
             
-            // Chama a função para encolher a câmera.
-            isOnGestureValidationMode = false
-            self.gestureManager?.shrinkCameraPreviewToOriginal(in: view)
+            if self.countdownValue <= 0 {
+                timer.invalidate()
+                self.gestureValidationTimer = nil
+                self.finishGestureValidationMode()
+            }
         }
+    }
+    
+    private func resetValidationCountdown() {
+        gestureValidationTimer?.invalidate()
+        gestureValidationTimer = nil
+        countdownValue = 3
+        countdownLabel?.text = "\(countdownValue)"
+    }
+    
+    private func finishGestureValidationMode() {
+        guard let view = self.view else { return }
         
-        // 5. Executa a sequência completa na cena.
-        // A lógica é: Roda a contagem (de 3 para 2, de 2 para 1), espera o último segundo,
-        // e então executa as ações finais.
-        self.run(SKAction.sequence([countdownSequence, waitAction, finalActions]))
+        print("Contagem concluída. Retornando a câmera para a posição original.")
+        
+        countdownLabel?.isHidden = true
+        instructionLabel?.isHidden = true
+        isOnGestureValidationMode = false
+        
+        gestureManager?.shrinkCameraPreviewToOriginal(in: view)
     }
     
     private func setupGestureDetection() {
@@ -252,14 +309,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         gestureDebugLabel?.text = "Gesto: \(gesture) (\(Int(confidence * 100))%)"
         
         if isOnGestureValidationMode {
-            gestureManager?.makeGestureInValidation(gesture: gesture)
+            makeGestureInValidation(gesture: gesture)
         } else {
+            gestureManager?.updateHandFeedback(status: .neutral)
+            gestureManager?.handFeedbackOverlayImageView?.alpha = 0.5
             playerDidMake(gesture: gesture)
         }
     }
     
     func gestureDetectionLost() {
         gestureDebugLabel?.text = "Gesto: Nenhum"
+        
+        if isOnGestureValidationMode {
+            gestureManager?.updateHandFeedback(status: .incorrect)
+            resetValidationCountdown()
+            isProcessingCorrectGesture = false
+        } else {
+            gestureManager?.updateHandFeedback(status: .incorrect)
+            gestureManager?.handFeedbackOverlayImageView?.alpha = 1
+        }
     }
     
     @objc func pauseGame() {
@@ -376,6 +444,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
 
             print("Ganhou \(rewards.coins) moedas!")
+        }
+    }
+    
+    func makeGestureInValidation(gesture: String) {
+        if gesture == "OpenPalm" {
+            if !isProcessingCorrectGesture {
+                print("Acertou o gesto 'OpenPalm'! ✅")
+                gestureManager?.updateHandFeedback(status: .correct)
+                startOrContinueValidationCountdown()
+                isProcessingCorrectGesture = true
+            }
+        } else {
+            if isProcessingCorrectGesture {
+                print("Perdeu o gesto correto, voltando para branco. ❌")
+            } else {
+                print("Gesto errado! Faça o gesto 'OpenPalm'. ❌")
+            }
+            gestureManager?.updateHandFeedback(status: .neutral)
+            resetValidationCountdown()
+            isProcessingCorrectGesture = false
         }
     }
     

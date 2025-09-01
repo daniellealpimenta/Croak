@@ -17,12 +17,13 @@ class GestureDetectionManager: NSObject {
     let handPoseRequest = VNDetectHumanHandPoseRequest()
     let model = try! MLModelV6(configuration: MLModelConfiguration()) // SUBSTITUA pelo nome do seu modelo
     
-    private var handFeedbackOverlayImageView: UIImageView?
-    private var isProcessingCorrectGesture = false
+    var handFeedbackOverlayImageView: UIImageView?
+//    private var isProcessingCorrectGesture = false
     
     enum HandFeedbackStatus {
         case neutral // Mão branca, gesto errado
         case correct // Mão verde, gesto correto
+        case incorrect
     }
     
     weak var delegate: GestureDetectionDelegate?
@@ -236,6 +237,8 @@ class GestureDetectionManager: NSObject {
                 imageName = "hand-outline-white"
             case .correct:
                 imageName = "hand-outline-green"
+            case .incorrect:
+                imageName = "hand-outline-red"
             }
             
             if let image = UIImage(named: imageName) {
@@ -246,23 +249,23 @@ class GestureDetectionManager: NSObject {
         }
     }
     
-    func makeGestureInValidation(gesture: String) {
-        if gesture == "OpenPalm" {
-            if !isProcessingCorrectGesture {
-                print("Acertou o gesto 'OpenPalm'! ✅")
-                updateHandFeedback(status: .correct)
-                isProcessingCorrectGesture = true
-            }
-        } else {
-            if isProcessingCorrectGesture {
-                print("Perdeu o gesto correto, voltando para branco. ❌")
-            } else {
-                print("Gesto errado! Faça o gesto 'OpenPalm'. ❌")
-            }
-            updateHandFeedback(status: .neutral)
-            isProcessingCorrectGesture = false
-        }
-    }
+//    func makeGestureInValidation(gesture: String) {
+//        if gesture == "OpenPalm" {
+//            if !isProcessingCorrectGesture {
+//                print("Acertou o gesto 'OpenPalm'! ✅")
+//                updateHandFeedback(status: .correct)
+//                isProcessingCorrectGesture = true
+//            }
+//        } else {
+//            if isProcessingCorrectGesture {
+//                print("Perdeu o gesto correto, voltando para branco. ❌")
+//            } else {
+//                print("Gesto errado! Faça o gesto 'OpenPalm'. ❌")
+//            }
+//            updateHandFeedback(status: .neutral)
+//            isProcessingCorrectGesture = false
+//        }
+//    }
 
     /// Remove a janela de preview da câmera da tela.
     func removeCameraPreview() {
