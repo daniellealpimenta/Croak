@@ -293,7 +293,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         gestureDebugLabel?.text = "Gesto: Nenhum"
         
         if isOnGestureValidationMode {
-            gestureManager?.updateHandFeedback(status: .incorrect)
+            gestureManager?.updateHandFeedback(status: .neutral)
             resetValidationCountdown()
             isProcessingCorrectGesture = false
         } else {
