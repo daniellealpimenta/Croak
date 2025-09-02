@@ -17,6 +17,15 @@ class GestureDetectionManager: NSObject {
     let handPoseRequest = VNDetectHumanHandPoseRequest()
     let model = try! MLModelV6(configuration: MLModelConfiguration()) // SUBSTITUA pelo nome do seu modelo
     
+    var handFeedbackOverlayImageView: UIImageView?
+//    private var isProcessingCorrectGesture = false
+    
+    enum HandFeedbackStatus {
+        case neutral // Mão branca
+        case correct // Mão verde
+        case incorrect // Mão vermelha
+    }
+    
     weak var delegate: GestureDetectionDelegate?
     
     private var previewLayer: AVCaptureVideoPreviewLayer?
@@ -167,62 +176,78 @@ class GestureDetectionManager: NSObject {
         }
     
     func shrinkCameraPreviewToOriginal(in skView: SKView) {
-            // 1. Garante que a view da câmera e o frame original existam.
-            guard let camView = self.cameraView, let originalFrame = self.originalCameraFrame else {
-                print("A cameraView ou o frame original não foram inicializados.")
-                return
-            }
-            
-            // 2. Garante que a atualização da UI seja feita na thread principal.
-            DispatchQueue.main.async {
-                // 3. Anima a transição de volta para o frame original.
-                UIView.animate(withDuration: 0.4, animations: {
-                    camView.frame = originalFrame
-                    
-                    // Restaura a aparência original (borda e cantos arredondados).
-                    camView.layer.cornerRadius = 10
-                    camView.layer.borderWidth = 2
-                    
-                    // Ajusta o frame da camada de preview para preencher a view menor.
-                    self.previewLayer?.frame = camView.bounds
-                }, completion: {[weak self] _ in
-                self?.delegate?.cameraDidShrink()
-                })
-            }
+        // 1. Garante que a view da câmera e o frame original existam.
+        guard let camView = self.cameraView, let originalFrame = self.originalCameraFrame else {
+            print("A cameraView ou o frame original não foram inicializados.")
+            return
         }
-    private func addHandOverlay(to parentView: UIView) {
-        // Cria o ImageView para a mão
-        let handImageView = UIImageView()
         
-        // Carrega a imagem da mão (substitua "hand_outline" pelo nome da sua imagem)
-        if let handImage = UIImage(named: "hand-outline-white") {
-            handImageView.image = handImage
-        } else {
-            print("⚠️ Imagem 'hand_outline' não encontrada nos assets")
-            // Fallback: criar uma imagem simples programaticamente se necessário
-            handImageView.backgroundColor = UIColor.white.withAlphaComponent(0.3)
+        self.updateHandFeedback(status: .neutral)
+        
+        // 2. Garante que a atualização da UI seja feita na thread principal.
+        DispatchQueue.main.async {
+            // 3. Anima a transição de volta para o frame original.
+            UIView.animate(withDuration: 0.4, animations: {
+                camView.frame = originalFrame
+                
+                // Restaura a aparência original (borda e cantos arredondados).
+                camView.layer.cornerRadius = 10
+                camView.layer.borderWidth = 2
+                
+                // Ajusta o frame da camada de preview para preencher a view menor.
+                self.previewLayer?.frame = camView.bounds
+                
+                self.handFeedbackOverlayImageView?.alpha = 0.5
+            }, completion: {[weak self] _ in
+            self?.delegate?.cameraDidShrink()
+            })
         }
+    }
+    
+    private func addHandOverlay(to parentView: UIView) {
+        let imageView = UIImageView()
+        
+        imageView.image = UIImage(named: "hand-outline-white")
         
         // Configurações do ImageView
-        handImageView.contentMode = .scaleAspectFit
-        handImageView.translatesAutoresizingMaskIntoConstraints = false
-        handImageView.alpha = 0.6 // Transparência para não cobrir muito a câmera
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.alpha = 0.8
         
         // Adiciona ao container
-        parentView.addSubview(handImageView)
+        parentView.addSubview(imageView)
         
         // Constraints para centralizar e dimensionar
         NSLayoutConstraint.activate([
-            handImageView.centerXAnchor.constraint(equalTo: parentView.centerXAnchor),
-            handImageView.centerYAnchor.constraint(equalTo: parentView.centerYAnchor),
-            handImageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: 0.4), // 40% da largura
-            handImageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: 0.6) // 60% da altura
+            imageView.centerXAnchor.constraint(equalTo: parentView.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: parentView.centerYAnchor),
+            imageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: 0.4), // 60% da largura
+            imageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: 0.6) // 80% da altura
         ])
         
-        // Opcional: Adicionar uma animação sutil de "pulsação"
-//        addPulseAnimation(to: handImageView)
+        self.handFeedbackOverlayImageView = imageView
     }
-
+    
+    func updateHandFeedback(status: HandFeedbackStatus) {
+        DispatchQueue.main.async {
+            var imageName: String
+            
+            switch status {
+            case .neutral:
+                imageName = "hand-outline-white"
+            case .correct:
+                imageName = "hand-outline-green"
+            case .incorrect:
+                imageName = "hand-outline-red"
+            }
+            
+            if let image = UIImage(named: imageName) {
+                self.handFeedbackOverlayImageView?.image = image
+            } else {
+                print("⚠️ Imagem de feedback '\(imageName)' não encontrada nos assets.")
+            }
+        }
+    }
 
     /// Remove a janela de preview da câmera da tela.
     func removeCameraPreview() {
