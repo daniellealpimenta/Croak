@@ -15,7 +15,7 @@ import CoreML
 class GestureDetectionManager: NSObject {
     let session = AVCaptureSession()
     let handPoseRequest = VNDetectHumanHandPoseRequest()
-    let model = try! MLModelV6(configuration: MLModelConfiguration()) // SUBSTITUA pelo nome do seu modelo
+    let model = try! MLiPhoneV2__PRIME_(configuration: MLModelConfiguration())
     
     var handFeedbackOverlayImageView: UIImageView?
 //    private var isProcessingCorrectGesture = false
@@ -74,7 +74,7 @@ class GestureDetectionManager: NSObject {
     
     func setupCamera() {
         session.beginConfiguration()
-        session.sessionPreset = .high
+        session.sessionPreset = .vga640x480
         
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front),
               let input = try? AVCaptureDeviceInput(device: device),
@@ -133,10 +133,26 @@ class GestureDetectionManager: NSObject {
         layer.frame = camView.bounds
         layer.videoGravity = .resizeAspectFill
         
-        if #available(iOS 17.0, *) {
-            layer.connection?.videoRotationAngle = 180
-        } else {
-            layer.connection?.videoOrientation = .landscapeRight
+        if let connection = layer.connection {
+            if UIDevice.current.userInterfaceIdiom == .phone {
+                // --- Configuração para IPHONE (Retrato) ---
+                if #available(iOS 17.0, *) {
+                    connection.videoRotationAngle = 90
+                } else {
+                    if connection.isVideoOrientationSupported {
+                        connection.videoOrientation = .portrait
+                    }
+                }
+            } else {
+                // --- Configuração para IPAD (Paisagem) ---
+                if #available(iOS 17.0, *) {
+                    connection.videoRotationAngle = 180
+                } else {
+                    if connection.isVideoOrientationSupported {
+                        connection.videoOrientation = .landscapeRight
+                    }
+                }
+            }
         }
 
         self.previewLayer = layer
@@ -351,7 +367,14 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
 //        let orientation = currentVideoOrientation()
-        let orientation: CGImagePropertyOrientation = .down
+        var orientation: CGImagePropertyOrientation
+        if UIDevice.current.userInterfaceIdiom == .phone {
+                // Câmera frontal no iPhone em modo retrato
+                orientation = .leftMirrored
+        } else {
+            // Câmera frontal no iPad em modo paisagem (home à esquerda)
+            orientation = .down
+        }
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: orientation, options: [:])
         
         do {
@@ -362,7 +385,7 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
                 }
                 return
             }
-            
+            print("Mão detectada com confiança: \(observation.confidence)")
             guard observation.confidence > 0.5 else {
                 DispatchQueue.main.async {
                     self.delegate?.gestureDetectionLost()
@@ -370,11 +393,43 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
                 return
             }
             
-            let keypoints = try observation.keypointsMultiArray()
-            let prediction = try model.prediction(poses: keypoints)
+            do {
+                // Primeiro, tentamos obter os pontos. Se a função falhar, ela "lançará" um erro
+                // que será capturado pelo bloco 'catch' abaixo.
+                let wristPoint = try observation.recognizedPoint(.wrist)
+                let thumbTipPoint = try observation.recognizedPoint(.thumbTip)
+                
+                // Se o código chegar aqui, significa que os pontos foram obtidos com sucesso.
+                // Agora podemos verificar a confiança deles com um 'if' normal.
+                if wristPoint.confidence > 0.3 && thumbTipPoint.confidence > 0.3 {
+                    print("DEBUG COORDENADAS: Pulso [y: \(String(format: "%.2f", wristPoint.location.y))] | Polegar [y: \(String(format: "%.2f", thumbTipPoint.location.y))]")
+                }
+            } catch {
+                // Se 'try observation.recognizedPoint' falhar, o erro será impresso aqui.
+                print("Não foi possível obter os pontos da mão: \(error)")
+            }
+            
+            // 1. Obter os pontos-chave do Vision (que são do tipo Double)
+            let keypointsFromVision = try observation.keypointsMultiArray()
+
+            // 2. Criar um novo MLMultiArray com o formato que o modelo espera (Float32)
+            let convertedKeypoints = try MLMultiArray(shape: keypointsFromVision.shape, dataType: .float32)
+
+            // 3. Copiar os dados, convertendo cada número de Double para Float32
+            let pointer = convertedKeypoints.dataPointer.bindMemory(to: Float32.self, capacity: convertedKeypoints.count)
+            let visionPointer = keypointsFromVision.dataPointer.bindMemory(to: Double.self, capacity: keypointsFromVision.count)
+
+            for i in 0..<keypointsFromVision.count {
+                pointer[i] = Float32(visionPointer[i])
+            }
+
+            // 4. Fazer a predição usando o array CONVERTIDO
+            let prediction = try model.prediction(poses: convertedKeypoints)
             
             let probabilities = prediction.labelProbabilities
             let maxProbability = probabilities.values.max() ?? 0.0
+            
+            print("Gesto previsto: \(prediction.label) com probabilidade: \(maxProbability)")
             
             if maxProbability >= confidenceThreshold {
                 if let smoothedGesture = smoothGestureDetection(prediction.label) {
@@ -399,7 +454,7 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
 //    private func currentVideoOrientation() -> CGImagePropertyOrientation {
 //       let deviceOrientation = currentInterfaceOrientation()
 //       let cameraPosition: AVCaptureDevice.Position = .front
-//       
+//
 //       switch deviceOrientation {
 //       case .landscapeLeft:
 //           // Home à direita - para câmera frontal, usar .up
