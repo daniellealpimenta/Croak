@@ -7,7 +7,7 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, ScoreHavingScene, PauseButtonDelegate, PauseOverlayDelegate {
+class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, ScoreHavingScene, PauseButtonDelegate, PauseOverlayDelegate, BossFightScene{
     
     func cameraWillExpand() {
         print("Câmera vai expandir, pausando o jogo.")
@@ -45,13 +45,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     private var cameraPreviewNode: SKEffectNode!
     private var gestureDebugLabel: SKLabelNode?
-    private var sceneIsInitialized = false
     
-    // MARK: - Ciclo de Vida da Cena
+    private var gameState: GameState = .normalPlay
+    private var mageControl: MageControl?
+    private var scoreAtLastBossDefeat = 0
     
     override func sceneDidLoad() {
         self.physicsWorld.contactDelegate = self
-    }
+      }
+    //    Flag para controlar a inicialização da cena.
+    private var sceneIsInitialized = false
+    
+    // MARK: - Ciclo de Vida da Cena
     
     override func didMove(to view: SKView) {
         if !sceneIsInitialized {
@@ -315,7 +320,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         print("▶️ RETOMANDO JOGO COMPLETAMENTE")
         pauseOverlayComponent.hide()
         self.isPaused = false
-        enemySpawner.startSpawningEnemies()
+        
+        // 4. Retoma o spawn de novos inimigo
+        if gameState == .normalPlay {
+            enemySpawner.startSpawningEnemies()
+        }
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
@@ -360,15 +369,77 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     /// Processa a ação do jogador após fazer um gesto.
     /// - Parameter gesture: A string que representa o gesto feito (ex: "Rock").
-        func playerDidMake(gesture: String) {
-        if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
-            scoreComponent.addScore(point: rewards.points)
-            coinsComponent.addCoins(coins: rewards.coins)
-            enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
-            print("Ganhou \(rewards.coins) moedas!")
+    
+    func playerDidMake(gesture: String) {
+//        // A variável "rewards" agora é uma tupla: (points: Int, coins: Int)
+//        if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
+//            
+//            // Tenta matar um inimigo com o gesto.
+//            // A função killEnemy retorna os pontos e moedas ganhos se um inimigo for morto.
+//            // Acessamos os valores usando .points e .coins
+//            scoreComponent.addScore(point: rewards.points)
+//            coinsComponent.addCoins(coins: rewards.coins)
+//            
+//            // Pede ao spawner para atualizar a velocidade dos inimigos
+//            // com base na nova pontuação total.
+//            enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
+//
+//            print("Ganhou \(rewards.coins) moedas!")
+            
+            // Roteia o gesto com base no estado do jogo
+        switch gameState {
+            case .bossFight:
+                // Durante a batalha, apenas o chefe responde.
+                mageControl?.handlePlayer(gesture: gesture)
+                
+            case .normalPlay, .clearingField:
+                // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
+                if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
+                    scoreComponent.addScore(point: rewards.points)
+                    coinsComponent.addCoins(coins: rewards.coins)
+                    
+                    enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
+                    
+                }
+            }
+            
+            // A verificação do chefe agora só inicia a fase de limpeza.
+            checkToStartBossEncounter()
+    }
+    
+    private func checkToStartBossEncounter() {
+        let score = scoreComponent.scoreCount
+        
+        // Se as condições forem atendidas, muda para o estado de LIMPEZA.
+        let scoreSinceLastBoss = score - scoreAtLastBossDefeat
+        
+        // A condição agora é muito mais simples e robusta.
+        if gameState == .normalPlay && scoreSinceLastBoss >= 75  { // Use 5 para testar
+            print("--- PREPARANDO PARA O CHEFE! Limpando inimigos restantes... ---")
+            
+            // Não precisamos mais atualizar 'lastBossTriggerScore'.
+            
+            gameState = .clearingField
+            
+            mageControl = MageControl(scene: self, spawner: self.enemySpawner)
+            mageControl?.startBossEncounter()
         }
     }
     
+    func enterBossFightState() {
+        print("A cena entrou no estado de Batalha do Chefe.")
+        self.gameState = .bossFight
+    }
+    
+    func bossFightDidEnd() {
+        print("--- CHEFE DERROTADO! Retornando ao jogo normal. ---")
+        self.scoreAtLastBossDefeat = self.scoreComponent.scoreCount
+        
+        mageControl = nil
+        gameState = .normalPlay
+        enemySpawner.startSpawningEnemies()
+    }
+
     func makeGestureInValidation(gesture: String) {
         if gesture == "OpenPalm" {
             if !isProcessingCorrectGesture {
@@ -388,7 +459,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             isProcessingCorrectGesture = false
         }
     }
-
+    
     // MARK: - Entrada do Usuário
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {

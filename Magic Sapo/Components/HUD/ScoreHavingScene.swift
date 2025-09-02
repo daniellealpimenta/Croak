@@ -5,6 +5,9 @@
 //  Created by Daniel Leal PImenta on 26/08/25.
 //
 
-protocol ScoreHavingScene {
+import SpriteKit
+
+protocol ScoreHavingScene: SKScene {
     var scoreComponent: ScoreComponent! { get }
+    var coinsComponent: CoinsComponent! { get }
 }

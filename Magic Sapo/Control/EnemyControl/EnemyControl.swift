@@ -127,8 +127,8 @@ class EnemyControl {
     public func killEnemy(withGesture gesture: String, in scene: SKScene) -> (points: Int, coins: Int)? {
         
         // Define a "Kill Zone" para que os inimigos só possam ser atingidos em uma área específica.
-        let killZoneTopY: CGFloat = scene.size.height / 2 - 150
-        let killZoneBottomY: CGFloat = -scene.size.height / 2 + 300
+        let killZoneTopY: CGFloat = scene.size.height / 2 - 125
+        let killZoneBottomY: CGFloat = -scene.size.height / 2 + 215
         
         var totalPoints = 0
         var totalCoins = 0

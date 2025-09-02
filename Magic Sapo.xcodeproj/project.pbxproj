@@ -267,7 +267,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TWDCHYXP2J;
+				DEVELOPMENT_TEAM = 8YAD22YX6D;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Magic-Sapo-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Croak;
@@ -284,7 +284,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.henriqenzo.croak;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.DanielLeal.Magic-Sapo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -303,7 +303,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TWDCHYXP2J;
+				DEVELOPMENT_TEAM = 8YAD22YX6D;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Magic-Sapo-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Croak;
@@ -320,7 +320,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.henriqenzo.croak;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.DanielLeal.Magic-Sapo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
