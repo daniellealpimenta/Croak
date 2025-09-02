@@ -15,7 +15,7 @@ import CoreML
 class GestureDetectionManager: NSObject {
     let session = AVCaptureSession()
     let handPoseRequest = VNDetectHumanHandPoseRequest()
-    let model = try! MLiPhoneV2__PRIME_(configuration: MLModelConfiguration())
+    let model = try! MLModelV7(configuration: MLModelConfiguration())
     
     var handFeedbackOverlayImageView: UIImageView?
 //    private var isProcessingCorrectGesture = false
