@@ -15,9 +15,12 @@ struct Frog {
     
     init(parent: SKScene) {
         self.texture = [SKTexture(image: .frog0), SKTexture(image: .frog1), SKTexture(image: .frog2), SKTexture(image: .frog3)]
-        self.size = CGSize(width: 150, height: 150)
+        
+        self.size = DeviceHelper.isIPhone ? CGSize(width: 105, height: 105) : CGSize(width: 150, height: 150)
+        self.colisionSize = DeviceHelper.isIPhone ? CGSize(width: 35, height: 35) : CGSize(width: 50, height: 50)
+        
         self.parent = parent
-        self.colisionSize = CGSize(width: 50, height: 50)
+        
         self.texture.forEach { tex in
             tex.filteringMode = .nearest
         }
