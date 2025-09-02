@@ -90,15 +90,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         enemySpawner.startSpawningEnemies()
         
         let frog = Frog(parent: self)
-        let frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+        let frogNode: SKNode
+
+        switch DeviceHelper.current {
+        case .iPad:
+            frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+        case .iPhone:
+            frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 100))
+        case .unknown:
+            frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+        }
+
         self.addChild(frogNode)
 
-        // ✅ ORDEM CORRETA:
-        // 1. Primeiro, chama a função que CRIA o gestureManager.
         setupGestureDetection()
 
-        // 2. Agora, só vamos criar o preview da câmera se o dispositivo for um iPad.
-        if UIDevice.current.userInterfaceIdiom == .pad {
+        if DeviceHelper.isIPad {
             if let view = self.view {
                 self.gestureManager.setupCameraPreview(in: view)
             }
@@ -415,7 +422,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let scoreSinceLastBoss = score - scoreAtLastBossDefeat
         
         // A condição agora é muito mais simples e robusta.
-        if gameState == .normalPlay && scoreSinceLastBoss >= 75  { // Use 5 para testar
+        if gameState == .normalPlay && scoreSinceLastBoss >= 5  { // Use 5 para testar
             print("--- PREPARANDO PARA O CHEFE! Limpando inimigos restantes... ---")
             
             // Não precisamos mais atualizar 'lastBossTriggerScore'.

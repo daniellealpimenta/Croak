@@ -20,8 +20,11 @@ class Mage: SKSpriteNode {
     static var health: Int = 2
     
     static func create(at position: CGPoint) -> SKSpriteNode? {
-        // 1. Cria o nó principal do Ladrão (usando uma cor como placeholder)
-        let mageNode = SKSpriteNode(color: .orange, size: CGSize(width: 150, height: 150))
+
+        let mageSize = DeviceHelper.isIPhone ? CGSize(width: 105, height: 105) : CGSize(width: 150, height: 150)
+        
+        // 1. Cria o nó principal do Mago (usando uma cor como placeholder)
+        let mageNode = SKSpriteNode(color: .orange, size: mageSize)
         mageNode.name = "Mage"
         mageNode.position = position
         mageNode.zPosition = 2

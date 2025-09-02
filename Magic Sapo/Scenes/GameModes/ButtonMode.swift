@@ -66,20 +66,60 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         enemySpawner.startSpawningEnemies()
         
         let frog = Frog(parent: self)
-        let frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+        
+        // --- MUDANÇA: Posição do sapo agora é adaptativa ---
+        let frogNode: SKNode
+        switch DeviceHelper.current {
+        case .iPad:
+            frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+        case .iPhone:
+            frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 100))
+        case .unknown:
+            frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+        }
         self.addChild(frogNode)
         
-        // (O código dos botões de gestos permanece o mesmo)
+        // --- MUDANÇA: Tamanho e posição dos botões agora são adaptativos ---
+        let buttonSize = DeviceHelper.isIPhone ? CGSize(width: 60, height: 60) : CGSize(width: 80, height: 80)
+        let buttonYPosition = DeviceHelper.isIPhone ? (-self.size.height/2 + 80) : (-self.size.height/2 + 100)
+        
+        let openPBY = DeviceHelper.isIPhone ? -230 : (-self.size.height/2 + 100)
+        
+        let lX: CGFloat = DeviceHelper.isIPhone ? -160 : -240
+        let rockX: CGFloat = DeviceHelper.isIPhone ? -80 : -120
+        let openPX: CGFloat = DeviceHelper.isIPhone ? 80 : 0
+        let twoX: CGFloat = DeviceHelper.isIPhone ? 80 : 120
+        let hangLX: CGFloat = DeviceHelper.isIPhone ? 160 : 240
+        
         let rockButton = SKSpriteNode(imageNamed: "Rock")
-        rockButton.name = "rockButton"; rockButton.size = CGSize(width: 80, height: 80); rockButton.position = CGPoint(x: -200, y: -self.size.height/2 + 100); self.addChild(rockButton)
+        rockButton.name = "rockButton"
+        rockButton.size = buttonSize
+        rockButton.position = CGPoint(x: rockX, y: buttonYPosition)
+        self.addChild(rockButton)
+        
         let twoButton = SKSpriteNode(imageNamed: "Two")
-        twoButton.name = "twoButton"; twoButton.size = CGSize(width: 80, height: 80); twoButton.position = CGPoint(x: 200, y: -self.size.height/2 + 100); self.addChild(twoButton)
+        twoButton.name = "twoButton"
+        twoButton.size = buttonSize
+        twoButton.position = CGPoint(x: twoX, y: buttonYPosition)
+        self.addChild(twoButton)
+        
         let lButton = SKSpriteNode(imageNamed: "L")
-        lButton.name = "lButton"; lButton.size = CGSize(width: 80, height: 80); lButton.position = CGPoint(x: -300, y: -self.size.height/2 + 100); self.addChild(lButton)
+        lButton.name = "lButton"
+        lButton.size = buttonSize
+        lButton.position = CGPoint(x: lX, y: buttonYPosition)
+        self.addChild(lButton)
+        
         let hangLButton = SKSpriteNode(imageNamed: "HangLose")
-        hangLButton.name = "hangLButton"; hangLButton.size = CGSize(width: 80, height: 80); hangLButton.position = CGPoint(x: 300, y: -self.size.height/2 + 100); self.addChild(hangLButton)
+        hangLButton.name = "hangLButton"
+        hangLButton.size = buttonSize
+        hangLButton.position = CGPoint(x: hangLX, y: buttonYPosition)
+        self.addChild(hangLButton)
+        
         let openPButton = SKSpriteNode(imageNamed: "OpenPalm")
-        openPButton.name = "openPButton"; openPButton.size = CGSize(width: 80, height: 80); openPButton.position = CGPoint(x: 400, y: -self.size.height/2 + 100); self.addChild(openPButton)
+        openPButton.name = "openPButton"
+        openPButton.size = buttonSize
+        openPButton.position = CGPoint(x: openPX, y: openPBY)
+        self.addChild(openPButton)
     }
     
     @objc func pauseGame() {
@@ -95,7 +135,11 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         print("▶️ RETOMANDO JOGO COMPLETAMENTE")
         pauseOverlayComponent.hide()
         self.isPaused = false
-        enemySpawner.startSpawningEnemies()
+        
+        // --- MUDANÇA: Lógica igual à GameScene para não respawnar inimigos durante a boss fight ---
+        if gameState == .normalPlay {
+            enemySpawner.startSpawningEnemies()
+        }
     }
     
     // (Lógica de contato, movimento e do jogo permanece a mesma)
@@ -107,38 +151,38 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
          let secondBody: SKPhysicsBody
 
          if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
-             firstBody = contact.bodyA
-             secondBody = contact.bodyB
+               firstBody = contact.bodyA
+               secondBody = contact.bodyB
          } else {
-             firstBody = contact.bodyB
-             secondBody = contact.bodyA
+               firstBody = contact.bodyB
+               secondBody = contact.bodyA
          }
 
          if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
-             
-             // 2. ATIVA A TRAVA: Impede que esta lógica seja executada novamente.
-             isPlayerDead = true
-             
-             // 3. EXECUTA A LÓGICA DE GAME OVER (agora de forma segura)
-             let waitAction = SKAction.wait(forDuration: 0.1)
-             let transitionAction = SKAction.run {
-                 if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
-                     gameOverScene.scaleMode = .aspectFill
-                     gameOverScene.finalScore = self.scoreComponent.scoreCount
-                     
-                     // --- LINHA ADICIONADA ---
-                     // Informa para a próxima cena qual modo de jogo deve ser reiniciado.
-                     gameOverScene.previousSceneName = "ButtonMode"
-                     
-                     let transition = SKTransition.fade(withDuration: 1.0)
-                     self.view?.presentScene(gameOverScene, transition: transition)
-                 }
-             }
-             
-             // Roda a sequência: espera um pouco e depois faz a transição.
-             self.run(SKAction.sequence([waitAction, transitionAction]))
+               
+               // 2. ATIVA A TRAVA: Impede que esta lógica seja executada novamente.
+               isPlayerDead = true
+               
+               // 3. EXECUTA A LÓGICA DE GAME OVER (agora de forma segura)
+               let waitAction = SKAction.wait(forDuration: 0.1)
+               let transitionAction = SKAction.run {
+                     if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
+                           gameOverScene.scaleMode = .aspectFill
+                           gameOverScene.finalScore = self.scoreComponent.scoreCount
+                         
+                           // --- LINHA ADICIONADA ---
+                           // Informa para a próxima cena qual modo de jogo deve ser reiniciado.
+                           gameOverScene.previousSceneName = "ButtonMode"
+                         
+                           let transition = SKTransition.fade(withDuration: 1.0)
+                           self.view?.presentScene(gameOverScene, transition: transition)
+                     }
+               }
+               
+               // Roda a sequência: espera um pouco e depois faz a transição.
+               self.run(SKAction.sequence([waitAction, transitionAction]))
          }
-     }
+    }
     
     
     /// Método chamado pouco antes da cena ser removida da tela (ex: ao pausar o jogo).
@@ -152,56 +196,30 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     }
     
     func playerDidMake(gesture: String) {
-        // A variável "rewards" agora é uma tupla: (points: Int, coins: Int)
-//        if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
-//            
-//            // Tenta matar um inimigo com o gesto.
-//            // A função killEnemy retorna os pontos e moedas ganhos se um inimigo for morto.
-//            // Acessamos os valores usando .points e .coins
-//            scoreComponent.addScore(point: rewards.points)
-//            coinsComponent.addCoins(coins: rewards.coins)
-//            
-//            // Pede ao spawner para atualizar a velocidade dos inimigos
-//            // com base na nova pontuação total.
-//            enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
-//
-//            print("Ganhou \(rewards.coins) moedas!")
-//        }else {
-//            // --- LÓGICA DE PENALIDADE ATUALIZADA ---
-//            // ERRO: O gesto não acertou nenhum inimigo válido.
-//            // Verificamos se a jogada veio de um botão antes de aplicar a penalidade.
-//            // SÓ aplica a penalidade se a pontuação for maior que 0.
-//            if scoreComponent.scoreCount > 0 {
-//                print("Gesto errado com botão! Aplicando penalidade.")
-//                scoreComponent.decreaseScore(point: 1)
-//            } else {
-//                print("Gesto errado com botão, mas a pontuação já é 0. Nenhuma penalidade aplicada.")
-//            }
-//        }
-            switch gameState {
-                case .bossFight:
-                    // Durante a batalha, apenas o chefe responde.
-                    mageControl?.handlePlayer(gesture: gesture)
-                    
-                case .normalPlay, .clearingField:
-                    // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
-                    if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
-                        scoreComponent.addScore(point: rewards.points)
-                        coinsComponent.addCoins(coins: rewards.coins)
-                        
-                        enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
-                        
-                    } else {
-                        if scoreComponent.scoreCount > 0 {
-                            print("Gesto errado com botão! Aplicando penalidade.")
-                            scoreComponent.decreaseScore(point: 1)
-                        } else {
-                            print("Gesto errado com botão, mas a pontuação já é 0. Nenhuma penalidade aplicada.")
-                        }
-                    }
-                }
-                
-                // Após cada jogada, verifica se é hora de iniciar a luta do chefe
+          switch gameState {
+              case .bossFight:
+                  // Durante a batalha, apenas o chefe responde.
+                  mageControl?.handlePlayer(gesture: gesture)
+                  
+              case .normalPlay, .clearingField:
+                  // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
+                  if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
+                      scoreComponent.addScore(point: rewards.points)
+                      coinsComponent.addCoins(coins: rewards.coins)
+                      
+                      enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
+                      
+                  } else {
+                      if scoreComponent.scoreCount > 0 {
+                          print("Gesto errado com botão! Aplicando penalidade.")
+                          scoreComponent.decreaseScore(point: 1)
+                      } else {
+                          print("Gesto errado com botão, mas a pontuação já é 0. Nenhuma penalidade aplicada.")
+                      }
+                  }
+              }
+              
+              // Após cada jogada, verifica se é hora de iniciar a luta do chefe
         checkToStartBossEncounter()
     }
     
@@ -209,20 +227,20 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
            let score = scoreComponent.scoreCount
            
            // Se as condições forem atendidas, muda para o estado de LIMPEZA.
-            let scoreSinceLastBoss = score - scoreAtLastBossDefeat
-                
-            // A condição agora é muito mais simples e robusta.
-            if gameState == .normalPlay && scoreSinceLastBoss >= 75 { // Use 5 para testar
-                print("--- PREPARANDO PARA O CHEFE! Limpando inimigos restantes... ---")
-                
-                // Não precisamos mais atualizar 'lastBossTriggerScore'.
-                
-                gameState = .clearingField
-                
-                mageControl = MageControl(scene: self, spawner: self.enemySpawner)
-                mageControl?.startBossEncounter()
-            }
-       }
+           let scoreSinceLastBoss = score - scoreAtLastBossDefeat
+               
+           // A condição agora é muito mais simples e robusta.
+           if gameState == .normalPlay && scoreSinceLastBoss >= 75 { // Use 5 para testar
+               print("--- PREPARANDO PARA O CHEFE! Limpando inimigos restantes... ---")
+               
+               // Não precisamos mais atualizar 'lastBossTriggerScore'.
+               
+               gameState = .clearingField
+               
+               mageControl = MageControl(scene: self, spawner: self.enemySpawner)
+               mageControl?.startBossEncounter()
+           }
+    }
     
     
     func enterBossFightState() {
@@ -294,3 +312,4 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         NotificationCenter.default.removeObserver(self)
     }
 }
+
