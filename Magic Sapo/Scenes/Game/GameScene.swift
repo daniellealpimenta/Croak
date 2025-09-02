@@ -85,20 +85,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         // ✅ ORDEM CORRETA:
         // 1. Primeiro, chama a função que CRIA o gestureManager.
         setupGestureDetection()
-        
-        // 2. Agora que ele existe, PODE USÁ-LO com segurança.
-        if let view = self.view {
-            self.gestureManager.setupCameraPreview(in: view)
+
+        // 2. Agora, só vamos criar o preview da câmera se o dispositivo for um iPad.
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            if let view = self.view {
+                self.gestureManager.setupCameraPreview(in: view)
+            }
+            
+            if startInGestureMode {
+                setupInstructionLabel()
+                setupCountdownLabel()
+                enterGestureValidationMode()
+            }
         }
-        
         // 3. Configura a UI de debug que depende da detecção.
         setupGestureDebugUI()
-        setupCountdownLabel()
-        setupInstructionLabel()
-        
-        if startInGestureMode {
-            enterGestureValidationMode()
-        }
     }
     
     private func setupCountdownLabel() {

@@ -190,6 +190,7 @@ class GestureDetectionManager: NSObject {
                 })
             }
         }
+    
     private func addHandOverlay(to parentView: UIView) {
         // Cria o ImageView para a mão
         let handImageView = UIImageView()

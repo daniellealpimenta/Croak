@@ -12,7 +12,36 @@ class MenuScene: SKScene {
     // MARK: - Ciclo de Vida da Cena
     
     override func didMove(to view: SKView) {
-        // Configuração inicial da cena, se necessário.
+        
+        // Nomes de todos os labels que você quer configurar
+        let labelNames = ["LojaLabel", "JogarLabel", "TutorialLabel"]
+        
+        // Passa por cada nome na lista
+        for name in labelNames {
+            
+            // A MUDANÇA ESTÁ AQUI: Adicionamos "//" para procurar em toda a cena
+            if let label = self.childNode(withName: "//\(name)") as? SKLabelNode {
+                // Aplica a mesma configuração a todos
+                label.fontName = "Ari-W9500Bold"
+                label.fontSize = 35
+            } else {
+                print("AVISO: Não foi possível encontrar o nó com o nome '\(name)' na cena.")
+            }
+        }
+        
+        let buttonNames = ["GestureMode", "ButtonMode", "Loja"]
+        
+        for name in buttonNames {
+            if let buttonNode = self.childNode(withName: "//\(name)") as? SKSpriteNode {
+                // APLIQUE AS DUAS CONFIGURAÇÕES
+                buttonNode.texture?.filteringMode = .nearest
+                buttonNode.texture?.usesMipmaps = false // <-- ADICIONE ESTA LINHA
+
+                print("Configurado '\(name)' com .nearest e sem mipmaps")
+            } else {
+                print("AVISO: Não foi possível encontrar o nó do botão com o nome '\(name)' na cena.")
+            }
+        }
     }
     
     // MARK: - Entrada do Usuário
