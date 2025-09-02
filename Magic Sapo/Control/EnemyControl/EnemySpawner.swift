@@ -28,6 +28,10 @@ class EnemySpawner {
     
     private var lastThiefSpawnScore = -1
     
+    public var hasActiveEnemies: Bool {
+        return !enemyControl.activeEnemies.isEmpty
+    }
+    
     // MARK: - Inicialização
     
     init(scene: SKScene) {

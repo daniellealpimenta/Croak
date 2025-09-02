@@ -15,7 +15,16 @@ import CoreML
 class GestureDetectionManager: NSObject {
     let session = AVCaptureSession()
     let handPoseRequest = VNDetectHumanHandPoseRequest()
-    let model = try! MLModelV6(configuration: MLModelConfiguration()) // SUBSTITUA pelo nome do seu modelo
+    let model = try! MLiPhoneV2__PRIME_(configuration: MLModelConfiguration())
+    
+    var handFeedbackOverlayImageView: UIImageView?
+//    private var isProcessingCorrectGesture = false
+    
+    enum HandFeedbackStatus {
+        case neutral // Mão branca
+        case correct // Mão verde
+        case incorrect // Mão vermelha
+    }
     
     weak var delegate: GestureDetectionDelegate?
     
@@ -65,7 +74,7 @@ class GestureDetectionManager: NSObject {
     
     func setupCamera() {
         session.beginConfiguration()
-        session.sessionPreset = .high
+        session.sessionPreset = .vga640x480
         
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front),
               let input = try? AVCaptureDeviceInput(device: device),
@@ -124,10 +133,26 @@ class GestureDetectionManager: NSObject {
         layer.frame = camView.bounds
         layer.videoGravity = .resizeAspectFill
         
-        if #available(iOS 17.0, *) {
-            layer.connection?.videoRotationAngle = 180
-        } else {
-            layer.connection?.videoOrientation = .landscapeRight
+        if let connection = layer.connection {
+            if UIDevice.current.userInterfaceIdiom == .phone {
+                // --- Configuração para IPHONE (Retrato) ---
+                if #available(iOS 17.0, *) {
+                    connection.videoRotationAngle = 90
+                } else {
+                    if connection.isVideoOrientationSupported {
+                        connection.videoOrientation = .portrait
+                    }
+                }
+            } else {
+                // --- Configuração para IPAD (Paisagem) ---
+                if #available(iOS 17.0, *) {
+                    connection.videoRotationAngle = 180
+                } else {
+                    if connection.isVideoOrientationSupported {
+                        connection.videoOrientation = .landscapeRight
+                    }
+                }
+            }
         }
 
         self.previewLayer = layer
@@ -167,63 +192,78 @@ class GestureDetectionManager: NSObject {
         }
     
     func shrinkCameraPreviewToOriginal(in skView: SKView) {
-            // 1. Garante que a view da câmera e o frame original existam.
-            guard let camView = self.cameraView, let originalFrame = self.originalCameraFrame else {
-                print("A cameraView ou o frame original não foram inicializados.")
-                return
-            }
-            
-            // 2. Garante que a atualização da UI seja feita na thread principal.
-            DispatchQueue.main.async {
-                // 3. Anima a transição de volta para o frame original.
-                UIView.animate(withDuration: 0.4, animations: {
-                    camView.frame = originalFrame
-                    
-                    // Restaura a aparência original (borda e cantos arredondados).
-                    camView.layer.cornerRadius = 10
-                    camView.layer.borderWidth = 2
-                    
-                    // Ajusta o frame da camada de preview para preencher a view menor.
-                    self.previewLayer?.frame = camView.bounds
-                }, completion: {[weak self] _ in
-                self?.delegate?.cameraDidShrink()
-                })
-            }
+        // 1. Garante que a view da câmera e o frame original existam.
+        guard let camView = self.cameraView, let originalFrame = self.originalCameraFrame else {
+            print("A cameraView ou o frame original não foram inicializados.")
+            return
         }
+        
+        self.updateHandFeedback(status: .neutral)
+        
+        // 2. Garante que a atualização da UI seja feita na thread principal.
+        DispatchQueue.main.async {
+            // 3. Anima a transição de volta para o frame original.
+            UIView.animate(withDuration: 0.4, animations: {
+                camView.frame = originalFrame
+                
+                // Restaura a aparência original (borda e cantos arredondados).
+                camView.layer.cornerRadius = 10
+                camView.layer.borderWidth = 2
+                
+                // Ajusta o frame da camada de preview para preencher a view menor.
+                self.previewLayer?.frame = camView.bounds
+                
+                self.handFeedbackOverlayImageView?.alpha = 0.5
+            }, completion: {[weak self] _ in
+            self?.delegate?.cameraDidShrink()
+            })
+        }
+    }
     
     private func addHandOverlay(to parentView: UIView) {
-        // Cria o ImageView para a mão
-        let handImageView = UIImageView()
+        let imageView = UIImageView()
         
-        // Carrega a imagem da mão (substitua "hand_outline" pelo nome da sua imagem)
-        if let handImage = UIImage(named: "hand-outline-white") {
-            handImageView.image = handImage
-        } else {
-            print("⚠️ Imagem 'hand_outline' não encontrada nos assets")
-            // Fallback: criar uma imagem simples programaticamente se necessário
-            handImageView.backgroundColor = UIColor.white.withAlphaComponent(0.3)
-        }
+        imageView.image = UIImage(named: "hand-outline-white")
         
         // Configurações do ImageView
-        handImageView.contentMode = .scaleAspectFit
-        handImageView.translatesAutoresizingMaskIntoConstraints = false
-        handImageView.alpha = 0.6 // Transparência para não cobrir muito a câmera
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.alpha = 0.8
         
         // Adiciona ao container
-        parentView.addSubview(handImageView)
+        parentView.addSubview(imageView)
         
         // Constraints para centralizar e dimensionar
         NSLayoutConstraint.activate([
-            handImageView.centerXAnchor.constraint(equalTo: parentView.centerXAnchor),
-            handImageView.centerYAnchor.constraint(equalTo: parentView.centerYAnchor),
-            handImageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: 0.4), // 40% da largura
-            handImageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: 0.6) // 60% da altura
+            imageView.centerXAnchor.constraint(equalTo: parentView.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: parentView.centerYAnchor),
+            imageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: 0.4), // 60% da largura
+            imageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: 0.6) // 80% da altura
         ])
         
-        // Opcional: Adicionar uma animação sutil de "pulsação"
-//        addPulseAnimation(to: handImageView)
+        self.handFeedbackOverlayImageView = imageView
     }
-
+    
+    func updateHandFeedback(status: HandFeedbackStatus) {
+        DispatchQueue.main.async {
+            var imageName: String
+            
+            switch status {
+            case .neutral:
+                imageName = "hand-outline-white"
+            case .correct:
+                imageName = "hand-outline-green"
+            case .incorrect:
+                imageName = "hand-outline-red"
+            }
+            
+            if let image = UIImage(named: imageName) {
+                self.handFeedbackOverlayImageView?.image = image
+            } else {
+                print("⚠️ Imagem de feedback '\(imageName)' não encontrada nos assets.")
+            }
+        }
+    }
 
     /// Remove a janela de preview da câmera da tela.
     func removeCameraPreview() {
@@ -327,7 +367,14 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
 //        let orientation = currentVideoOrientation()
-        let orientation: CGImagePropertyOrientation = .down
+        var orientation: CGImagePropertyOrientation
+        if UIDevice.current.userInterfaceIdiom == .phone {
+                // Câmera frontal no iPhone em modo retrato
+                orientation = .leftMirrored
+        } else {
+            // Câmera frontal no iPad em modo paisagem (home à esquerda)
+            orientation = .down
+        }
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: orientation, options: [:])
         
         do {
@@ -338,7 +385,7 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
                 }
                 return
             }
-            
+            print("Mão detectada com confiança: \(observation.confidence)")
             guard observation.confidence > 0.5 else {
                 DispatchQueue.main.async {
                     self.delegate?.gestureDetectionLost()
@@ -346,11 +393,43 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
                 return
             }
             
-            let keypoints = try observation.keypointsMultiArray()
-            let prediction = try model.prediction(poses: keypoints)
+            do {
+                // Primeiro, tentamos obter os pontos. Se a função falhar, ela "lançará" um erro
+                // que será capturado pelo bloco 'catch' abaixo.
+                let wristPoint = try observation.recognizedPoint(.wrist)
+                let thumbTipPoint = try observation.recognizedPoint(.thumbTip)
+                
+                // Se o código chegar aqui, significa que os pontos foram obtidos com sucesso.
+                // Agora podemos verificar a confiança deles com um 'if' normal.
+                if wristPoint.confidence > 0.3 && thumbTipPoint.confidence > 0.3 {
+                    print("DEBUG COORDENADAS: Pulso [y: \(String(format: "%.2f", wristPoint.location.y))] | Polegar [y: \(String(format: "%.2f", thumbTipPoint.location.y))]")
+                }
+            } catch {
+                // Se 'try observation.recognizedPoint' falhar, o erro será impresso aqui.
+                print("Não foi possível obter os pontos da mão: \(error)")
+            }
+            
+            // 1. Obter os pontos-chave do Vision (que são do tipo Double)
+            let keypointsFromVision = try observation.keypointsMultiArray()
+
+            // 2. Criar um novo MLMultiArray com o formato que o modelo espera (Float32)
+            let convertedKeypoints = try MLMultiArray(shape: keypointsFromVision.shape, dataType: .float32)
+
+            // 3. Copiar os dados, convertendo cada número de Double para Float32
+            let pointer = convertedKeypoints.dataPointer.bindMemory(to: Float32.self, capacity: convertedKeypoints.count)
+            let visionPointer = keypointsFromVision.dataPointer.bindMemory(to: Double.self, capacity: keypointsFromVision.count)
+
+            for i in 0..<keypointsFromVision.count {
+                pointer[i] = Float32(visionPointer[i])
+            }
+
+            // 4. Fazer a predição usando o array CONVERTIDO
+            let prediction = try model.prediction(poses: convertedKeypoints)
             
             let probabilities = prediction.labelProbabilities
             let maxProbability = probabilities.values.max() ?? 0.0
+            
+            print("Gesto previsto: \(prediction.label) com probabilidade: \(maxProbability)")
             
             if maxProbability >= confidenceThreshold {
                 if let smoothedGesture = smoothGestureDetection(prediction.label) {
@@ -375,7 +454,7 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
 //    private func currentVideoOrientation() -> CGImagePropertyOrientation {
 //       let deviceOrientation = currentInterfaceOrientation()
 //       let cameraPosition: AVCaptureDevice.Position = .front
-//       
+//
 //       switch deviceOrientation {
 //       case .landscapeLeft:
 //           // Home à direita - para câmera frontal, usar .up
