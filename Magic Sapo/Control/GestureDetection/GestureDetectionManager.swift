@@ -15,7 +15,7 @@ import CoreML
 class GestureDetectionManager: NSObject {
     let session = AVCaptureSession()
     let handPoseRequest = VNDetectHumanHandPoseRequest()
-    let model = try! ModelTest2(configuration: MLModelConfiguration())
+    let model = try! MLiPhoneV2__PRIME_(configuration: MLModelConfiguration())
     
     weak var delegate: GestureDetectionDelegate?
     
