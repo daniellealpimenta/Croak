@@ -19,7 +19,7 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
     
     // Propriedades para Detecção de Gestos
     private var gestureManager: GestureDetectionManager!
-    private var gestureDebugLabel: SKLabelNode?
+    private var gestureDebugLabel: SKLabelNode? // Corrigido para SKLabelNode?
     private var isTransitioning = false // Flag para evitar transições duplicadas
 
     // MARK: - Ciclo de Vida da Cena
@@ -32,6 +32,9 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
         
         // Configuração da Detecção de Gestos
         setupGestureDetection(in: view)
+        
+        // Adiciona as imagens dos gestos ao lado dos botões
+        addGestureImagesToButtons()
     }
     
     override func willMove(from view: SKView) {
@@ -50,13 +53,13 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
         gestureManager.delegate = self
         
         // Mostra a pequena janela da câmera
-        gestureManager.setupCameraPreview(in: view)
+//        gestureManager.setupCameraPreview(in: view)
         
         // Inicia a detecção
         gestureManager.startDetection()
         
         // Adiciona um label para debug, para vermos qual gesto está sendo detectado
-        setupGestureDebugUI()
+//        setupGestureDebugUI()
     }
     
     private func setupGestureDebugUI() {
@@ -67,6 +70,39 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
         gestureDebugLabel?.text = "Gesto: Nenhum"
         if let label = gestureDebugLabel {
             addChild(label)
+        }
+    }
+    
+    // MARK: - Adicionar Imagens dos Gestos
+    
+    private func addGestureImagesToButtons() {
+        // --- Imagem para o Gesto "Top" (Reiniciar) ---
+        if let resetButton = self.childNode(withName: "//ResetButton") {
+            let topGestureImage = SKSpriteNode(imageNamed: "Top")
+            // --- ALTERADO AQUI: Diminuindo ainda mais o scale para "Top" ---
+            topGestureImage.setScale(0.04) // Tente 0.25 ou 0.3 e veja o que fica melhor
+            
+            topGestureImage.position = CGPoint(
+                x: resetButton.position.x, // Centraliza horizontalmente com o botão
+                y: resetButton.position.y - resetButton.frame.height / 2 - topGestureImage.size.height / 2 - 20 // Posição abaixo do botão
+            )
+            
+            topGestureImage.zPosition = resetButton.zPosition + 1 // Garante que a imagem apareça acima do botão
+            addChild(topGestureImage)
+        }
+        
+        // --- Imagem para o Gesto "L" (Sair) ---
+        if let exitButton = self.childNode(withName: "//ExitButton") {
+            let lGestureImage = SKSpriteNode(imageNamed: "L")
+            lGestureImage.setScale(0.5) // Mantendo o scale que já estava bom para "L"
+            
+            lGestureImage.position = CGPoint(
+                x: exitButton.position.x, // Centraliza horizontalmente com o botão
+                y: exitButton.position.y - exitButton.frame.height / 2 - lGestureImage.size.height / 2 - 20 // Posição abaixo do botão
+            )
+            
+            lGestureImage.zPosition = exitButton.zPosition + 1
+            addChild(lGestureImage)
         }
     }
     
@@ -93,7 +129,6 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
         gestureDebugLabel?.text = "Gesto: Nenhum"
     }
     
-    // AQUI ESTÁ A CORREÇÃO: MÉTODOS ADICIONADOS PARA CONFORMAR AO PROTOCOLO
     func cameraWillExpand() {
         // Não precisamos de nenhuma lógica aqui para a GameOverScene
     }
