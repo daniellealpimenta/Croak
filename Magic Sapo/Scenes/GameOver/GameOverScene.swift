@@ -105,7 +105,7 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
             print("Gesto 'L' detectado. Saindo para o menu.")
             exitToMenu()
         case "Top":
-            print("Gesto 'Top' detectado. Reiniciando a fase.")
+            print("Gesto 'Top' detectado. Reiniciando")
             restartPreviousScene()
         default:
             // Outros gestos são ignorados
