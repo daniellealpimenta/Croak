@@ -146,6 +146,59 @@ struct Guards: Enemy {
         return evilGuard
     }
     
+    static func createForOnboarding(at position: CGPoint, withGesture gestureName: String) -> SKSpriteNode? {
+        
+        guard let firstFrame = animationFrames.first else {
+            print("Erro: Texturas de animação para 'Guards' não foram encontradas.")
+            return nil
+        }
+        
+        // --- AJUSTES DE TAMANHO E POSIÇÃO (igual ao createdByMage) ---
+        let guardSize = DeviceHelper.isIPhone ? CGSize(width: 70, height: 70) : CGSize(width: 100, height: 100)
+        let gestureSize = DeviceHelper.isIPhone ? CGSize(width: 35, height: 35) : CGSize(width: 50, height: 50)
+        let gestureYPosition: CGFloat = DeviceHelper.isIPhone ? 60 : 80
+        // ------------------------------------
+        
+        // 1. Cria o corpo principal do inimigo
+        let evilGuard = SKSpriteNode(texture: firstFrame, size: guardSize)
+        
+        // 2. Cria e executa a animação em loop
+        let animationAction = SKAction.animate(with: animationFrames, timePerFrame: 0.1)
+        let loopingAnimation = SKAction.repeatForever(animationAction)
+        evilGuard.run(loopingAnimation)
+        
+        // 3. Aplica as outras configurações
+        evilGuard.name = "Guard"
+        evilGuard.position = position
+        evilGuard.zPosition = Layer.enemies.rawValue
+        
+        evilGuard.physicsBody = SKPhysicsBody(rectangleOf: evilGuard.size)
+        evilGuard.physicsBody?.isDynamic = true
+        evilGuard.physicsBody?.affectedByGravity = false
+        
+        if let pb = evilGuard.physicsBody {
+            pb.categoryBitMask = PhysicsCategory.enemy
+            pb.collisionBitMask = PhysicsCategory.none
+            pb.contactTestBitMask = PhysicsCategory.frog
+        }
+        
+        // 4. Configuração específica para onboarding
+        evilGuard.userData = NSMutableDictionary()
+        evilGuard.userData?.setValue(Guards.pointValue, forKey: "points")
+        evilGuard.userData?.setValue(Guards.coinValue, forKey: "coins")
+        evilGuard.userData?.setValue(1, forKey: "health") // Sempre 1 de vida no onboarding
+        
+        // 5. Adiciona o gesto específico para o onboarding
+        let gestureSprite = SKSpriteNode(imageNamed: gestureName)
+        gestureSprite.size = gestureSize
+        gestureSprite.position = CGPoint(x: 0, y: gestureYPosition)
+        gestureSprite.name = gestureName
+        
+        evilGuard.addChild(gestureSprite)
+        
+        return evilGuard
+    }
+    
     // Em Guards.swift
 
     static let deathAnimation: [SKTexture] = {

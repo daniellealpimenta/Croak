@@ -9,16 +9,19 @@ import GameplayKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, ScoreHavingScene, PauseButtonDelegate, PauseOverlayDelegate, BossFightScene{
     
-    func cameraWillExpand() {
-        print("Câmera vai expandir, pausando o jogo.")
-        self.isPaused = true
-        enemySpawner.stopSpawningEnemies()
-    }
+    var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     
-    func cameraDidShrink() {
-        print("Câmera encolheu, despausando o jogo.")
-        self.isPaused = false
-        enemySpawner.startSpawningEnemies()
+    private var onboardingState: OnboardingState = .inactive
+    private var currentOnboardingGestureIndex = 0
+    private var onboardingInstructionOverlay: UIImageView?
+    private let onboardingGestures = Gestures.availableGestures 
+
+    enum OnboardingState {
+        case inactive
+        case spawningEnemy
+        case waitingForPlayerAction
+        case enemyKilled
+        case completed
     }
     
     var isOnGestureValidationMode = false
@@ -67,7 +70,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     private func setupScene() {
         print("Configurando a GameScene pela primeira vez.")
-        
+    
         NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppWillResignActive"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(resumeGame), name: NSNotification.Name("AppDidBecomeActive"), object: nil)
         
@@ -83,9 +86,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         pauseButtonComponent = PauseButtonComponent(parent: self)
         pauseButtonComponent.delegate = self
         
+        if isOnboarding {
+            pauseButtonComponent.pauseButtonNode.isHidden = true
+        }
+        
         pauseOverlayComponent = PauseOverlayComponent(parent: self)
         pauseOverlayComponent.delegate = self
-
+        
         enemySpawner = EnemySpawner(scene: self)
         enemySpawner.startSpawningEnemies()
         
@@ -102,7 +109,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
 
         self.addChild(frogNode)
-
+        
         setupGestureDetection()
 
 //        if DeviceHelper.isIPad {
@@ -116,6 +123,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                 enterGestureValidationMode()
             }
 //        }
+
         // 3. Configura a UI de debug que depende da detecção.
         setupGestureDebugUI()
     }
@@ -181,57 +189,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         instructionLabel?.isHidden = false
     }
     
-//   func enterGestureValidationMode() {
-//        print("Iniciando modo de validação de gestos...")
-//
-//        guard let view = self.view else { return }
-//
-//        // 1. Expande a câmera para tela cheia.
-//        isOnGestureValidationMode = true
-//        gestureManager?.expandCameraPreviewToFullScreen(in: view)
-//
-//        // 2. Prepara o timer.
-//        countdownLabel?.text = "3"
-//        countdownLabel?.isHidden = false
-//        instructionLabel?.isHidden = false
-//        var countdown = 3
-//
-//        // 3. Define a ação que será repetida a cada segundo.
-//        let updateAction = SKAction.run { [weak self] in
-//            countdown -= 1
-//            self?.countdownLabel?.text = "\(countdown)"
-//        }
-//
-//        // Ação de esperar 1 segundo.
-//        let waitAction = SKAction.wait(forDuration: 1.0)
-//
-//        // Combina a espera e a atualização em uma única ação.
-//        let sequencePerSecond = SKAction.sequence([waitAction, updateAction])
-//
-//        // Repete a sequência 2 vezes (para contar 2 e 1).
-//        let countdownSequence = SKAction.repeat(sequencePerSecond, count: 3)
-//
-//        // 4. Define as ações finais após o timer.
-//        let finalActions = SKAction.run { [weak self] in
-//            guard let self = self, let view = self.view else { return }
-//            print("Passaram 5 segundos. Retornando a câmera para a posição original.")
-//            
-//            // Esconde o label do timer.
-//            self.countdownLabel?.isHidden = true
-//            self.instructionLabel?.isHidden = true
-//            
-//            // Chama a função para encolher a câmera.
-//            isOnGestureValidationMode = false
-//            self.gestureManager?.shrinkCameraPreviewToOriginal(in: view)
-//    }
-//    
-//    // 5. Executa a sequência completa na cena.
-//    // A lógica é: Roda a contagem (de 3 para 2, de 2 para 1), espera o último segundo,
-//    // e então executa as ações finais.
-//    self.run(SKAction.sequence([countdownSequence, waitAction, finalActions]))
-//}
-
-    
     private func startOrContinueValidationCountdown() {
         // Se já tem timer rodando, não faz nada
         if gestureValidationTimer != nil { return }
@@ -267,6 +224,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         isOnGestureValidationMode = false
         
         gestureManager?.shrinkCameraPreviewToOriginal(in: view)
+    }
+    
+    // MARK: - Parte do código que to mexendo
+    
+    func cameraWillExpand() {
+        print("Câmera vai expandir, pausando o jogo.")
+        self.isPaused = true
+        enemySpawner.stopSpawningEnemies()
+    }
+    
+    func cameraDidShrink() {
+        print("Câmera encolheu, despausando o jogo.")
+        self.isPaused = false
+        
+        if isOnboarding {
+            startOnboarding() // Inicia onboarding em vez de spawning normal
+        } else {
+            enemySpawner.startSpawningEnemies()
+        }
     }
     
     private func setupGestureDetection() {
@@ -335,7 +311,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             self.gestureManager.setupCameraPreview(in: view)
         }
         
-        if !isOnGestureValidationMode {
+        if !isOnGestureValidationMode && !isOnboarding {
             self.isPaused = false
             
             if gameState == .normalPlay {
@@ -344,6 +320,146 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         } else {
             return
         }
+    }
+    
+    private func startOnboarding() {
+        print("🎓 Iniciando onboarding...")
+        onboardingState = .spawningEnemy
+        currentOnboardingGestureIndex = 0
+        spawnOnboardingEnemy()
+    }
+
+    private func spawnOnboardingEnemy() {
+        guard currentOnboardingGestureIndex < onboardingGestures.count else {
+            completeOnboarding()
+            return
+        }
+        
+        let currentGesture = onboardingGestures[currentOnboardingGestureIndex]
+        print("🎯 Spawning onboarding enemy with gesture: \(currentGesture)")
+        
+        // Usa o EnemySpawner para criar inimigo de onboarding
+        enemySpawner.spawnOnboardingEnemy(withGesture: currentGesture) { [weak self] enemy in
+            self?.handleOnboardingEnemyReachedPosition(enemy: enemy, gesture: currentGesture)
+        }
+    }
+
+    private func handleOnboardingEnemyReachedPosition(enemy: SKNode, gesture: String) {
+        print("🛑 Enemy reached middle position, pausing and showing instruction")
+        
+        // Pausa o jogo SEM mostrar o overlay de pause
+        self.isPaused = true
+        
+        // Mostra instrução visual
+        showOnboardingInstruction(for: gesture)
+        
+        // Muda estado para aguardar ação do jogador
+        onboardingState = .waitingForPlayerAction
+        
+        // Retoma detecção de gestos (mesmo com jogo pausado)
+        gestureManager?.startDetection()
+    }
+
+    private func showOnboardingInstruction(for gesture: String) {
+        guard let view = self.view else { return }
+        
+        // Remove instrução anterior se existir
+        removeOnboardingInstruction()
+        
+        // Cria overlay de instrução
+        let instructionImageView = UIImageView()
+        
+        let imageName = getInstructionImageName(for: gesture)
+        instructionImageView.image = UIImage(named: imageName)
+        
+        instructionImageView.contentMode = .scaleAspectFit
+        instructionImageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addSubview(instructionImageView)
+        self.onboardingInstructionOverlay = instructionImageView
+        
+        // Centraliza o overlay
+        NSLayoutConstraint.activate([
+            instructionImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            instructionImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            instructionImageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.8),
+            instructionImageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.6)
+        ])
+        
+        // Anima aparição
+        instructionImageView.alpha = 0
+        UIView.animate(withDuration: 0.3) {
+            instructionImageView.alpha = 1.0
+        }
+    }
+
+    private func getInstructionImageName(for gesture: String) -> String {
+        switch gesture {
+        case "Two":
+            return "instruction_two" // Substitua pelos nomes reais das suas imagens
+        case "Rock":
+            return "instruction_rock"
+        case "L":
+            return "instruction_l"
+        case "OpenPalm":
+            return "instruction_openpalm"
+        case "HangLose":
+            return "instruction_hanglose"
+        case "Top":
+            return "instruction_top"
+        default:
+            return "instruction_default"
+        }
+    }
+
+    private func removeOnboardingInstruction() {
+        onboardingInstructionOverlay?.removeFromSuperview()
+        onboardingInstructionOverlay = nil
+    }
+
+    private func handleOnboardingGestureSuccess() {
+        print("✅ Player made correct gesture during onboarding!")
+        
+        // Remove instrução
+        removeOnboardingInstruction()
+        
+        // Despausa jogo para permitir animação de morte
+        self.isPaused = false
+        
+        // Atualiza estado
+        onboardingState = .enemyKilled
+        
+        // Aguarda animação de morte, depois próximo passo
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.proceedToNextOnboardingStep()
+        }
+    }
+
+    private func proceedToNextOnboardingStep() {
+        currentOnboardingGestureIndex += 1
+        
+        if currentOnboardingGestureIndex < onboardingGestures.count {
+            onboardingState = .spawningEnemy
+            spawnOnboardingEnemy()
+        } else {
+            completeOnboarding()
+        }
+    }
+
+    private func completeOnboarding() {
+        print("🎉 Onboarding completed!")
+        
+        isOnboarding = false
+        pauseButtonComponent.pauseButtonNode.isHidden = false
+        onboardingState = .completed
+        removeOnboardingInstruction()
+        
+        // Marca onboarding como concluído
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+        
+        // Retoma jogo normal
+        self.isPaused = false
+        enemySpawner.startSpawningEnemies()
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
@@ -390,7 +506,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     /// - Parameter gesture: A string que representa o gesto feito (ex: "Rock").
     
     func playerDidMake(gesture: String) {
-        if !isPaused {
+        if isOnboarding {
+            if onboardingState == .waitingForPlayerAction {
+                // Lógica especial para onboarding (jogo pausado mas detectando gestos)
+                let expectedGesture = onboardingGestures[currentOnboardingGestureIndex]
+                if gesture == expectedGesture {
+                    // Gesto correto - mata inimigo e continua onboarding
+                    if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
+                        scoreComponent.addScore(point: rewards.points)
+                        coinsComponent.addCoins(coins: rewards.coins)
+                    }
+                    handleOnboardingGestureSuccess()
+                }
+            }
+        } else {
             switch gameState {
                 case .bossFight:
                     // Durante a batalha, apenas o chefe responde.
@@ -406,7 +535,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                         
                     }
             }
-                
+            
             // A verificação do chefe agora só inicia a fase de limpeza.
             checkToStartBossEncounter()
         }
@@ -479,7 +608,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             pauseOverlayComponent.handleTouch(at: location)
             return
         }
-
+        
         let touchedNode = atPoint(location)
         if touchedNode == pauseButtonComponent.pauseButtonNode {
             pauseButtonComponent.delegate?.didTapPauseButton()

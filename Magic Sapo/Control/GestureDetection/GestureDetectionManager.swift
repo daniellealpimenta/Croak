@@ -385,7 +385,6 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
                 }
                 return
             }
-            print("Mão detectada com confiança: \(observation.confidence)")
             guard observation.confidence > 0.5 else {
                 DispatchQueue.main.async {
                     self.delegate?.gestureDetectionLost()
@@ -402,7 +401,6 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
                 // Se o código chegar aqui, significa que os pontos foram obtidos com sucesso.
                 // Agora podemos verificar a confiança deles com um 'if' normal.
                 if wristPoint.confidence > 0.3 && thumbTipPoint.confidence > 0.3 {
-                    print("DEBUG COORDENADAS: Pulso [y: \(String(format: "%.2f", wristPoint.location.y))] | Polegar [y: \(String(format: "%.2f", thumbTipPoint.location.y))]")
                 }
             } catch {
                 // Se 'try observation.recognizedPoint' falhar, o erro será impresso aqui.
@@ -428,8 +426,6 @@ extension GestureDetectionManager: AVCaptureVideoDataOutputSampleBufferDelegate 
             
             let probabilities = prediction.labelProbabilities
             let maxProbability = probabilities.values.max() ?? 0.0
-            
-            print("Gesto previsto: \(prediction.label) com probabilidade: \(maxProbability)")
             
             if maxProbability >= confidenceThreshold {
                 if let smoothedGesture = smoothGestureDetection(prediction.label) {
