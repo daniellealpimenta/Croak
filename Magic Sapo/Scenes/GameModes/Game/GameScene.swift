@@ -256,7 +256,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     func gestureDetected(_ gesture: String, confidence: Double) {
         
-//       gestureDebugLabel?.text = "Gesto: \(gesture) (\(Int(confidence * 100))%)"
+        gestureDebugLabel?.text = "Gesto: \(gesture) (\(Int(confidence * 100))%)"
         
         gestureDebugImageNode?.isHidden = false
         var textureName: String?
