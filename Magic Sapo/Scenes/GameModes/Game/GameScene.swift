@@ -45,6 +45,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     private var cameraPreviewNode: SKEffectNode!
     private var gestureDebugLabel: SKLabelNode?
+    private var gestureDebugImageNode: SKSpriteNode? // NOVO: Nó para exibir a imagem do gesto
     
     private var gameState: GameState = .normalPlay
     private var mageControl: MageControl?
@@ -90,26 +91,34 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         enemySpawner.startSpawningEnemies()
         
         let frog = Frog(parent: self)
-        let frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+        let frogNode: SKNode
+
+        switch DeviceHelper.current {
+        case .iPad:
+            frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+        case .iPhone:
+            frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 100))
+        case .unknown:
+            frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+        }
+
         self.addChild(frogNode)
 
-        // ✅ ORDEM CORRETA:
-        // 1. Primeiro, chama a função que CRIA o gestureManager.
         setupGestureDetection()
-        
-        // 2. Agora que ele existe, PODE USÁ-LO com segurança.
-        if let view = self.view {
-            self.gestureManager.setupCameraPreview(in: view)
+
+        if DeviceHelper.isIPad {
+            if let view = self.view {
+                self.gestureManager.setupCameraPreview(in: view)
+            }
+            
+            if startInGestureMode {
+                setupInstructionLabel()
+                setupCountdownLabel()
+                enterGestureValidationMode()
+            }
         }
-        
         // 3. Configura a UI de debug que depende da detecção.
         setupGestureDebugUI()
-        setupCountdownLabel()
-        setupInstructionLabel()
-        
-        if startInGestureMode {
-            enterGestureValidationMode()
-        }
     }
     
     private func setupCountdownLabel() {
@@ -172,58 +181,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         countdownLabel?.isHidden = false
         instructionLabel?.isHidden = false
     }
-    
-//   func enterGestureValidationMode() {
-//        print("Iniciando modo de validação de gestos...")
-//
-//        guard let view = self.view else { return }
-//
-//        // 1. Expande a câmera para tela cheia.
-//        isOnGestureValidationMode = true
-//        gestureManager?.expandCameraPreviewToFullScreen(in: view)
-//
-//        // 2. Prepara o timer.
-//        countdownLabel?.text = "3"
-//        countdownLabel?.isHidden = false
-//        instructionLabel?.isHidden = false
-//        var countdown = 3
-//
-//        // 3. Define a ação que será repetida a cada segundo.
-//        let updateAction = SKAction.run { [weak self] in
-//            countdown -= 1
-//            self?.countdownLabel?.text = "\(countdown)"
-//        }
-//
-//        // Ação de esperar 1 segundo.
-//        let waitAction = SKAction.wait(forDuration: 1.0)
-//
-//        // Combina a espera e a atualização em uma única ação.
-//        let sequencePerSecond = SKAction.sequence([waitAction, updateAction])
-//
-//        // Repete a sequência 2 vezes (para contar 2 e 1).
-//        let countdownSequence = SKAction.repeat(sequencePerSecond, count: 3)
-//
-//        // 4. Define as ações finais após o timer.
-//        let finalActions = SKAction.run { [weak self] in
-//            guard let self = self, let view = self.view else { return }
-//            print("Passaram 5 segundos. Retornando a câmera para a posição original.")
-//            
-//            // Esconde o label do timer.
-//            self.countdownLabel?.isHidden = true
-//            self.instructionLabel?.isHidden = true
-//            
-//            // Chama a função para encolher a câmera.
-//            isOnGestureValidationMode = false
-//            self.gestureManager?.shrinkCameraPreviewToOriginal(in: view)
-//    }
-//    
-//    // 5. Executa a sequência completa na cena.
-//    // A lógica é: Roda a contagem (de 3 para 2, de 2 para 1), espera o último segundo,
-//    // e então executa as ações finais.
-//    self.run(SKAction.sequence([countdownSequence, waitAction, finalActions]))
-//}
 
-    
     private func startOrContinueValidationCountdown() {
         // Se já tem timer rodando, não faz nada
         if gestureValidationTimer != nil { return }
@@ -268,8 +226,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     // VERSÃO ADAPTATIVA do setup de debug UI
-
     private func setupGestureDebugUI() {
+        // --- Configuração do Label (código existente) ---
         gestureDebugLabel = SKLabelNode(fontNamed: "Arial-Bold")
         if let labelNode = gestureDebugLabel {
             labelNode.fontSize = DeviceHelper.isIPhone ? 16 : 20
@@ -279,11 +237,53 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             labelNode.text = "Gesto: Nenhum"
             addChild(labelNode)
         }
+        
+        gestureDebugImageNode = SKSpriteNode() // Inicializa o nó vazio
+        if let imageNode = gestureDebugImageNode, let labelNode = gestureDebugLabel {
+            imageNode.size = DeviceHelper.isIPad ? CGSize(width: 80, height: 80) : CGSize(width: 50, height: 50)
+            imageNode.position = DeviceHelper.isIPhone ?  CGPoint(x: 85, y: -200) : CGPoint(x: 80, y: -170)
+            imageNode.isHidden = true
+            addChild(imageNode)
+        }
+        
+        let bookNode = SKSpriteNode(imageNamed: "livro")
+        bookNode.size = DeviceHelper.isIPad ? CGSize(width: 150, height: 150) : CGSize(width: 100, height: 100)
+        bookNode.position = CGPoint(x: 80, y: -250)
+        bookNode.isHidden = false
+        addChild(bookNode)
+        
     }
     
     func gestureDetected(_ gesture: String, confidence: Double) {
-        // Atualizar label de debug
+        
         gestureDebugLabel?.text = "Gesto: \(gesture) (\(Int(confidence * 100))%)"
+        
+        gestureDebugImageNode?.isHidden = false
+        var textureName: String?
+        
+        switch gesture {
+        case "OpenPalm":
+            textureName = "OpenPalm_s"
+        case "Rock":
+            textureName = "Rock_s"
+        case "Two":
+            textureName = "Two_s"
+        case "Top":
+            textureName = "Top_s"
+        case "L":
+            textureName = "L_s"
+        case "HangLose":
+            textureName = "HangLose_s"
+
+        default:
+            textureName = nil
+        }
+        
+        if let name = textureName {
+            gestureDebugImageNode?.texture = SKTexture(imageNamed: name)
+        } else {
+            gestureDebugImageNode?.isHidden = true
+        }
         
         if isOnGestureValidationMode {
             makeGestureInValidation(gesture: gesture)
@@ -296,6 +296,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     func gestureDetectionLost() {
         gestureDebugLabel?.text = "Gesto: Nenhum"
+        gestureDebugImageNode?.isHidden = true // NOVO: Oculta a imagem quando o gesto é perdido
         
         if isOnGestureValidationMode {
             gestureManager?.updateHandFeedback(status: .neutral)
@@ -311,19 +312,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         guard !isPaused else { return }
         print("🛑 PAUSANDO JOGO COMPLETAMENTE")
         enemySpawner.stopSpawningEnemies()
+        gestureManager?.stopDetection()
         self.isPaused = true
+        gestureManager?.removeCameraPreview()
         pauseOverlayComponent.show()
     }
 
     @objc func resumeGame() {
         guard isPaused else { return }
         print("▶️ RETOMANDO JOGO COMPLETAMENTE")
+        gestureManager.startDetection()
         pauseOverlayComponent.hide()
-        self.isPaused = false
         
-        // 4. Retoma o spawn de novos inimigo
-        if gameState == .normalPlay {
-            enemySpawner.startSpawningEnemies()
+        if DeviceHelper.isIPad {
+            if let view = self.view {
+                self.gestureManager.setupCameraPreview(in: view)
+            }
+        }
+        
+        if !isOnGestureValidationMode {
+            self.isPaused = false
+            
+            if gameState == .normalPlay {
+                enemySpawner.startSpawningEnemies()
+            }
+        } else {
+            return
         }
     }
     
@@ -371,40 +385,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     /// - Parameter gesture: A string que representa o gesto feito (ex: "Rock").
     
     func playerDidMake(gesture: String) {
-//        // A variável "rewards" agora é uma tupla: (points: Int, coins: Int)
-//        if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
-//            
-//            // Tenta matar um inimigo com o gesto.
-//            // A função killEnemy retorna os pontos e moedas ganhos se um inimigo for morto.
-//            // Acessamos os valores usando .points e .coins
-//            scoreComponent.addScore(point: rewards.points)
-//            coinsComponent.addCoins(coins: rewards.coins)
-//            
-//            // Pede ao spawner para atualizar a velocidade dos inimigos
-//            // com base na nova pontuação total.
-//            enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
-//
-//            print("Ganhou \(rewards.coins) moedas!")
-            
-            // Roteia o gesto com base no estado do jogo
-        switch gameState {
-            case .bossFight:
-                // Durante a batalha, apenas o chefe responde.
-                mageControl?.handlePlayer(gesture: gesture)
-                
-            case .normalPlay, .clearingField:
-                // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
-                if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
-                    scoreComponent.addScore(point: rewards.points)
-                    coinsComponent.addCoins(coins: rewards.coins)
+        if !isPaused {
+            switch gameState {
+                case .bossFight:
+                    // Durante a batalha, apenas o chefe responde.
+                    mageControl?.handlePlayer(gesture: gesture)
                     
-                    enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
-                    
-                }
+                case .normalPlay, .clearingField:
+                    // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
+                    if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
+                        scoreComponent.addScore(point: rewards.points)
+                        coinsComponent.addCoins(coins: rewards.coins)
+                        
+                        enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
+                        
+                    }
             }
-            
+                
             // A verificação do chefe agora só inicia a fase de limpeza.
             checkToStartBossEncounter()
+        }
     }
     
     private func checkToStartBossEncounter() {
@@ -414,7 +414,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let scoreSinceLastBoss = score - scoreAtLastBossDefeat
         
         // A condição agora é muito mais simples e robusta.
-        if gameState == .normalPlay && scoreSinceLastBoss >= 75  { // Use 5 para testar
+        if gameState == .normalPlay && scoreSinceLastBoss >= 5  { // Use 5 para testar
             print("--- PREPARANDO PARA O CHEFE! Limpando inimigos restantes... ---")
             
             // Não precisamos mais atualizar 'lastBossTriggerScore'.
@@ -441,22 +441,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
 
     func makeGestureInValidation(gesture: String) {
-        if gesture == "OpenPalm" {
-            if !isProcessingCorrectGesture {
-                print("Acertou o gesto 'OpenPalm'! ✅")
-                gestureManager?.updateHandFeedback(status: .correct)
-                startOrContinueValidationCountdown()
-                isProcessingCorrectGesture = true
+        if !isPaused {
+            if gesture == "OpenPalm" {
+                if !isProcessingCorrectGesture {
+                    print("Acertou o gesto 'OpenPalm'! ✅")
+                    gestureManager?.updateHandFeedback(status: .correct)
+                    startOrContinueValidationCountdown()
+                    isProcessingCorrectGesture = true
+                }
+            } else {
+                if isProcessingCorrectGesture {
+                    print("Perdeu o gesto correto, voltando para branco. ❌")
+                } else {
+                    print("Gesto errado! Faça o gesto 'OpenPalm'. ❌")
+                }
+                gestureManager?.updateHandFeedback(status: .neutral)
+                resetValidationCountdown()
+                isProcessingCorrectGesture = false
             }
         } else {
-            if isProcessingCorrectGesture {
-                print("Perdeu o gesto correto, voltando para branco. ❌")
-            } else {
-                print("Gesto errado! Faça o gesto 'OpenPalm'. ❌")
-            }
-            gestureManager?.updateHandFeedback(status: .neutral)
-            resetValidationCountdown()
-            isProcessingCorrectGesture = false
+            return
         }
     }
     

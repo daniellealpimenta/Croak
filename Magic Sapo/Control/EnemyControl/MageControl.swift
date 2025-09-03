@@ -67,8 +67,12 @@ class MageControl {
             scene.enterBossFightState()
             self.currentState = .entering
             
+            // --- AJUSTES DE POSICIONAMENTO ---
+            let finalYPosition = DeviceHelper.isIPhone ? scene.size.height / 2 - 120 : scene.size.height / 2 - 150
+            // ---------------------------------
+            
             let startPosition = CGPoint(x: 0, y: scene.size.height / 2 + 100)
-            let finalPosition = CGPoint(x: 0, y: scene.size.height / 2 - 150)
+            let finalPosition = CGPoint(x: 0, y: finalYPosition) // <-- MUDANÇA AQUI
             
             self.mageNode = Mage.create(at: startPosition)
             scene.addChild(self.mageNode!)
@@ -112,8 +116,10 @@ class MageControl {
         
         guard let scene = self.scene else { return }
         
-        let killZoneTopY: CGFloat = scene.size.height / 2 - 125
-        let killZoneBottomY: CGFloat = -scene.size.height / 2 + 215
+        // --- AJUSTES DE POSICIONAMENTO ---
+        let killZoneTopY: CGFloat = DeviceHelper.isIPhone ? scene.size.height / 2 - 100 : scene.size.height / 2 - 125
+        let killZoneBottomY: CGFloat = DeviceHelper.isIPhone ? -scene.size.height / 2 + 180 : -scene.size.height / 2 + 215
+        // ---------------------------------
         
         // --- MUDANÇA: Itera por todos os guardas para encontrar todas as correspondências ---
         for guardNode in spawnedGuards {
@@ -139,7 +145,7 @@ class MageControl {
             let fadeOut = SKAction.fadeOut(withDuration: 0.3)
             
             let combinedDeathAnimation = SKAction.group([animateFrames, fadeOut])
-                      
+                        
             guardNode.run(SKAction.sequence([combinedDeathAnimation, SKAction.removeFromParent()]))
             
         }
@@ -154,8 +160,8 @@ class MageControl {
     private func handleMageHit(gesture: String) {
         guard let mage = self.mageNode, let scene = self.scene else { return }
         
-        let killZoneTopY: CGFloat = scene.size.height / 2 - 125
-        let killZoneBottomY: CGFloat = -scene.size.height / 2 + 215
+        let killZoneTopY: CGFloat = DeviceHelper.isIPhone ? scene.size.height / 2 - 100 : scene.size.height / 2 - 125
+        let killZoneBottomY: CGFloat = DeviceHelper.isIPhone ? -scene.size.height / 2 + 180 : -scene.size.height / 2 + 215
         
         guard mage.position.y < killZoneTopY && mage.position.y > killZoneBottomY else {
             return // Se estiver fora da zona, a função para aqui.
@@ -198,12 +204,15 @@ class MageControl {
         // 1. Pega os gestos disponíveis e os embaralha.
         var waveGestures = Gestures.availableGestures.shuffled()
         
+        let xStartOffset: CGFloat = DeviceHelper.isIPhone ? -110 : -150
+        let xSpacing: CGFloat = DeviceHelper.isIPhone ? 75 : 100
+        
         for i in 0..<4 {
             // 2. Tira um gesto da lista para usar. O 'popLast' garante que não será repetido.
             guard let gestureForGuard = waveGestures.popLast() else { continue }
             
-            let xOffSet = -150 + (i * 100)
-            let startPosition = CGPoint(x: mage.position.x + CGFloat(xOffSet), y: mage.position.y)
+            let xOffSet = xStartOffset + (CGFloat(i) * xSpacing) // <-- MUDANÇA AQUI
+            let startPosition = CGPoint(x: mage.position.x + xOffSet, y: mage.position.y)
             
             // 3. Cria o guarda passando o gesto específico que ele deve ter.
             if let guardNode = Guards.createdByMage(at: startPosition, withGesture: gestureForGuard) {
@@ -229,9 +238,14 @@ class MageControl {
         
         let gestureName = Gestures.availableGestures.randomElement()!
         
+        // --- AJUSTES DE TAMANHO E POSIÇÃO ---
+        let gestureSize = DeviceHelper.isIPhone ? CGSize(width: 50, height: 50) : CGSize(width: 70, height: 70)
+        let gestureYPosition = DeviceHelper.isIPhone ? CGFloat(90) : CGFloat(120)
+        // ---------------------------------
+        
         let gestureSprite = SKSpriteNode(imageNamed: gestureName)
-        gestureSprite.size = CGSize(width: 70, height: 70)
-        gestureSprite.position = CGPoint(x: 0, y: 120)
+        gestureSprite.size = gestureSize // <-- MUDANÇA AQUI
+        gestureSprite.position = CGPoint(x: 0, y: gestureYPosition) // <-- MUDANÇA AQUI
         gestureSprite.name = gestureName
         
         gestureSprite.alpha = 0

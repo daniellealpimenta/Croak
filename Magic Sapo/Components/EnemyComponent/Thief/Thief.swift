@@ -2,7 +2,7 @@
 //  Thief.swift
 //  Magic Sapo
 //
-//  Created by Daniel Leal PImenta on 26/08/25.
+//  Created by Daniel Leal Pimenta on 26/08/25.
 //
 
 import Foundation
@@ -23,8 +23,15 @@ class Thief: Enemy {
     static let gestureCount: Int = 2
     
     static func create(at position: CGPoint) -> SKSpriteNode? {
-        // 1. Cria o nó principal do Ladrão (usando uma cor como placeholder)
-        let thiefNode = SKSpriteNode(color: .purple, size: CGSize(width: 100, height: 100))
+        
+
+        let thiefSize = DeviceHelper.isIPhone ? CGSize(width: 70, height: 70) : CGSize(width: 100, height: 100)
+        let gestureSize = DeviceHelper.isIPhone ? CGSize(width: 35, height: 35) : CGSize(width: 50, height: 50)
+        let spacing: CGFloat = DeviceHelper.isIPhone ? 7.0 : 10.0
+        let yOffset: CGFloat = DeviceHelper.isIPhone ? 56.0 : 80.0
+
+        // 1. Cria o nó principal do Ladrão, agora usando o tamanho adaptativo
+        let thiefNode = SKSpriteNode(color: .purple, size: thiefSize) // <-- MUDANÇA AQUI
         thiefNode.name = "Thief"
         thiefNode.position = position
         
@@ -53,8 +60,7 @@ class Thief: Enemy {
         }
         
         // --- LÓGICA DE POSICIONAMENTO HORIZONTAL ---
-        let gestureSize = CGSize(width: 50, height: 50)
-        let spacing: CGFloat = 10.0 // Espaço entre os gestos
+        // A lógica continua a mesma, mas agora usa as variáveis adaptativas
         
         // Calcula a largura total que os gestos + espaços ocuparão
         let totalWidth = (CGFloat(requiredGestures.count) * gestureSize.width) + (CGFloat(max(0, requiredGestures.count - 1)) * spacing)
@@ -62,24 +68,20 @@ class Thief: Enemy {
         // Ponto X inicial para o primeiro gesto, para que o grupo fique centralizado
         var xOffset = -totalWidth / 2 + gestureSize.width / 2
         
-        // Posição Y é constante, acima da cabeça do ladrão
-        let yOffset: CGFloat = 80.0
-        
         // 3. Adiciona os sprites dos gestos como filhos
         for gestureName in requiredGestures {
             let gestureSprite = SKSpriteNode(imageNamed: gestureName)
-            gestureSprite.size = gestureSize
-            gestureSprite.position = CGPoint(x: xOffset, y: yOffset)
+            gestureSprite.size = gestureSize // <-- MUDANÇA AQUI
+            gestureSprite.position = CGPoint(x: xOffset, y: yOffset) // <-- MUDANÇA AQUI
             gestureSprite.name = gestureName
             
             thiefNode.addChild(gestureSprite)
             
             // Move o X para a posição do próximo gesto
-            xOffset += gestureSize.width + spacing
+            xOffset += gestureSize.width + spacing // <-- MUDANÇA AQUI
         }
         
         return thiefNode
-        
         
     }
 }
