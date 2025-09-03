@@ -83,13 +83,14 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         let buttonSize = DeviceHelper.isIPhone ? CGSize(width: 60, height: 60) : CGSize(width: 80, height: 80)
         let buttonYPosition = DeviceHelper.isIPhone ? (-self.size.height/2 + 80) : (-self.size.height/2 + 100)
         
-        let openPBY = DeviceHelper.isIPhone ? -230 : (-self.size.height/2 + 100)
+        let openPBY = DeviceHelper.isIPhone ? -243 : (-self.size.height/2 + 100)
         
-        let lX: CGFloat = DeviceHelper.isIPhone ? -160 : -240
-        let rockX: CGFloat = DeviceHelper.isIPhone ? -80 : -120
-        let openPX: CGFloat = DeviceHelper.isIPhone ? 80 : 0
-        let twoX: CGFloat = DeviceHelper.isIPhone ? 80 : 120
-        let hangLX: CGFloat = DeviceHelper.isIPhone ? 160 : 240
+        let lX: CGFloat = DeviceHelper.isIPhone ? -80 : -320
+        let rockX: CGFloat = DeviceHelper.isIPhone ? -140 : -240
+        let openPX: CGFloat = DeviceHelper.isIPhone ? -80 : -160
+        let twoX: CGFloat = DeviceHelper.isIPhone ? 80 : 160
+        let hangLX: CGFloat = DeviceHelper.isIPhone ? 140 : 240
+        let topX: CGFloat = DeviceHelper.isIPhone ? 80 : 320
         
         let rockButton = SKSpriteNode(imageNamed: "Rock")
         rockButton.name = "rockButton"
@@ -102,6 +103,12 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         twoButton.size = buttonSize
         twoButton.position = CGPoint(x: twoX, y: buttonYPosition)
         self.addChild(twoButton)
+        
+        let topButton = SKSpriteNode(imageNamed: "Top")
+        topButton.name = "TopButton"
+        topButton.size = buttonSize
+        topButton.position = CGPoint(x: topX, y: openPBY)
+        self.addChild(topButton)
         
         let lButton = SKSpriteNode(imageNamed: "L")
         lButton.name = "lButton"
@@ -278,6 +285,8 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         if touchedNode.name == "lButton" { playerDidMake(gesture: "L") }
         if touchedNode.name == "hangLButton" { playerDidMake(gesture: "HangLose") }
         if touchedNode.name == "openPButton" { playerDidMake(gesture: "OpenPalm") }
+        if touchedNode.name == "TopButton" { playerDidMake(gesture: "Top") }
+    
     }
     
     // MARK: - Delegates

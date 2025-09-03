@@ -240,14 +240,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         gestureDebugImageNode = SKSpriteNode() // Inicializa o nó vazio
         if let imageNode = gestureDebugImageNode, let labelNode = gestureDebugLabel {
-            imageNode.size = CGSize(width: 50, height: 50)
-            imageNode.position = CGPoint(x: 80, y: -200)
+            imageNode.size = DeviceHelper.isIPad ? CGSize(width: 80, height: 80) : CGSize(width: 50, height: 50)
+            imageNode.position = DeviceHelper.isIPhone ?  CGPoint(x: 85, y: -200) : CGPoint(x: 80, y: -170)
             imageNode.isHidden = true
             addChild(imageNode)
         }
         
         let bookNode = SKSpriteNode(imageNamed: "livro")
-        bookNode.size = CGSize(width: 100, height: 100)
+        bookNode.size = DeviceHelper.isIPad ? CGSize(width: 150, height: 150) : CGSize(width: 100, height: 100)
         bookNode.position = CGPoint(x: 80, y: -250)
         bookNode.isHidden = false
         addChild(bookNode)
