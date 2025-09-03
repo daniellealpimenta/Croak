@@ -45,6 +45,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     private var cameraPreviewNode: SKEffectNode!
     private var gestureDebugLabel: SKLabelNode?
+    private var gestureDebugImageNode: SKSpriteNode? // NOVO: Nó para exibir a imagem do gesto
     
     private var gameState: GameState = .normalPlay
     private var mageControl: MageControl?
@@ -105,7 +106,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
         setupGestureDetection()
 
-//        if DeviceHelper.isIPad {
+        if DeviceHelper.isIPad {
             if let view = self.view {
                 self.gestureManager.setupCameraPreview(in: view)
             }
@@ -115,7 +116,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                 setupCountdownLabel()
                 enterGestureValidationMode()
             }
-//        }
+        }
         // 3. Configura a UI de debug que depende da detecção.
         setupGestureDebugUI()
     }
@@ -180,58 +181,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         countdownLabel?.isHidden = false
         instructionLabel?.isHidden = false
     }
-    
-//   func enterGestureValidationMode() {
-//        print("Iniciando modo de validação de gestos...")
-//
-//        guard let view = self.view else { return }
-//
-//        // 1. Expande a câmera para tela cheia.
-//        isOnGestureValidationMode = true
-//        gestureManager?.expandCameraPreviewToFullScreen(in: view)
-//
-//        // 2. Prepara o timer.
-//        countdownLabel?.text = "3"
-//        countdownLabel?.isHidden = false
-//        instructionLabel?.isHidden = false
-//        var countdown = 3
-//
-//        // 3. Define a ação que será repetida a cada segundo.
-//        let updateAction = SKAction.run { [weak self] in
-//            countdown -= 1
-//            self?.countdownLabel?.text = "\(countdown)"
-//        }
-//
-//        // Ação de esperar 1 segundo.
-//        let waitAction = SKAction.wait(forDuration: 1.0)
-//
-//        // Combina a espera e a atualização em uma única ação.
-//        let sequencePerSecond = SKAction.sequence([waitAction, updateAction])
-//
-//        // Repete a sequência 2 vezes (para contar 2 e 1).
-//        let countdownSequence = SKAction.repeat(sequencePerSecond, count: 3)
-//
-//        // 4. Define as ações finais após o timer.
-//        let finalActions = SKAction.run { [weak self] in
-//            guard let self = self, let view = self.view else { return }
-//            print("Passaram 5 segundos. Retornando a câmera para a posição original.")
-//            
-//            // Esconde o label do timer.
-//            self.countdownLabel?.isHidden = true
-//            self.instructionLabel?.isHidden = true
-//            
-//            // Chama a função para encolher a câmera.
-//            isOnGestureValidationMode = false
-//            self.gestureManager?.shrinkCameraPreviewToOriginal(in: view)
-//    }
-//    
-//    // 5. Executa a sequência completa na cena.
-//    // A lógica é: Roda a contagem (de 3 para 2, de 2 para 1), espera o último segundo,
-//    // e então executa as ações finais.
-//    self.run(SKAction.sequence([countdownSequence, waitAction, finalActions]))
-//}
 
-    
     private func startOrContinueValidationCountdown() {
         // Se já tem timer rodando, não faz nada
         if gestureValidationTimer != nil { return }
@@ -276,8 +226,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     // VERSÃO ADAPTATIVA do setup de debug UI
-
     private func setupGestureDebugUI() {
+        // --- Configuração do Label (código existente) ---
         gestureDebugLabel = SKLabelNode(fontNamed: "Arial-Bold")
         if let labelNode = gestureDebugLabel {
             labelNode.fontSize = DeviceHelper.isIPhone ? 16 : 20
@@ -287,11 +237,53 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             labelNode.text = "Gesto: Nenhum"
             addChild(labelNode)
         }
+        
+        gestureDebugImageNode = SKSpriteNode() // Inicializa o nó vazio
+        if let imageNode = gestureDebugImageNode, let labelNode = gestureDebugLabel {
+            imageNode.size = CGSize(width: 50, height: 50)
+            imageNode.position = CGPoint(x: 80, y: -200)
+            imageNode.isHidden = true
+            addChild(imageNode)
+        }
+        
+        let bookNode = SKSpriteNode(imageNamed: "livro")
+        bookNode.size = CGSize(width: 100, height: 100)
+        bookNode.position = CGPoint(x: 80, y: -250)
+        bookNode.isHidden = false
+        addChild(bookNode)
+        
     }
     
     func gestureDetected(_ gesture: String, confidence: Double) {
-        // Atualizar label de debug
+        
         gestureDebugLabel?.text = "Gesto: \(gesture) (\(Int(confidence * 100))%)"
+        
+        gestureDebugImageNode?.isHidden = false
+        var textureName: String?
+        
+        switch gesture {
+        case "OpenPalm":
+            textureName = "OpenPalm_s"
+        case "Rock":
+            textureName = "Rock_s"
+        case "Two":
+            textureName = "Two_s"
+        case "Top":
+            textureName = "Top_s"
+        case "L":
+            textureName = "L_s"
+        case "HangLose":
+            textureName = "HangLose_s"
+
+        default:
+            textureName = nil
+        }
+        
+        if let name = textureName {
+            gestureDebugImageNode?.texture = SKTexture(imageNamed: name)
+        } else {
+            gestureDebugImageNode?.isHidden = true
+        }
         
         if isOnGestureValidationMode {
             makeGestureInValidation(gesture: gesture)
@@ -304,6 +296,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     func gestureDetectionLost() {
         gestureDebugLabel?.text = "Gesto: Nenhum"
+        gestureDebugImageNode?.isHidden = true // NOVO: Oculta a imagem quando o gesto é perdido
         
         if isOnGestureValidationMode {
             gestureManager?.updateHandFeedback(status: .neutral)
@@ -331,8 +324,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         gestureManager.startDetection()
         pauseOverlayComponent.hide()
         
-        if let view = self.view {
-            self.gestureManager.setupCameraPreview(in: view)
+        if DeviceHelper.isIPad {
+            if let view = self.view {
+                self.gestureManager.setupCameraPreview(in: view)
+            }
         }
         
         if !isOnGestureValidationMode {
