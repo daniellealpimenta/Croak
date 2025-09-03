@@ -58,20 +58,8 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
         // Inicia a detecção
         gestureManager.startDetection()
         
-        // Adiciona um label para debug, para vermos qual gesto está sendo detectado
-//        setupGestureDebugUI()
     }
     
-    private func setupGestureDebugUI() {
-        gestureDebugLabel = SKLabelNode(fontNamed: "Arial-Bold")
-        gestureDebugLabel?.fontSize = 20
-        gestureDebugLabel?.fontColor = .yellow
-        gestureDebugLabel?.position = CGPoint(x: self.frame.midX, y: self.frame.minY + 50)
-        gestureDebugLabel?.text = "Gesto: Nenhum"
-        if let label = gestureDebugLabel {
-            addChild(label)
-        }
-    }
     
     // MARK: - Adicionar Imagens dos Gestos
     
