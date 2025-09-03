@@ -105,7 +105,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
         setupGestureDetection()
 
-        if DeviceHelper.isIPad {
+//        if DeviceHelper.isIPad {
             if let view = self.view {
                 self.gestureManager.setupCameraPreview(in: view)
             }
@@ -115,7 +115,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                 setupCountdownLabel()
                 enterGestureValidationMode()
             }
-        }
+//        }
         // 3. Configura a UI de debug que depende da detecção.
         setupGestureDebugUI()
     }
@@ -319,19 +319,30 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         guard !isPaused else { return }
         print("🛑 PAUSANDO JOGO COMPLETAMENTE")
         enemySpawner.stopSpawningEnemies()
+        gestureManager?.stopDetection()
         self.isPaused = true
+        gestureManager?.removeCameraPreview()
         pauseOverlayComponent.show()
     }
 
     @objc func resumeGame() {
         guard isPaused else { return }
         print("▶️ RETOMANDO JOGO COMPLETAMENTE")
+        gestureManager.startDetection()
         pauseOverlayComponent.hide()
-        self.isPaused = false
         
-        // 4. Retoma o spawn de novos inimigo
-        if gameState == .normalPlay {
-            enemySpawner.startSpawningEnemies()
+        if let view = self.view {
+            self.gestureManager.setupCameraPreview(in: view)
+        }
+        
+        if !isOnGestureValidationMode {
+            self.isPaused = false
+            
+            if gameState == .normalPlay {
+                enemySpawner.startSpawningEnemies()
+            }
+        } else {
+            return
         }
     }
     
@@ -379,40 +390,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     /// - Parameter gesture: A string que representa o gesto feito (ex: "Rock").
     
     func playerDidMake(gesture: String) {
-//        // A variável "rewards" agora é uma tupla: (points: Int, coins: Int)
-//        if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
-//            
-//            // Tenta matar um inimigo com o gesto.
-//            // A função killEnemy retorna os pontos e moedas ganhos se um inimigo for morto.
-//            // Acessamos os valores usando .points e .coins
-//            scoreComponent.addScore(point: rewards.points)
-//            coinsComponent.addCoins(coins: rewards.coins)
-//            
-//            // Pede ao spawner para atualizar a velocidade dos inimigos
-//            // com base na nova pontuação total.
-//            enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
-//
-//            print("Ganhou \(rewards.coins) moedas!")
-            
-            // Roteia o gesto com base no estado do jogo
-        switch gameState {
-            case .bossFight:
-                // Durante a batalha, apenas o chefe responde.
-                mageControl?.handlePlayer(gesture: gesture)
-                
-            case .normalPlay, .clearingField:
-                // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
-                if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
-                    scoreComponent.addScore(point: rewards.points)
-                    coinsComponent.addCoins(coins: rewards.coins)
+        if !isPaused {
+            switch gameState {
+                case .bossFight:
+                    // Durante a batalha, apenas o chefe responde.
+                    mageControl?.handlePlayer(gesture: gesture)
                     
-                    enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
-                    
-                }
+                case .normalPlay, .clearingField:
+                    // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
+                    if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
+                        scoreComponent.addScore(point: rewards.points)
+                        coinsComponent.addCoins(coins: rewards.coins)
+                        
+                        enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
+                        
+                    }
             }
-            
+                
             // A verificação do chefe agora só inicia a fase de limpeza.
             checkToStartBossEncounter()
+        }
     }
     
     private func checkToStartBossEncounter() {
@@ -449,22 +446,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
 
     func makeGestureInValidation(gesture: String) {
-        if gesture == "OpenPalm" {
-            if !isProcessingCorrectGesture {
-                print("Acertou o gesto 'OpenPalm'! ✅")
-                gestureManager?.updateHandFeedback(status: .correct)
-                startOrContinueValidationCountdown()
-                isProcessingCorrectGesture = true
+        if !isPaused {
+            if gesture == "OpenPalm" {
+                if !isProcessingCorrectGesture {
+                    print("Acertou o gesto 'OpenPalm'! ✅")
+                    gestureManager?.updateHandFeedback(status: .correct)
+                    startOrContinueValidationCountdown()
+                    isProcessingCorrectGesture = true
+                }
+            } else {
+                if isProcessingCorrectGesture {
+                    print("Perdeu o gesto correto, voltando para branco. ❌")
+                } else {
+                    print("Gesto errado! Faça o gesto 'OpenPalm'. ❌")
+                }
+                gestureManager?.updateHandFeedback(status: .neutral)
+                resetValidationCountdown()
+                isProcessingCorrectGesture = false
             }
         } else {
-            if isProcessingCorrectGesture {
-                print("Perdeu o gesto correto, voltando para branco. ❌")
-            } else {
-                print("Gesto errado! Faça o gesto 'OpenPalm'. ❌")
-            }
-            gestureManager?.updateHandFeedback(status: .neutral)
-            resetValidationCountdown()
-            isProcessingCorrectGesture = false
+            return
         }
     }
     
