@@ -18,7 +18,6 @@ class GestureDetectionManager: NSObject {
     let model = try! MLModelV7(configuration: MLModelConfiguration())
     
     var handFeedbackOverlayImageView: UIImageView?
-//    private var isProcessingCorrectGesture = false
     
     enum HandFeedbackStatus {
         case neutral // Mão branca
@@ -102,19 +101,36 @@ class GestureDetectionManager: NSObject {
         session.commitConfiguration()
     }
     
-    func setupCameraPreview(in skView: SKView) {
+    func setupCameraPreview(in skView: SKView, duringOnboarding: Bool) {
         // Garante que não vamos criar a view múltiplas vezes
         guard self.cameraView == nil else { return }
         
-        let cameraViewWidth: CGFloat = 400
+        let cameraViewWidth: CGFloat = 350
         let cameraViewHeight: CGFloat = 200
         let padding: CGFloat = 20
         
         // 1. Cria o frame (a posição e o tamanho) para a câmera.
-        let frame = CGRect(x: padding,
-                           y: skView.bounds.height - cameraViewHeight - padding,
-                           width: cameraViewWidth,
-                           height: cameraViewHeight)
+        let frame: CGRect
+        
+        if duringOnboarding {
+            // Posição: Canto SUPERIOR DIREITO
+            print("📹 Configurando câmera para o Onboarding (Canto Superior Direito).")
+            frame = CGRect(
+                x: skView.bounds.width - cameraViewWidth - padding,
+                y: padding,
+                width: cameraViewWidth,
+                height: cameraViewHeight
+            )
+        } else {
+            // Posição: Canto INFERIOR ESQUERDO (Sua posição final desejada)
+            print("📹 Configurando câmera para o Jogo Normal (Canto Inferior Esquerdo).")
+            frame = CGRect(
+                x: padding,
+                y: skView.bounds.height - cameraViewHeight - padding,
+                width: cameraViewWidth,
+                height: cameraViewHeight
+            )
+        }
         
         // 2. AQUI ESTÁ A CORREÇÃO: Salva o frame na nossa propriedade.
         self.originalCameraFrame = frame
@@ -122,7 +138,7 @@ class GestureDetectionManager: NSObject {
         // 3. Usa o frame que acabamos de criar para inicializar a UIView.
         let camView = UIView(frame: frame)
         
-        camView.layer.cornerRadius = 10
+        camView.layer.cornerRadius = 8
         camView.layer.borderColor = UIColor.white.cgColor
         camView.layer.borderWidth = 2
         camView.clipsToBounds = true
@@ -216,6 +232,34 @@ class GestureDetectionManager: NSObject {
                 self.handFeedbackOverlayImageView?.alpha = 0.5
             }, completion: {[weak self] _ in
             self?.delegate?.cameraDidShrink()
+            })
+        }
+    }
+    
+    func moveCameraPreviewToNormalPosition(in skView: SKView) {
+        // 1. Garante que a view da câmera existe.
+        guard let camView = self.cameraView else { return }
+        
+        // 2. Define as mesmas constantes para consistência.
+        let cameraViewWidth: CGFloat = 350
+        let cameraViewHeight: CGFloat = 200
+        let padding: CGFloat = 20
+        
+        // 3. Calcula o novo frame para a posição normal (canto inferior esquerdo).
+        let normalFrame = CGRect(
+            x: padding,
+            y: skView.bounds.height - cameraViewHeight - padding,
+            width: cameraViewWidth,
+            height: cameraViewHeight
+        )
+        
+        // 4. ATUALIZA o 'originalCameraFrame' para que a função 'shrink' funcione corretamente depois.
+        self.originalCameraFrame = normalFrame
+        
+        // 5. Garante que a atualização seja feita na thread principal e a anima.
+        DispatchQueue.main.async {
+            UIView.animate(withDuration: 0.5, delay: 0.1, options: .curveEaseInOut, animations: {
+                camView.frame = normalFrame
             })
         }
     }

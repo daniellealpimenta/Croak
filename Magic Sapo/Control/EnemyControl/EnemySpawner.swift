@@ -17,7 +17,7 @@ class EnemySpawner {
     private let availableEnemies: [Enemy.Type] = [Guards.self, Thief.self]
     
     /// Instância do controlador que sabe COMO criar e destruir inimigos. O Spawner delega o trabalho para ele.
-    private let enemyControl: EnemyControl
+    let enemyControl: EnemyControl
     
     /// Referência **fraca** (weak) à cena para evitar "ciclos de retenção" (memory leaks).
     /// A cena "possui" o spawner, então o spawner não pode "possuir" a cena de volta com força total.
@@ -124,7 +124,7 @@ class EnemySpawner {
         }
     }
     
-    func spawnOnboardingEnemy(withGesture gesture: String, completion: @escaping (SKNode) -> Void) {
+    func spawnOnboardingGuard(withGesture gesture: String, completion: @escaping (SKNode) -> Void) {
         guard let scene = self.scene else { return }
         
         // Usa o sistema existente para calcular posições
@@ -132,7 +132,6 @@ class EnemySpawner {
         let middlePosition: CGPoint
         
         if UIDevice.current.userInterfaceIdiom == .pad {
-            let halfWidth = scene.size.width / 2
             let halfHeight = scene.size.height / 2
             
             startPosition = CGPoint(x: 0, y: halfHeight + 50)
@@ -168,6 +167,45 @@ class EnemySpawner {
         let sequence = SKAction.sequence([moveToMiddle, stopAction])
         enemy.run(sequence)
     }
+    
+    func spawnOnboardingThief(withGestures gestures: [String], completion: @escaping (SKNode) -> Void) {
+        guard let scene = self.scene else { return }
+
+        // Reutiliza a mesma lógica de posição do spawnOnboardingEnemy
+        let startPosition: CGPoint
+        let middlePosition: CGPoint
+        
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            startPosition = CGPoint(x: 0, y: scene.size.height / 2 + 50)
+            middlePosition = CGPoint(x: 0, y: 0)
+        } else {
+            guard let view = scene.view else { return }
+            let topPointInView = CGPoint(x: view.bounds.midX, y: -100)
+            startPosition = scene.convertPoint(fromView: topPointInView)
+            let middlePointInView = CGPoint(x: view.bounds.midX, y: view.bounds.midY)
+            middlePosition = scene.convertPoint(fromView: middlePointInView)
+        }
+
+        // USA O NOVO MÉTODO específico do Ladrão para onboarding
+        guard let enemy = Thief.createForOnboarding(at: startPosition, withGestures: gestures) else {
+            print("Erro ao criar Ladrão de onboarding")
+            return
+        }
+
+        // Adiciona à lista de inimigos ativos e à cena
+        enemyControl.activeEnemies.append(enemy)
+        scene.addChild(enemy)
+
+        // Move até o meio da tela, para, e chama o callback
+        let moveToMiddle = SKAction.move(to: middlePosition, duration: 2.0)
+        let stopAction = SKAction.run {
+            enemy.removeAllActions()
+            completion(enemy)
+        }
+        let sequence = SKAction.sequence([moveToMiddle, stopAction])
+        enemy.run(sequence)
+    }
+
 
 }
     
