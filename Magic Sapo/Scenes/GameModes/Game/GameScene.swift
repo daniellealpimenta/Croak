@@ -57,6 +57,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     private var cameraPreviewNode: SKEffectNode!
     private var gestureDebugLabel: SKLabelNode?
+    private var gestureDebugImageNode: SKSpriteNode? // NOVO: Nó para exibir a imagem do gesto
     
     private var gameState: GameState = .normalPlay
     private var mageControl: MageControl?
@@ -124,7 +125,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         setupGestureDetection()
 
-//        if DeviceHelper.isIPad {
+        if DeviceHelper.isIPad {
             if let view = self.view {
                 self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
             }
@@ -134,8 +135,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                 setupCountdownLabel()
                 enterGestureValidationMode()
             }
-//        }
-
+        }
         // 3. Configura a UI de debug que depende da detecção.
         setupGestureDebugUI()
     }
@@ -264,8 +264,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     // VERSÃO ADAPTATIVA do setup de debug UI
-
     private func setupGestureDebugUI() {
+        // --- Configuração do Label (código existente) ---
         gestureDebugLabel = SKLabelNode(fontNamed: "Arial-Bold")
         if let labelNode = gestureDebugLabel {
             labelNode.fontSize = DeviceHelper.isIPhone ? 16 : 20
@@ -275,11 +275,53 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             labelNode.text = "Gesto: Nenhum"
             addChild(labelNode)
         }
+        
+        gestureDebugImageNode = SKSpriteNode() // Inicializa o nó vazio
+        if let imageNode = gestureDebugImageNode, let labelNode = gestureDebugLabel {
+            imageNode.size = DeviceHelper.isIPad ? CGSize(width: 80, height: 80) : CGSize(width: 50, height: 50)
+            imageNode.position = DeviceHelper.isIPhone ?  CGPoint(x: 85, y: -200) : CGPoint(x: 80, y: -170)
+            imageNode.isHidden = true
+            addChild(imageNode)
+        }
+        
+        let bookNode = SKSpriteNode(imageNamed: "livro")
+        bookNode.size = DeviceHelper.isIPad ? CGSize(width: 150, height: 150) : CGSize(width: 100, height: 100)
+        bookNode.position = CGPoint(x: 80, y: -250)
+        bookNode.isHidden = false
+        addChild(bookNode)
+        
     }
     
     func gestureDetected(_ gesture: String, confidence: Double) {
-        // Atualizar label de debug
+        
         gestureDebugLabel?.text = "Gesto: \(gesture) (\(Int(confidence * 100))%)"
+        
+        gestureDebugImageNode?.isHidden = false
+        var textureName: String?
+        
+        switch gesture {
+        case "OpenPalm":
+            textureName = "OpenPalm_s"
+        case "Rock":
+            textureName = "Rock_s"
+        case "Two":
+            textureName = "Two_s"
+        case "Top":
+            textureName = "Top_s"
+        case "L":
+            textureName = "L_s"
+        case "HangLose":
+            textureName = "HangLose_s"
+
+        default:
+            textureName = nil
+        }
+        
+        if let name = textureName {
+            gestureDebugImageNode?.texture = SKTexture(imageNamed: name)
+        } else {
+            gestureDebugImageNode?.isHidden = true
+        }
         
         if isOnGestureValidationMode {
             makeGestureInValidation(gesture: gesture)
@@ -292,6 +334,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     func gestureDetectionLost() {
         gestureDebugLabel?.text = "Gesto: Nenhum"
+        gestureDebugImageNode?.isHidden = true // NOVO: Oculta a imagem quando o gesto é perdido
         
         if isOnGestureValidationMode {
             gestureManager?.updateHandFeedback(status: .neutral)
@@ -319,8 +362,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         gestureManager.startDetection()
         pauseOverlayComponent.hide()
         
-        if let view = self.view {
-            self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
+        if DeviceHelper.isIPad {
+            if let view = self.view {
+                self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
+            }
         }
         
         if !isOnGestureValidationMode && !isOnboarding {
