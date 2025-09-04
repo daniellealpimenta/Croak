@@ -12,10 +12,14 @@ class CoinsComponent {
     
     // MARK: - Propriedades
     
-    var coinsCount: Int
+    var sessionCoins: Int = 0
+    
     var coinsLabel: SKLabelNode
     var coinIcon: SKSpriteNode
     private var parentScene: SKScene
+    
+    // A chave usada para salvar e carregar o TOTAL de moedas no dispositivo.
+    private let totalCoinsKey = "totalCoins"
     
     // MARK: - Inicialização
 
@@ -23,13 +27,12 @@ class CoinsComponent {
     /// - Parameter parent: A cena que será a "dona" deste componente.
     init(parent: SKScene) {
         self.parentScene = parent
-        self.coinsCount = 0
-        
+                
         // --- 1. Cria e estiliza os nós. ---
         self.coinsLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
         self.coinIcon = SKSpriteNode(imageNamed: "Coin")
         
-        // Lógica de tamanho adaptativo
+        // Lógica de tamanho adaptativo (sem alterações)
         switch UIDevice.current.userInterfaceIdiom {
         case .phone:
             self.coinsLabel.fontSize = 35
@@ -45,40 +48,28 @@ class CoinsComponent {
         self.coinsLabel.fontColor = .yellow
         self.coinsLabel.horizontalAlignmentMode = .left
         self.coinsLabel.verticalAlignmentMode = .center
-        self.coinsLabel.text = "\(self.coinsCount)"
+        
+        self.coinsLabel.text = "\(self.sessionCoins)"
         
         self.coinIcon.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
-        // Garante que a UI fique na frente
-        self.coinsLabel.zPosition = Layer.ui.rawValue
-        self.coinIcon.zPosition = Layer.ui.rawValue
+        self.coinsLabel.zPosition = 100
+        self.coinIcon.zPosition = 100
 
-        // --- 2. LÓGICA DE POSICIONAMENTO ADAPTATIVO ---
-        
+        // Lógica de posicionamento adaptativo (sem alterações)
         switch UIDevice.current.userInterfaceIdiom {
         case .phone:
-            // --- Lógica para iPhone: Posicionar no centro ---
             self.coinIcon.position = CGPoint(x: -150, y: 300)
-            
-            // Posiciona o LABEL da moeda à direita do ícone (que está no centro).
             self.coinsLabel.position = CGPoint(
                 x: self.coinIcon.position.x + self.coinIcon.size.width / 2 + 10,
                 y: self.coinIcon.position.y
             )
             
-        default: // iPad e outros casos
-            // --- Lógica para iPad: Manter no canto superior esquerdo ---
-            let sceneWidth = parentScene.size.width
-            let yPosition: CGFloat = 250
-            let leftMargin: CGFloat = 50
-            
-            // Posiciona o ÍCONE da moeda no canto superior esquerdo.
+        default:
             self.coinIcon.position = CGPoint(
                 x: -450,
                 y: 300
             )
-            
-            // Posiciona o LABEL da moeda à direita do ícone.
             self.coinsLabel.position = CGPoint(
                 x: self.coinIcon.position.x + self.coinIcon.size.width / 2 + 10,
                 y: self.coinIcon.position.y
@@ -93,7 +84,16 @@ class CoinsComponent {
     // MARK: - Métodos Públicos
     
     func addCoins(coins: Int) {
-        self.coinsCount += coins
-        self.coinsLabel.text = "\(self.coinsCount)"
+        self.sessionCoins += coins
+        self.coinsLabel.text = "\(self.sessionCoins)"
+        
+        // 1. Carrega o total que já estava salvo no dispositivo.
+        let currentTotal = UserDefaults.standard.integer(forKey: totalCoinsKey)
+        
+        // 2. Soma as novas moedas ao total.
+        let newTotal = currentTotal + coins
+        
+        // 3. Salva o novo total de volta no dispositivo.
+        UserDefaults.standard.set(newTotal, forKey: totalCoinsKey)
     }
 }

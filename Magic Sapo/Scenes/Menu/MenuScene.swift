@@ -56,7 +56,7 @@ class MenuScene: SKScene {
         print("Nó tocado: \(touchedNode.name ?? "Nenhum nome")")
         
         // O resto do seu código continua igual...
-        if touchedNode.name == "GestureMode" {
+        if touchedNode.name == "GestureMode" || touchedNode.name == "JogarLabel" {
             print("Botão GestureMode foi tocado!")
             
             if let gameScene = SKScene(fileNamed: "GameScene") as? GameScene {
@@ -71,7 +71,7 @@ class MenuScene: SKScene {
             }
         }
         
-        if touchedNode.name == "ButtonMode" {
+        if touchedNode.name == "ButtonMode" || touchedNode.name == "TutorialLabel" {
             print("Botão ButtonMode foi tocado!")
             
             if let buttonScene = SKScene(fileNamed: "ButtonMode") {
