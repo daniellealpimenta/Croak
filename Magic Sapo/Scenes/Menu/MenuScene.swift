@@ -17,6 +17,8 @@ class MenuScene: SKScene {
     private var cameraToggleButton: SKLabelNode?
     private var validationToggleButton: SKLabelNode?
     
+    var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    
     // MARK: - Ciclo de Vida da Cena
     
     override func didMove(to view: SKView) {
@@ -29,7 +31,10 @@ class MenuScene: SKScene {
 
         // --- NOVAS FUNÇÕES ---
         // Cria o botão de configurações e o overlay (que começa escondido)
-        setupSettingsButton()
+        if !isOnboarding {
+            setupSettingsButton()
+        }
+        
         createSettingsOverlay()
     }
     
