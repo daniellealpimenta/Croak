@@ -183,30 +183,31 @@ class GestureDetectionManager: NSObject {
     
     func expandCameraPreviewToFullScreen(in skView: SKView) {
         delegate?.cameraWillExpand()
-            // 1. Garante que a cameraView já foi criada.
-            guard let camView = self.cameraView else {
-                print("A cameraView ainda não foi inicializada e não pode ser expandida.")
-                return
-            }
-            
-            // 2. Garante que a atualização da UI seja feita na thread principal.
-            DispatchQueue.main.async {
-                // 3. Define o novo frame como sendo a tela inteira.
-                let fullScreenFrame = skView.bounds
-                
-                // 4. Anima a transição para o novo frame.
-                UIView.animate(withDuration: 0.4, animations: {
-                    camView.frame = fullScreenFrame
-                    
-                    // Remove a borda e o canto arredondado para o modo de tela cheia.
-                    camView.layer.cornerRadius = 0
-                    camView.layer.borderWidth = 0
-                    
-                    // Ajusta o frame da camada de preview para preencher a nova view.
-                    self.previewLayer?.frame = camView.bounds
-                })
-            }
+        
+        // 1. Garante que a cameraView já foi criada.
+        guard let camView = self.cameraView else {
+            print("A cameraView ainda não foi inicializada e não pode ser expandida.")
+            return
         }
+        
+        // 2. Garante que a atualização da UI seja feita na thread principal.
+        DispatchQueue.main.async {
+            // 3. Define o novo frame como sendo a tela inteira.
+            let fullScreenFrame = skView.bounds
+            
+            // 4. Anima a transição para o novo frame.
+            UIView.animate(withDuration: 0.4, animations: {
+                camView.frame = fullScreenFrame
+                
+                // Remove a borda e o canto arredondado para o modo de tela cheia.
+                camView.layer.cornerRadius = 0
+                camView.layer.borderWidth = 0
+                
+                // Ajusta o frame da camada de preview para preencher a nova view.
+                self.previewLayer?.frame = camView.bounds
+            })
+        }
+    }
     
     func shrinkCameraPreviewToOriginal(in skView: SKView) {
         // 1. Garante que a view da câmera e o frame original existam.
