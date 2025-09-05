@@ -22,6 +22,8 @@ class MenuScene: SKScene {
     // MARK: - Ciclo de Vida da Cena
     
     override func didMove(to view: SKView) {
+        AudioManager.shared.setSoundEffectVolume(to: 0.5)
+        
         // Registra um valor padrão para o modo de validação na primeira vez que o app abrir
         UserDefaults.standard.register(defaults: ["isValidationModeEnabled": true])
         UserDefaults.standard.register(defaults: ["isCameraPreviewEnabled": true])
@@ -68,6 +70,7 @@ class MenuScene: SKScene {
     
     // Cria o Botão de Configurações
     func setupSettingsButton() {
+        
         settingsButton = SKSpriteNode(imageNamed: "botaoSettings")
         settingsButton?.name = "settingsButton"
         
@@ -188,6 +191,7 @@ class MenuScene: SKScene {
             
             switch touchedNode.name {
             case "closeSettingsButton":
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 hideSettingsOverlay()
                 
             case "cameraToggleButton":
@@ -212,9 +216,13 @@ class MenuScene: SKScene {
 
         switch nodeName {
         case "settingsButton":
+            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+            
             showSettingsOverlay()
 
         case "GestureMode", "JogarLabel":
+            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+            
             if let button = touchedNode as? SKNode { // Pode ser um SKLabelNode ou SKSpriteNode
                 button.runButtonAnimation {
                     self.transitionToScene(named: "GameScene", isGestureMode: true)
@@ -222,6 +230,8 @@ class MenuScene: SKScene {
             }
 
         case "ButtonMode", "TutorialLabel":
+            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+            
             if let button = touchedNode as? SKNode {
                 button.runButtonAnimation {
                     self.transitionToScene(named: "ButtonMode", isGestureMode: false)

@@ -36,6 +36,10 @@ class GameOverScene: SKScene {
         // Carrega o total de moedas salvas no dispositivo
         totalCoins = UserDefaults.standard.integer(forKey: "totalCoins")
         
+        AudioManager.shared.setSoundEffectVolume(to: 0.4)
+                
+        AudioManager.shared.playSoundEffect(named: "game-over.mp3")
+        
         coinsComponent = CoinsComponent(parent: self)
         coinsComponent.updateLabel(with: totalCoins)
         
@@ -232,6 +236,8 @@ class GameOverScene: SKScene {
         if touchedNode.name == "ResetButton" {
             print("Botão Reiniciar foi tocado!")
             
+            AudioManager.shared.playSoundEffect(named: "toque-reiniciar.mp3")
+            
             let restartAction = SKAction.run { [weak self] in
                 self?.restartPreviousScene()
             }
@@ -263,6 +269,8 @@ class GameOverScene: SKScene {
                 
         if touchedNode.name == "ExitButton" {
             print("Botão Menu Principal foi tocado!")
+            
+            AudioManager.shared.playSoundEffect(named: "toque-voltar.mp3")
             
             let scaleUp = SKAction.scale(by: 1.1, duration: 0.1)
             let scaleDown = scaleUp.reversed()

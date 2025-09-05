@@ -65,6 +65,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         if !sceneIsInitialized {
             checkCameraPermission()
         }
+        
+        AudioManager.shared.setSoundEffectVolume(to: 0.5)
+        
         let stopMusicAction = SKAction.run {
             AudioManager.shared.stopBackgroundMusic(fadeOutDuration: 1.0)
         }
@@ -728,14 +731,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     func didTapPauseButton() {
         print("Botão Pausar foi tocado (via Delegate)!")
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         self.pauseGame()
     }
     
     func didTapResumeButton() {
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         resumeGame()
     }
     
     func didTapResetButton() {
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+        
         self.view?.isPaused = false
 
         if let newGameScene = SKScene(fileNamed: "GameScene") as? GameScene {
@@ -746,6 +753,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
      
     func didTapExitButton() {
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+        
         self.view?.isPaused = false
         
         if let menuScene = SKScene(fileNamed: "MenuScene") {
