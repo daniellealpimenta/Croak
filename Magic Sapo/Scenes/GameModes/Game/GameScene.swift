@@ -64,6 +64,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             setupScene()
             sceneIsInitialized = true
         }
+        let stopMusicAction = SKAction.run {
+            AudioManager.shared.stopBackgroundMusic(fadeOutDuration: 1.0)
+        }
+
+        let waitAction = SKAction.wait(forDuration: 0.5)
+
+        let playMusicAction = SKAction.run {
+            AudioManager.shared.playBackgroundMusic(filename: "croak-music.m4a")
+        }
+
+        let musicSequence = SKAction.sequence([stopMusicAction, waitAction, playMusicAction])
+        self.run(musicSequence)
     }
     
     private func setupScene() {
@@ -314,6 +326,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         enemySpawner.stopSpawningEnemies()
         gestureManager?.stopDetection()
         self.isPaused = true
+        AudioManager.shared.pauseBackgroundMusic()
         gestureManager?.removeCameraPreview()
         pauseOverlayComponent.show()
     }
@@ -332,7 +345,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         if !isOnGestureValidationMode {
             self.isPaused = false
-            
+            AudioManager.shared.resumeBackgroundMusic()
             if gameState == .normalPlay {
                 enemySpawner.startSpawningEnemies()
             }
@@ -357,6 +370,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
         if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
             isPlayerDead = true
+            
+            AudioManager.shared.stopBackgroundMusic()
             
             let waitAction = SKAction.wait(forDuration: 0.1)
             let transitionAction = SKAction.run {
@@ -414,7 +429,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let scoreSinceLastBoss = score - scoreAtLastBossDefeat
         
         // A condição agora é muito mais simples e robusta.
-        if gameState == .normalPlay && scoreSinceLastBoss >= 5  { // Use 5 para testar
+        if gameState == .normalPlay && scoreSinceLastBoss >= 75  { // Use 5 para testar
             print("--- PREPARANDO PARA O CHEFE! Limpando inimigos restantes... ---")
             
             // Não precisamos mais atualizar 'lastBossTriggerScore'.

@@ -25,7 +25,7 @@ class MageControl {
     
     private weak var enemySpawner: EnemySpawner?
     
-    private let mageStunDuration: TimeInterval = 1.5
+    private let mageStunDuration: TimeInterval = 2.0
     
     private var mageNode: SKSpriteNode?
     private var spawnedGuards: [SKNode] = []
@@ -86,6 +86,7 @@ class MageControl {
     private func stopMageMovement() {
             print("Pausando movimento do Mago.")
             mageNode?.removeAction(forKey: "mageMovement")
+            mageNode?.removeAction(forKey: "walkAnimation")
         }
     
     private func startMageMovement() {
@@ -94,8 +95,15 @@ class MageControl {
             return
         }
         
+        // ANIMAÇÃO: Escolhe a animação de andar correta baseada na vida do Mago.
+        if let health = mage.userData?["health"] as? Int {
+            let walkFrames = (health == 1) ? Mage.walkCrackedAnimation : Mage.walkAnimation
+            let walkAnimation = SKAction.animate(with: walkFrames, timePerFrame: 0.2)
+            mage.run(SKAction.repeatForever(walkAnimation), withKey: "walkAnimation")
+        }
+        
         let endPosition = CGPoint(x: 0, y: -scene.size.height / 2 - 150)
-        let moveAction = SKAction.move(to: endPosition, duration: 11.0) // Duração maior = mais lento
+        let moveAction = SKAction.move(to: endPosition, duration: 12.0) // Duração maior = mais lento
         mage.run(moveAction, withKey: "mageMovement")
     }
     
@@ -116,12 +124,9 @@ class MageControl {
         
         guard let scene = self.scene else { return }
         
-        // --- AJUSTES DE POSICIONAMENTO ---
         let killZoneTopY: CGFloat = DeviceHelper.isIPhone ? scene.size.height / 2 - 100 : scene.size.height / 2 - 125
         let killZoneBottomY: CGFloat = DeviceHelper.isIPhone ? -scene.size.height / 2 + 180 : -scene.size.height / 2 + 215
-        // ---------------------------------
         
-        // --- MUDANÇA: Itera por todos os guardas para encontrar todas as correspondências ---
         for guardNode in spawnedGuards {
             guard guardNode.position.y < killZoneTopY && guardNode.position.y > killZoneBottomY else {
                 continue
@@ -132,16 +137,14 @@ class MageControl {
             }
         }
         
-        // Se nenhum guarda foi encontrado, não faz nada.
         if guardsToRemove.isEmpty { return }
 
-        // Remove todos os guardas encontrados
         for guardNode in guardsToRemove {
             spawnedGuards.removeAll { $0 === guardNode }
             
             guardNode.removeAllActions()
             
-            let animateFrames = SKAction.animate(with: Guards.deathAnimation, timePerFrame: 0.1)
+            let animateFrames = SKAction.animate(with: Guards.deathAnimation, timePerFrame: 0.25)
             let fadeOut = SKAction.fadeOut(withDuration: 0.3)
             
             let combinedDeathAnimation = SKAction.group([animateFrames, fadeOut])
@@ -150,7 +153,6 @@ class MageControl {
             
         }
         
-        // Se não houver mais guardas, avança para o próximo estado
         if spawnedGuards.isEmpty {
             transition(to: .waveDefeated)
         }
@@ -164,13 +166,12 @@ class MageControl {
         let killZoneBottomY: CGFloat = DeviceHelper.isIPhone ? -scene.size.height / 2 + 180 : -scene.size.height / 2 + 215
         
         guard mage.position.y < killZoneTopY && mage.position.y > killZoneBottomY else {
-            return // Se estiver fora da zona, a função para aqui.
+            return
         }
         
         if let gestureNode = mage.childNode(withName: gesture) {
             gestureNode.removeFromParent()
             
-            // --- MUDANÇA: Adiciona recompensa por acertar o Mago ---
             stopMageMovement()
             
             if var health = mage.userData?["health"] as? Int {
@@ -178,16 +179,18 @@ class MageControl {
                 mage.userData?["health"] = health
                 
                 if health > 0 {
-                    // Se ainda tem vida, invoca a próxima onda.
-                    let waitAction = SKAction.wait(forDuration: mageStunDuration)
-                    let startNextWaveAction = SKAction.run { [weak self] in
-                        self?.transition(to: .spawningWave)
+                    let crackAnimation = SKAction.animate(with: Mage.shieldCrackAnimation, timePerFrame: 0.25)
+                    let setIdleDamagedFrame = SKAction.run {
+                        if let idleFrame = Mage.walkCrackedAnimation.first {
+                            mage.texture = idleFrame
+                        }
                     }
+                    mage.run(SKAction.sequence([crackAnimation, setIdleDamagedFrame]))
                     
-                    // A cena executa a ação para garantir que funcione mesmo que o mago seja removido.
+                    let waitAction = SKAction.wait(forDuration: mageStunDuration)
+                    let startNextWaveAction = SKAction.run { [weak self] in self?.transition(to: .spawningWave) }
                     scene.run(SKAction.sequence([waitAction, startNextWaveAction]))
                 } else {
-                    // Se a vida acabou, o Mago é derrotado.
                     scene.scoreComponent.addScore(point: Mage.pointValue)
                     scene.coinsComponent.addCoins(coins: Mage.coinValue)
                     transition(to: .retreating)
@@ -200,10 +203,12 @@ class MageControl {
     private func spawnWave() {
         guard let scene = self.scene, let mage = self.mageNode else { return }
         
-        // --- CORREÇÃO 1: Garante gestos únicos para cada guarda ---
-        // 1. Pega os gestos disponíveis e os embaralha.
-        var waveGestures = Gestures.availableGestures.shuffled()
+        mage.removeAction(forKey: "walkAnimation")
+        if let health = mage.userData?["health"] as? Int {
+            mage.texture = (health == 1) ? Mage.invokingTextureCrack : Mage.invokingTexture
+        }
         
+        var waveGestures = Gestures.availableGestures.shuffled()
         let xStartOffset: CGFloat = DeviceHelper.isIPhone ? -110 : -150
         let xSpacing: CGFloat = DeviceHelper.isIPhone ? 75 : 100
         
@@ -220,7 +225,7 @@ class MageControl {
                 scene.addChild(guardNode)
                 
                 let endPosition = CGPoint(x: 0, y: -scene.size.height / 2 - 100)
-                let moveAction = SKAction.move(to: endPosition, duration: 7.0)
+                let moveAction = SKAction.move(to: endPosition, duration: 8.0)
                 
                 let removeAction = SKAction.run { [weak self] in
                     self?.spawnedGuards.removeAll { $0 === guardNode }
@@ -298,8 +303,20 @@ class MageControl {
             
         case .retreating:
             mageNode?.removeAllActions()
-            let moveAction = SKAction.move(by: CGVector(dx: 0, dy: 400), duration: 1.5)
-            mageNode?.run(moveAction, completion: {
+            
+            
+            let breakShield = SKAction.animate(with: Mage.shieldBreakingAnimation, timePerFrame: 0.30)
+            let turnAround = SKAction.animate(with: Mage.mageTurnAnimation, timePerFrame: 0.08)
+            
+            let moveOffscreen = SKAction.move(by: CGVector(dx: 0, dy: 800), duration: 1.5)
+            let runAnimation = SKAction.animate(with: Mage.mageRanAnimation, timePerFrame: 0.25)
+            
+            let runningDuringEscape = SKAction.repeat(runAnimation, count: 2)
+            let escapeGroup = SKAction.group([moveOffscreen, runningDuringEscape])
+            
+            let fullSequence = SKAction.sequence([breakShield, turnAround, escapeGroup])
+            
+            mageNode?.run(fullSequence, completion: {
                 self.mageNode?.removeFromParent()
                 self.scene?.bossFightDidEnd()
             })

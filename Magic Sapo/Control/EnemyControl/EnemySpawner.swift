@@ -19,6 +19,8 @@ class EnemySpawner {
     /// Instância do controlador que sabe COMO criar e destruir inimigos. O Spawner delega o trabalho para ele.
     private let enemyControl: EnemyControl
     
+    private var scoreAtLastThiefSpawn = 0
+    
     /// Referência **fraca** (weak) à cena para evitar "ciclos de retenção" (memory leaks).
     /// A cena "possui" o spawner, então o spawner não pode "possuir" a cena de volta com força total.
     weak var scene: SKScene?
@@ -84,14 +86,9 @@ class EnemySpawner {
         // Chama a função em EnemyControl e retorna diretamente o que ela devolver.
         return enemyControl.killEnemy(withGesture: gesture, in: scene)
     }
-    /// Método chamado pelo timer para criar um inimigo.
-    /// Precisa ser @objc para ser "visto" pelo seletor do Timer.
-    // Método chamado pelo timer para decidir qual inimigo criar.
-    /// Método chamado pelo timer para decidir qual inimigo criar.
+
     @objc private func spawnEnemy() {
-        // --- MUDANÇA PRINCIPAL ---
-        // Agora, verificamos se a cena se conforma ao nosso novo protocolo.
-        // Isso funciona tanto para GameScene quanto para ButtonScene.
+
         guard let scoreScene = self.scene as? ScoreHavingScene,
               let actualScene = self.scene else {
             print("[DEBUG] ERRO: A cena atual não tem um scoreComponent ou é nula. Parando o spawner.")
@@ -101,24 +98,20 @@ class EnemySpawner {
         
         let currentScore = scoreScene.scoreComponent.scoreCount
         
-        // --- MUDANÇA 2: Lógica de Escolha Refatorada ---
+        let scoreSinceLastThief = currentScore - scoreAtLastThiefSpawn
+        
         var enemyToSpawn: Enemy.Type?
 
-        // Condições para spawnar um Ladrão:
-        // 1. A pontuação é >= 15
-        // 2. A pontuação é um múltiplo de 10
-        // 3. AINDA NÃO criamos um Ladrão para esta pontuação exata.
-        if currentScore >= 15 && currentScore % 10 == 0 && currentScore != lastThiefSpawnScore {
+        if currentScore >= 15 && scoreSinceLastThief >= 10 {
             enemyToSpawn = Thief.self
-            // Atualiza nossa "memória" para a pontuação atual.
-            lastThiefSpawnScore = currentScore
-            print("Um Ladrão foi escolhido para spawnar, com \(currentScore) pontos")
+
+            scoreAtLastThiefSpawn = currentScore
+            
+            print("--- LADRÃO SPAWNADO --- Pontuação atual: \(currentScore)")
         } else {
-            // Se não for para criar um Ladrão, crie um Guarda.
             enemyToSpawn = Guards.self
         }
         
-        // Cria o inimigo que foi escolhido.
         if let enemyType = enemyToSpawn {
             self.enemyControl.createEnemy(ofType: enemyType, in: actualScene)
         }

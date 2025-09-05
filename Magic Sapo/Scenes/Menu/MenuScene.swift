@@ -27,6 +27,8 @@ class MenuScene: SKScene {
             } else {
                 print("AVISO: Não foi possível encontrar o nó com o nome '\(name)' na cena.")
             }
+            
+            AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
         }
         
         let buttonNames = ["GestureMode", "ButtonMode", "Loja"]

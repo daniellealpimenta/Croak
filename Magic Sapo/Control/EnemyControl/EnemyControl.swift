@@ -223,11 +223,11 @@ class EnemyControl {
                             
                         } else if killedEnemy.name == "Thief" {
 
-                            let genericDeathAnimation = SKAction.group([
-                                SKAction.fadeOut(withDuration: 0.3),
-                                SKAction.scale(to: 0.1, duration: 0.3)
-                            ])
-                            killedEnemy.run(SKAction.sequence([genericDeathAnimation, SKAction.removeFromParent()]))
+                            let animateFrames = SKAction.animate(with: Thief.deathAnimation, timePerFrame: 0.2)
+                            let fadeOut = SKAction.fadeOut(withDuration: 0.4)
+                            let deathSequence = SKAction.group([animateFrames, fadeOut])
+                            
+                            killedEnemy.run(SKAction.sequence([deathSequence, SKAction.removeFromParent()]))
 
                             totalPoints += Thief.pointValue
                             totalCoins += Thief.coinValue
