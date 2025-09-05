@@ -25,8 +25,10 @@ class MenuScene: SKScene {
         setupLabels()
         setupButtonsPixelation()
         
-        // Inicia a música de fundo
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
+
+        // Nomes de todos os labels que você quer configurar
+        let labelNames = ["JogarLabel", "TutorialLabel"]
         
         // --- NOVAS FUNÇÕES ---
         // Cria o botão de configurações e o overlay (que começa escondido)
@@ -40,6 +42,7 @@ class MenuScene: SKScene {
     func setupLabels() {
         let labelNames = ["LojaLabel", "JogarLabel", "TutorialLabel"]
         for name in labelNames {
+          
             if let label = self.childNode(withName: "//\(name)") as? SKLabelNode {
                 label.fontName = "Ari-W9500Bold"
                 label.fontSize = 35
@@ -47,15 +50,16 @@ class MenuScene: SKScene {
                 print("AVISO: Não foi possível encontrar o nó com o nome '\(name)' na cena.")
             }
         }
-    }
-    
-    // Função para configurar a pixelação dos botões (código que você já tinha)
-    func setupButtonsPixelation() {
-        let buttonNames = ["GestureMode", "ButtonMode", "Loja"]
+        
+        let buttonNames = ["GestureMode", "ButtonMode"]
+        
         for name in buttonNames {
             if let buttonNode = self.childNode(withName: "//\(name)") as? SKSpriteNode {
+
                 buttonNode.texture?.filteringMode = .nearest
                 buttonNode.texture?.usesMipmaps = false
+
+
                 print("Configurado '\(name)' com .nearest e sem mipmaps")
             } else {
                 print("AVISO: Não foi possível encontrar o nó do botão com o nome '\(name)' na cena.")
@@ -98,6 +102,7 @@ class MenuScene: SKScene {
         settingsOverlay?.name = "settingsOverlay"
         settingsOverlay?.zPosition = 100 // zPosition bem alto para ficar na frente de tudo
         
+
         // 1. Fundo semi-transparente para escurecer a cena
         let background = SKShapeNode(rect: self.frame)
         background.fillColor = SKColor.black
@@ -171,6 +176,17 @@ class MenuScene: SKScene {
                 cameraToggleButton?.text = "Pré-visualização da Câmera: Ligada"
             } else {
                 cameraToggleButton?.text = "Pré-visualização da Câmera: Desligada"
+
+        guard let button = touchedNode as? SKSpriteNode else { return }
+
+        if button.name == "GestureMode" || button.name == "JogarLabel" {
+            button.runButtonAnimation {
+                if let gameScene = SKScene(fileNamed: "GameScene") as? GameScene {
+                    gameScene.startInGestureMode = true
+                    gameScene.scaleMode = .aspectFill
+                    let transition = SKTransition.fade(withDuration: 1.0)
+                    self.view?.presentScene(gameScene, transition: transition)
+                }
             }
         }
     
@@ -180,6 +196,7 @@ class MenuScene: SKScene {
         updateValidationToggleButtonText()
         updateCameraToggleButtonText()
         
+
         settingsOverlay?.isHidden = false
         // Efeito suave de fade-in
         settingsOverlay?.alpha = 0
@@ -243,6 +260,14 @@ class MenuScene: SKScene {
                     buttonScene.scaleMode = .aspectFill
                     let transition = SKTransition.fade(withDuration: 1.0)
                     view?.presentScene(buttonScene, transition: transition)
+
+        if button.name == "ButtonMode" || button.name == "TutorialLabel" {
+            button.runButtonAnimation {
+                if let buttonScene = SKScene(fileNamed: "ButtonMode") {
+                    buttonScene.scaleMode = .aspectFill
+                    let transition = SKTransition.fade(withDuration: 1.0)
+                    self.view?.presentScene(buttonScene, transition: transition)
+
                 }
             }
         }
