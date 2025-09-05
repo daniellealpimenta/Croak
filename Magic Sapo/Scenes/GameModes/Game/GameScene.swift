@@ -546,6 +546,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             
             isPlayerDead = true
             
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+                self.gestureManager?.stopDetection()
+                self.gestureManager?.removeCameraPreview()
+            }
+            
             self.coinsComponent.saveSessionCoins()
         
             // Para a música de fundo
