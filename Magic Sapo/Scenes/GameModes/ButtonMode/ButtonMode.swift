@@ -370,7 +370,9 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         
         self.view?.isPaused = false
         
-        if let menuScene = SKScene(fileNamed: "MenuScene") {
+        let sceneName = DeviceHelper.isIPhone ? "MenuScene_iphone" : "MenuScene"
+        
+        if let menuScene = SKScene(fileNamed: sceneName) {
             menuScene.scaleMode = .aspectFill
             let transition = SKTransition.fade(withDuration: 1.0)
             view?.presentScene(menuScene, transition: transition)

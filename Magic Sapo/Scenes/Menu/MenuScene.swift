@@ -17,16 +17,11 @@ class MenuScene: SKScene {
     private var cameraToggleButton: SKLabelNode?
     private var validationToggleButton: SKLabelNode?
     
-    var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-    
     // MARK: - Ciclo de Vida da Cena
     
     override func didMove(to view: SKView) {
-        AudioManager.shared.setSoundEffectVolume(to: 0.5)
-        
         // Registra um valor padrão para o modo de validação na primeira vez que o app abrir
         UserDefaults.standard.register(defaults: ["isValidationModeEnabled": true])
-        UserDefaults.standard.register(defaults: ["isCameraPreviewEnabled": true])
         
         // --- CONFIGURAÇÃO EXISTENTE ---
         setupLabels()
@@ -34,10 +29,7 @@ class MenuScene: SKScene {
 
         // --- NOVAS FUNÇÕES ---
         // Cria o botão de configurações e o overlay (que começa escondido)
-        if !isOnboarding {
-            setupSettingsButton()
-        }
-        
+        setupSettingsButton()
         createSettingsOverlay()
     }
     
@@ -70,7 +62,6 @@ class MenuScene: SKScene {
     
     // Cria o Botão de Configurações
     func setupSettingsButton() {
-        
         settingsButton = SKSpriteNode(imageNamed: "botaoSettings")
         settingsButton?.name = "settingsButton"
         
@@ -179,7 +170,7 @@ class MenuScene: SKScene {
         })
     }
 
-    // MARK: - Entrada do Usuário
+    // MARK: - Entrada do Usuário (VERSÃO CORRIGIDA)
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
@@ -191,7 +182,6 @@ class MenuScene: SKScene {
             
             switch touchedNode.name {
             case "closeSettingsButton":
-                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 hideSettingsOverlay()
                 
             case "cameraToggleButton":
@@ -205,9 +195,9 @@ class MenuScene: SKScene {
                 updateValidationToggleButtonText()
                 
             default:
-                break // Se tocar em qualquer outro lugar do overlay, não faz nada
+                break
             }
-            return // Impede que o toque "vaze" para os botões do menu principal
+            return
         }
         
         // Lógica para os botões do menu principal (só executa se o overlay estiver fechado)
@@ -216,23 +206,25 @@ class MenuScene: SKScene {
 
         switch nodeName {
         case "settingsButton":
-            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
-            
             showSettingsOverlay()
 
         case "GestureMode", "JogarLabel":
-            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+            // Se tocamos no label, pegamos o seu pai (a imagem).
+            // Se tocamos na própria imagem, usamos ela mesma.
+            let buttonToAnimate = (nodeName == "JogarLabel") ? touchedNode.parent : touchedNode
             
-            if let button = touchedNode as? SKNode { // Pode ser um SKLabelNode ou SKSpriteNode
+            if let button = buttonToAnimate {
                 button.runButtonAnimation {
                     self.transitionToScene(named: "GameScene", isGestureMode: true)
                 }
             }
 
         case "ButtonMode", "TutorialLabel":
-            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+            // A mesma lógica para o outro botão
+            let buttonToAnimate = (nodeName == "TutorialLabel") ? touchedNode.parent : touchedNode
             
-            if let button = touchedNode as? SKNode {
+            if let button = buttonToAnimate {
+                // (Bônus) Aplica a mesma animação aqui para consistência
                 button.runButtonAnimation {
                     self.transitionToScene(named: "ButtonMode", isGestureMode: false)
                 }
@@ -264,16 +256,26 @@ class MenuScene: SKScene {
 }
 
 
-// MARK: - Animação de Botão (Extensão)
 
-// **IMPORTANTE**: Coloque este código fora da classe `MenuScene`, mas no mesmo arquivo.
-// Ele cria a função `runButtonAnimation` que você estava tentando usar.
+// MARK: - Animação de Botão Adaptativa
+
 extension SKNode {
     func runButtonAnimation(completion: @escaping () -> Void) {
-        let scaleDown = SKAction.scale(to: 0.95, duration: 0.1)
-        let scaleUp = SKAction.scale(to: 1.0, duration: 0.1)
         
-        // Roda a animação e, ao final, executa a transição de cena.
-        self.run(SKAction.sequence([scaleDown, scaleUp]), completion: completion)
+        let initialScale = self.xScale
+
+        var pressedScale: CGFloat
+        
+        if DeviceHelper.isIPad {
+            pressedScale = initialScale * 0.95
+        } else {
+            pressedScale = initialScale * 1.1
+        }
+        
+        let scaleDown = SKAction.scale(to: pressedScale, duration: 0.08)
+        let scaleUp = SKAction.scale(to: initialScale, duration: 0.08)
+        
+        let sequence = SKAction.sequence([scaleDown, scaleUp, SKAction.run(completion)])
+        self.run(sequence)
     }
 }
