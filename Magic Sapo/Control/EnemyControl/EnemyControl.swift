@@ -14,7 +14,7 @@ class EnemyControl {
     // MARK: - Lógica de Criação e Movimento
     
     //    Adicione um array para manter o controle dos inimigos ativos.
-    private(set) var activeEnemies: [SKNode] = []
+    var activeEnemies: [SKNode] = []
     
     // Velocidade, velocidade inicial,
     private var V: CGFloat = 5.0
