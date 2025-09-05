@@ -135,7 +135,7 @@ class EnemySpawner {
             let halfHeight = scene.size.height / 2
             
             startPosition = CGPoint(x: 0, y: halfHeight + 50)
-            middlePosition = CGPoint(x: 0, y: 0) // Centro da tela
+            middlePosition = CGPoint(x: 0, y: 50) // Centro da tela
         } else {
             // Para iPhone, usa sistema de coordenadas da view (igual ao createEnemy normal)
             guard let view = scene.view else { return }
@@ -158,7 +158,7 @@ class EnemySpawner {
         scene.addChild(enemy)
         
         // Move até o meio da tela e para
-        let moveToMiddle = SKAction.move(to: middlePosition, duration: 2.0)
+        let moveToMiddle = SKAction.move(to: middlePosition, duration: 3.5)
         let stopAction = SKAction.run {
             enemy.removeAllActions()
             completion(enemy) // Chama o callback quando chegar no meio
@@ -177,7 +177,7 @@ class EnemySpawner {
         
         if UIDevice.current.userInterfaceIdiom == .pad {
             startPosition = CGPoint(x: 0, y: scene.size.height / 2 + 50)
-            middlePosition = CGPoint(x: 0, y: 0)
+            middlePosition = CGPoint(x: 0, y: 50)
         } else {
             guard let view = scene.view else { return }
             let topPointInView = CGPoint(x: view.bounds.midX, y: -100)

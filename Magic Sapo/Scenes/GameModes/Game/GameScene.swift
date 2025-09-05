@@ -16,14 +16,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     private var onboardingState: OnboardingState = .inactive
     private var currentOnboardingGestureIndex = 0
     
-    private var onboardingInstructionOverlay: UIImageView?
+    private var onboardingGuardInstructionOverlay: UIImageView?
+    private var onboardingThiefInstructionOverlay1: UIImageView?
+    private var onboardingThiefInstructionOverlay2: UIImageView?
     private var onboardingInstructionBox: UIView?
     private var onboardingFrogImageView: UIImageView?
     private var onboardingDialogueBox: UIView?
     private var onboardingDialogueLabel: UILabel?
     
-    private let onboardingGuardGestures = ["Rock", "Two", "L", "HangLose"]
-    private let onboardingThiefGestures = ["OpenPalm", "Top"]
+    private let onboardingGuardGestures = ["Rock", "Two"]
 
     enum OnboardingState {
         case inactive
@@ -131,7 +132,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             }
             
             if startInGestureMode {
-                setupInstructionLabel()
+                setupValidationInstructionLabel()
                 setupCountdownLabel()
                 enterGestureValidationMode()
             }
@@ -165,7 +166,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         ])
     }
     
-    private func setupInstructionLabel() {
+    private func setupValidationInstructionLabel() {
         guard let view = self.view else { return }
         
         let label = UILabel()
@@ -185,6 +186,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             label.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50)
         ])
     }
+    
+    // MARK: - Funções do modo validação
     
     func enterGestureValidationMode() {
         print("Iniciando modo de validação de gestos...")
@@ -238,7 +241,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         gestureManager?.shrinkCameraPreviewToOriginal(in: view)
     }
     
-    // MARK: - Parte do código que to mexendo
+    // MARK: - Camera WillExpand e DidShrink
     
     func cameraWillExpand() {
         print("Câmera vai expandir, pausando o jogo.")
@@ -379,34 +382,50 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
     }
     
+    // MARK: - Funções do onboarding
+    
     private func startOnboarding() {
         print("🎓 Iniciando onboarding...")
         onboardingState = .spawningEnemy
         currentOnboardingGestureIndex = 0
-        spawnOnboardingEnemy()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.spawnOnboardingEnemy()
+        }
     }
 
     private func spawnOnboardingEnemy() {
         // Verifica se o índice atual está dentro da lista de gestos dos guardas
-        if currentOnboardingGestureIndex < onboardingGuardGestures.count {
+        if currentOnboardingGestureIndex < 2 {
             // --- Lógica para spawnar um GUARDA ---
             let currentGesture = onboardingGuardGestures[currentOnboardingGestureIndex]
             print("🎯 Spawning onboarding GUARD with gesture: \(currentGesture)")
             
             enemySpawner.spawnOnboardingGuard(withGesture: currentGesture) { [weak self] enemy in
-                self?.handleOnboardingEnemyReachedPosition(enemy: enemy, gesture: currentGesture)
+                self?.handleOnboardingEnemyReachedPosition(enemy: enemy)
                 print("Current onboarding index: \(String(describing: self?.currentOnboardingGestureIndex))")
                 print("OnboardingGuardGesture count: \(String(describing: self?.onboardingGuardGestures.count))")
             }
         }
         // Se já passamos por todos os guardas, é a vez do ladrão
-        else if currentOnboardingGestureIndex == onboardingGuardGestures.count {
+        else if currentOnboardingGestureIndex >= 2 && currentOnboardingGestureIndex < 4 {
             // --- Lógica para spawnar o LADRÃO ---
-            print("🎯 Spawning onboarding THIEF with gestures: \(onboardingThiefGestures)")
+            let currentFirstGesture: String
+            let currentSecondGesture: String
             
-            enemySpawner.spawnOnboardingThief(withGestures: onboardingThiefGestures) { [weak self] enemy in
+            if currentOnboardingGestureIndex == 2 {
+                currentFirstGesture = "OpenPalm"
+                currentSecondGesture = "Top"
+            } else {
+                currentFirstGesture = "L"
+                currentSecondGesture = "HangLose"
+            }
+            
+            let currentGestures = [currentFirstGesture, currentSecondGesture]
+            
+            enemySpawner.spawnOnboardingThief(withGestures: currentGestures) { [weak self] enemy in
                 // Usamos uma string especial "ThiefIntro" para acionar o diálogo correto
-                self?.handleOnboardingEnemyReachedPosition(enemy: enemy, gesture: "ThiefIntro")
+                self?.handleOnboardingEnemyReachedPosition(enemy: enemy)
             }
         }
         // Se já passamos pelo ladrão, o onboarding acabou
@@ -415,14 +434,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
     }
 
-    private func handleOnboardingEnemyReachedPosition(enemy: SKNode, gesture: String) {
+    private func handleOnboardingEnemyReachedPosition(enemy: SKNode) {
         print("🛑 Enemy reached middle position, pausing and showing instruction")
         
         // Pausa o jogo SEM mostrar o overlay de pause
         self.isPaused = true
         
         // Mostra instrução visual
-        showOnboardingInstruction(for: gesture)
+        showOnboardingInstruction()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             print("⏰ Delay de 1.5s concluído. Agora esperando a ação do jogador.")
@@ -432,7 +451,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         self.gestureManager?.startDetection()
     }
 
-    private func showOnboardingInstruction(for gesture: String) {
+    private func showOnboardingInstruction() {
         guard let view = self.view else { return }
         
         removeOnboardingInstruction()
@@ -447,33 +466,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 //        instructionBox.translatesAutoresizingMaskIntoConstraints = false
 //        view.addSubview(instructionBox)
 //        self.onboardingInstructionBox = instructionBox // Salva a referência
-//        
+        
         let padding: CGFloat = 70       // Espaçamento da borda direita da tela
 //        let boxSize: CGFloat = 200         // Largura e altura da CAIXA
 //        let imageInternalPadding: CGFloat = 15 // Espaçamento da imagem DENTRO da caixa
 //        
 //        NSLayoutConstraint.activate([
-//            instructionBox.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -boxPadding),
+//            instructionBox.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -padding),
 //            instructionBox.centerYAnchor.constraint(equalTo: view.centerYAnchor),
 //            instructionBox.widthAnchor.constraint(equalToConstant: boxSize),
 //            instructionBox.heightAnchor.constraint(equalToConstant: boxSize)
-//        ])
-        
-        // Instrução
-        
-//        let instructionImageView = UIImageView()
-//        let instructionImageName = getInstructionImageName(for: gesture)
-//        instructionImageView.image = UIImage(named: instructionImageName)
-//        instructionImageView.contentMode = .scaleAspectFit
-//        instructionImageView.translatesAutoresizingMaskIntoConstraints = false
-//        instructionBox.addSubview(instructionImageView)
-//        self.onboardingInstructionOverlay = instructionImageView
-//        
-//        NSLayoutConstraint.activate([
-//            instructionImageView.topAnchor.constraint(equalTo: instructionBox.topAnchor, constant: imageInternalPadding),
-//            instructionImageView.bottomAnchor.constraint(equalTo: instructionBox.bottomAnchor, constant: -imageInternalPadding),
-//            instructionImageView.leadingAnchor.constraint(equalTo: instructionBox.leadingAnchor, constant: imageInternalPadding),
-//            instructionImageView.trailingAnchor.constraint(equalTo: instructionBox.trailingAnchor, constant: -imageInternalPadding)
 //        ])
         
         // Caixa de diálogo
@@ -497,31 +499,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             dialogueBox.heightAnchor.constraint(equalToConstant: dialogueBoxHeight)
         ])
         
-        // Sapo falando
-        
-        let frogImageView = UIImageView()
-        let frogImageName = getFrogImageName(for: gesture)
-        frogImageView.image = UIImage(named: frogImageName)
-        frogImageView.contentMode = .scaleAspectFit
-        frogImageView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(frogImageView)
-        self.onboardingFrogImageView = frogImageView
-            
-        let frogImageWidth: CGFloat = 300 // Largura do mago
-        let frogImageHeight: CGFloat = 300 // Altura do mago
-        let frogPaddingLeft: CGFloat = 90  // Padding da esquerda
-        
-        NSLayoutConstraint.activate([
-            frogImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: frogPaddingLeft),
-            frogImageView.bottomAnchor.constraint(equalTo: dialogueBox.bottomAnchor, constant: -dialogueBoxHeight),
-            frogImageView.widthAnchor.constraint(equalToConstant: frogImageWidth),
-            frogImageView.heightAnchor.constraint(equalToConstant: frogImageHeight)
-        ])
-        
         // Texto do diálogo
         
         let dialogueLabel = UILabel()
-        let dialogueText = getDialogueLabelText(for: gesture)
+        let dialogueText = getDialogueLabelText()
         dialogueLabel.text = dialogueText
         dialogueLabel.textColor = .black
         dialogueLabel.font = UIFont(name: "Ari-W9500", size: 32) ?? UIFont.systemFont(ofSize: 32, weight: .bold)
@@ -541,6 +522,87 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             dialogueLabel.bottomAnchor.constraint(equalTo: dialogueBox.bottomAnchor, constant: -labelPaddingY)
         ])
         
+        // Instrução
+        
+        if currentOnboardingGestureIndex == 2 || currentOnboardingGestureIndex == 3 {
+            let firstInstructionImageView = UIImageView()
+            let secondInstructionImageView = UIImageView()
+            let instructionImageNames = getInstructionImageName()
+            
+            firstInstructionImageView.image = UIImage(named: instructionImageNames[0])
+            firstInstructionImageView.contentMode = .scaleAspectFit
+            firstInstructionImageView.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(firstInstructionImageView)
+            
+            secondInstructionImageView.image = UIImage(named: instructionImageNames[1])
+            secondInstructionImageView.contentMode = .scaleAspectFit
+            secondInstructionImageView.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(secondInstructionImageView)
+            
+            let InstructionImageWidth: CGFloat = 170 // Largura do mago
+            let InstructionImageHeight: CGFloat = 170 // Altura do mago
+            let InstructionPaddingRight: CGFloat = 100  // Padding da esquerda
+            
+            self.onboardingThiefInstructionOverlay1 = firstInstructionImageView
+            
+            NSLayoutConstraint.activate([
+                firstInstructionImageView.trailingAnchor.constraint(equalTo: secondInstructionImageView.leadingAnchor, constant: -5),
+                firstInstructionImageView.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor),
+                firstInstructionImageView.widthAnchor.constraint(equalToConstant: InstructionImageWidth),
+                firstInstructionImageView.heightAnchor.constraint(equalToConstant: InstructionImageHeight)
+            ])
+            
+            self.onboardingThiefInstructionOverlay2 = secondInstructionImageView
+            
+            NSLayoutConstraint.activate([
+                secondInstructionImageView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -InstructionPaddingRight),
+                secondInstructionImageView.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor),
+                secondInstructionImageView.widthAnchor.constraint(equalToConstant: InstructionImageWidth),
+                secondInstructionImageView.heightAnchor.constraint(equalToConstant: InstructionImageHeight)
+            ])
+            
+        } else {
+            let instructionImageView = UIImageView()
+            let instructionImageName = getInstructionImageName()
+            instructionImageView.image = UIImage(named: instructionImageName[0])
+            instructionImageView.contentMode = .scaleAspectFit
+            instructionImageView.translatesAutoresizingMaskIntoConstraints = false
+            dialogueBox.addSubview(instructionImageView)
+            self.onboardingGuardInstructionOverlay = instructionImageView
+            
+            let InstructionImageWidth: CGFloat = 170 // Largura do mago
+            let InstructionImageHeight: CGFloat = 170 // Altura do mago
+            let InstructionPaddingRight: CGFloat = 172  // Padding da esquerda
+            
+            NSLayoutConstraint.activate([
+                instructionImageView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -InstructionPaddingRight),
+                instructionImageView.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor),
+                instructionImageView.widthAnchor.constraint(equalToConstant: InstructionImageWidth),
+                instructionImageView.heightAnchor.constraint(equalToConstant: InstructionImageHeight)
+            ])
+        }
+        
+        // Sapo falando
+        
+        let frogImageView = UIImageView()
+        let frogImageName = getFrogImageName()
+        frogImageView.image = UIImage(named: frogImageName)
+        frogImageView.contentMode = .scaleAspectFit
+        frogImageView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(frogImageView)
+        self.onboardingFrogImageView = frogImageView
+            
+        let frogImageWidth: CGFloat = 300 // Largura do mago
+        let frogImageHeight: CGFloat = 300 // Altura do mago
+        let frogPaddingLeft: CGFloat = 90  // Padding da esquerda
+        
+        NSLayoutConstraint.activate([
+            frogImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: frogPaddingLeft),
+            frogImageView.bottomAnchor.constraint(equalTo: dialogueBox.bottomAnchor, constant: -dialogueBoxHeight),
+            frogImageView.widthAnchor.constraint(equalToConstant: frogImageWidth),
+            frogImageView.heightAnchor.constraint(equalToConstant: frogImageHeight)
+        ])
+        
         // Anima aparição dos elementos
 //        instructionBox.alpha = 0
 //        instructionImageView.alpha = 0
@@ -557,106 +619,98 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
     }
 
-    private func getInstructionImageName(for gesture: String) -> String {
-        switch gesture {
-        case "Two":
-            return "instruction_two"
-        case "Rock":
-            return "instruction_rock"
-        case "L":
-            return "instruction_l"
-        case "OpenPalm":
-            return "instruction_openpalm"
-        case "HangLose":
-            return "instruction_hanglose"
-        case "Top":
-            return "instruction_top"
+    private func getInstructionImageName() -> [String] {
+        switch currentOnboardingGestureIndex {
+        case 0:
+            return ["instruction_rock"]
+        case 1:
+            return ["instruction_two"]
+        case 2:
+            return ["instruction_openpalm", "instruction_top"]
+        case 3:
+            return ["instruction_l", "instruction_hanglose"]
         default:
-            return "instruction_default"
+            return ["instruction_default"]
         }
     }
     
-    private func getFrogImageName(for gesture: String) -> String {
-        switch gesture {
-        case "Rock":
+    private func getFrogImageName() -> String {
+        switch currentOnboardingGestureIndex {
+        case 0:
             return "talking-frog"
-        case "Two":
-            return "talking-frog2"
-        case "L":
+        case 1:
             return "normal-frog"
-        case "HangLose":
-            return "enchanted-frog"
-        case "ThiefIntro":
+        case 2:
             return "worried-frog"
-        case "Completed":
+        case 3:
+            return "talking-frog2"
+        case 4:
             return "enchanted-frog"
         default:
             return "talking-frog"
         }
     }
     
-    private func getDialogueLabelText(for gesture: String) -> String {
-        switch gesture {
-        case "Rock":
+    private func getDialogueLabelText() -> String {
+        switch currentOnboardingGestureIndex {
+        case 0:
             return "Aí vem um guarda! Ele quer tomar o nosso livro mágico, faça o gesto que está na tela com sua mão para lançar uma magia nele!"
-        case "Two":
-            return "Para derrotar cada guarda, imite o gesto da imagem em sua cabeça!"
-        case "L":
-            return "Mais um! Só que agora o gesto é diferente!"
-        case "HangLose":
-            return "Você está ficando bom nisso! Vença esse outro também."
-        case "ThiefIntro":
-            return "Cuidado... Agora vem um ladrão. Você precisa fazer 2 gestos para derrotá-lo!"
-        case "Completed":
-            return "Muito bem! Agora você está pronto para começar de verdade. Se defenda como eu te ensinei!"
+        case 1:
+            return "Mais uma vez! Para derrotar cada guarda, imite o gesto da imagem em cima da sua cabeça."
+        case 2:
+            return "Cuidado... Agora vem um ladrão. Você precisa fazer cada um dos 2 gestos para derrotá-lo!"
+        case 3:
+            return "Derrote esse outro ladrão com o que você aprendeu!"
+        case 4:
+            return "Muito bem! Agora você está pronto para começar de verdade. Atenção nos gestos dos inimigos!"
         default:
             return "Faça o gesto para derrotar o guarda!"
         }
     }
 
     private func removeOnboardingInstruction() {
-        onboardingInstructionBox?.removeFromSuperview()
-        onboardingInstructionBox = nil
+        let frogToRemove = self.onboardingFrogImageView
+        let dialogueBoxToRemove = self.onboardingDialogueBox
+        let guardInstructionToRemove = self.onboardingGuardInstructionOverlay
+        let thiefInstructionToRemove1 = self.onboardingThiefInstructionOverlay1
+        let thiefInstructionToRemove2 = self.onboardingThiefInstructionOverlay2
         
-        onboardingInstructionOverlay?.removeFromSuperview()
-        onboardingInstructionOverlay = nil
-        
-        onboardingFrogImageView?.removeFromSuperview()
-        onboardingFrogImageView = nil
-        
-        onboardingDialogueBox?.removeFromSuperview()
-        onboardingDialogueBox = nil
-        
-        onboardingDialogueLabel?.removeFromSuperview()
-        onboardingDialogueLabel = nil
+        self.onboardingGuardInstructionOverlay = nil
+        self.onboardingThiefInstructionOverlay1 = nil
+        self.onboardingThiefInstructionOverlay2 = nil
+        self.onboardingFrogImageView = nil
+        self.onboardingDialogueBox = nil
+        self.onboardingDialogueLabel = nil
+
+        UIView.animate(withDuration: 0.3, animations: {
+            frogToRemove?.alpha = 0
+            dialogueBoxToRemove?.alpha = 0
+            guardInstructionToRemove?.alpha = 0
+            thiefInstructionToRemove1?.alpha = 0
+            thiefInstructionToRemove2?.alpha = 0
+        }) { (finished) in
+            guard finished else { return }
+            frogToRemove?.removeFromSuperview()
+            dialogueBoxToRemove?.removeFromSuperview()
+            guardInstructionToRemove?.removeFromSuperview()
+            thiefInstructionToRemove1?.removeFromSuperview()
+            thiefInstructionToRemove2?.removeFromSuperview()
+        }
     }
 
     private func handleOnboardingGestureSuccess() {
         print("✅ Player made correct gesture during onboarding!")
         
-        // Remove instrução
-        removeOnboardingInstruction()
-        
-        // Despausa jogo para permitir animação de morte
         self.isPaused = false
         
-        // Atualiza estado
-        onboardingState = .enemyKilled
-        
-        // Aguarda animação de morte, depois próximo passo
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self = self else { return }
+        if self.enemySpawner.hasActiveEnemies {
+            print("Ladrão atingido, mas ainda vivo. O jogador pode fazer o segundo gesto agora.")
+            self.onboardingState = .waitingForPlayerAction
+        } else {
+            removeOnboardingInstruction()
+            onboardingState = .enemyKilled
             
-            // --- LÓGICA ALTERADA ---
-            // Verificamos se ainda existem inimigos ativos na tela.
-            // O spawner tem uma propriedade `hasActiveEnemies` para isso.
-            if self.enemySpawner.hasActiveEnemies {
-                // Se SIM, significa que era o Ladrão e ele ainda está vivo.
-                    print("Ladrão atingido, mas ainda vivo. O jogador pode fazer o segundo gesto agora.")
-                    self.onboardingState = .waitingForPlayerAction
-            } else {
-                // Se NÃO, significa que o inimigo (Guarda ou Ladrão no 2º hit) foi derrotado.
-                // Então, podemos prosseguir para o próximo passo.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.proceedToNextOnboardingStep()
             }
         }
@@ -665,7 +719,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     private func proceedToNextOnboardingStep() {
         currentOnboardingGestureIndex += 1
         
-        if currentOnboardingGestureIndex <= onboardingGuardGestures.count {
+        if currentOnboardingGestureIndex <= 2 {
+            onboardingState = .spawningEnemy
+            spawnOnboardingEnemy()
+        } else if currentOnboardingGestureIndex <= 4 {
             onboardingState = .spawningEnemy
             spawnOnboardingEnemy()
         } else {
@@ -680,10 +737,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         removeOnboardingInstruction()
         
         // 2. Mostra o diálogo final.
-        showOnboardingInstruction(for: "Completed")
+        showOnboardingInstruction()
         
         // 3. Agenda o início do jogo para daqui a 3 segundos.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 7) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) { [weak self] in
             guard let self = self else { return }
             
             print("🚀 Starting the real game now!")
@@ -710,6 +767,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             self.enemySpawner.startSpawningEnemies()
         }
     }
+    
+    // MARK: Funções padrão da cena
     
     func didBegin(_ contact: SKPhysicsContact) {
         guard !isPlayerDead else { return }
@@ -751,9 +810,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
     // MARK: - Lógica do Jogo
     
-    /// Processa a ação do jogador após fazer um gesto.
-    /// - Parameter gesture: A string que representa o gesto feito (ex: "Rock").
-    
+    // Processa a ação do jogador após fazer um gesto.
     func playerDidMake(gesture: String) {
         if isOnboarding {
             if onboardingState == .waitingForPlayerAction {
