@@ -9,7 +9,7 @@ import SpriteKit
 
 class MenuScene: SKScene {
     
-    // MARK: - Nós da Cena (NOVA SEÇÃO)
+    // MARK: - Nós da Cena
     
     // Nós que serão usados para o menu de configurações
     private var settingsButton: SKSpriteNode?
@@ -20,29 +20,25 @@ class MenuScene: SKScene {
     // MARK: - Ciclo de Vida da Cena
     
     override func didMove(to view: SKView) {
+        // Registra um valor padrão para o modo de validação na primeira vez que o app abrir
         UserDefaults.standard.register(defaults: ["isValidationModeEnabled": true])
+        
         // --- CONFIGURAÇÃO EXISTENTE ---
         setupLabels()
-        setupButtonsPixelation()
-        
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
 
-        // Nomes de todos os labels que você quer configurar
-        let labelNames = ["JogarLabel", "TutorialLabel"]
-        
         // --- NOVAS FUNÇÕES ---
         // Cria o botão de configurações e o overlay (que começa escondido)
         setupSettingsButton()
         createSettingsOverlay()
     }
     
-    // MARK: - Configuração da UI (NOVA SEÇÃO ORGANIZADA)
+    // MARK: - Configuração da UI
     
-    // Função para configurar os labels (código que você já tinha)
+    // Função para configurar os labels e botões
     func setupLabels() {
         let labelNames = ["LojaLabel", "JogarLabel", "TutorialLabel"]
         for name in labelNames {
-          
             if let label = self.childNode(withName: "//\(name)") as? SKLabelNode {
                 label.fontName = "Ari-W9500Bold"
                 label.fontSize = 35
@@ -52,14 +48,11 @@ class MenuScene: SKScene {
         }
         
         let buttonNames = ["GestureMode", "ButtonMode"]
-        
         for name in buttonNames {
             if let buttonNode = self.childNode(withName: "//\(name)") as? SKSpriteNode {
-
+                // Aplica o modo de filtragem para um visual pixelado
                 buttonNode.texture?.filteringMode = .nearest
                 buttonNode.texture?.usesMipmaps = false
-
-
                 print("Configurado '\(name)' com .nearest e sem mipmaps")
             } else {
                 print("AVISO: Não foi possível encontrar o nó do botão com o nome '\(name)' na cena.")
@@ -67,60 +60,51 @@ class MenuScene: SKScene {
         }
     }
     
-    // --- NOVA FUNÇÃO: Criar o Botão de Configurações ---
+    // Cria o Botão de Configurações
     func setupSettingsButton() {
-        // O nome da sua imagem "botaoSettings" está correto.
         settingsButton = SKSpriteNode(imageNamed: "botaoSettings")
         settingsButton?.name = "settingsButton"
         
-        // --- MUDANÇA IMPORTANTE AQUI ---
-        // Vamos usar o frame da CENA (self.frame) em vez do frame da VIEW.
-        // Isso garante que a posição seja calculada dentro do mundo do jogo.
         let topPadding: CGFloat = 100
         let trailingPadding: CGFloat = 70
         
-        // self.frame.maxX é o ponto mais à direita da cena.
-        // self.frame.maxY é o ponto mais ao topo da cena.
+        // Usa o frame da cena para garantir o posicionamento correto em diferentes tamanhos de tela
         settingsButton?.position = CGPoint(
             x: self.frame.maxX - trailingPadding,
             y: self.frame.maxY - topPadding
         )
-        // --- FIM DA MUDANÇA ---
         
         settingsButton?.size = CGSize(width: 70, height: 70)
         settingsButton?.zPosition = 10
         
-        // Adiciona o botão à cena.
         if let button = settingsButton {
             self.addChild(button)
         }
     }
     
-    // --- NOVA FUNÇÃO: Criar o Overlay de Configurações ---
+    // Cria o Overlay de Configurações
     func createSettingsOverlay() {
         settingsOverlay = SKNode()
         settingsOverlay?.name = "settingsOverlay"
-        settingsOverlay?.zPosition = 100 // zPosition bem alto para ficar na frente de tudo
+        settingsOverlay?.zPosition = 100 // zPosition alto para ficar na frente de tudo
         
-
-        // 1. Fundo semi-transparente para escurecer a cena
+        // 1. Fundo semi-transparente
         let background = SKShapeNode(rect: self.frame)
         background.fillColor = SKColor.black
         background.alpha = 0.7
         settingsOverlay?.addChild(background)
         
-        // 2. Painel principal do overlay
+        // 2. Painel principal
         let panelSize = CGSize(width: self.frame.width * 0.8, height: self.frame.height * 0.7)
         let panel = SKShapeNode(rectOf: panelSize, cornerRadius: 15)
-        panel.fillColor = SKColor(red: 0.2, green: 0.2, blue: 0.25, alpha: 1.0) // Cor escura
+        panel.fillColor = SKColor(red: 0.2, green: 0.2, blue: 0.25, alpha: 1.0)
         panel.strokeColor = .white
         panel.lineWidth = 2
         panel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         settingsOverlay?.addChild(panel)
         
-        // 3. Título do painel
+        // 3. Título
         let titleLabel = SKLabelNode(text: "Configurações")
-        // IMPORTANTE: Troque "SuaFonte-Bold" pelo nome real da sua fonte!
         titleLabel.fontName = "Ari-W9500Bold"
         titleLabel.fontSize = 40
         titleLabel.fontColor = .white
@@ -128,15 +112,14 @@ class MenuScene: SKScene {
         settingsOverlay?.addChild(titleLabel)
         
         // 4. Botão de fechar
-        // Substitua "close-button-icon" pelo nome da sua imagem de 'X' ou fechar
         let closeButton = SKSpriteNode(imageNamed: "botaoClose")
         closeButton.name = "closeSettingsButton"
         closeButton.size = CGSize(width: 50, height: 50)
-        // Posiciona no canto superior direito do *painel*
         let panelTopRight = CGPoint(x: panel.position.x + (panelSize.width / 2), y: panel.position.y + (panelSize.height / 2))
         closeButton.position = CGPoint(x: panelTopRight.x - 40, y: panelTopRight.y - 35)
         settingsOverlay?.addChild(closeButton)
         
+        // 5. Botão de toggle para a câmera
         cameraToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
         cameraToggleButton?.name = "cameraToggleButton"
         cameraToggleButton?.fontSize = 28
@@ -144,11 +127,11 @@ class MenuScene: SKScene {
         cameraToggleButton?.position = CGPoint(x: panel.position.x, y: titleLabel.position.y - 80)
         settingsOverlay?.addChild(cameraToggleButton!)
         
+        // 6. Botão de toggle para o modo de validação
         validationToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
         validationToggleButton?.name = "validationToggleButton"
         validationToggleButton?.fontSize = 28
         validationToggleButton?.fontColor = .white
-        // Posiciona o novo botão 60 pixels abaixo do botão da câmera
         validationToggleButton?.position = CGPoint(x: panel.position.x, y: cameraToggleButton!.position.y - 60)
         settingsOverlay?.addChild(validationToggleButton!)
         
@@ -160,51 +143,28 @@ class MenuScene: SKScene {
         }
     }
     
+    // MARK: - Funções de Controle do Overlay
+    
     func updateValidationToggleButtonText() {
         let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
-        if isValidationEnabled {
-            validationToggleButton?.text = "Modo de Validação: Ligado"
-        } else {
-            validationToggleButton?.text = "Modo de Validação: Desligado"
-        }
+        validationToggleButton?.text = isValidationEnabled ? "Modo de Validação: Ligado" : "Modo de Validação: Desligado"
     }
     
-    //atualiza o texto do botao com base no valor salvo no UserDefaults
     func updateCameraToggleButtonText() {
-            let isCameraEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
-            if isCameraEnabled {
-                cameraToggleButton?.text = "Pré-visualização da Câmera: Ligada"
-            } else {
-                cameraToggleButton?.text = "Pré-visualização da Câmera: Desligada"
-
-        guard let button = touchedNode as? SKSpriteNode else { return }
-
-        if button.name == "GestureMode" || button.name == "JogarLabel" {
-            button.runButtonAnimation {
-                if let gameScene = SKScene(fileNamed: "GameScene") as? GameScene {
-                    gameScene.startInGestureMode = true
-                    gameScene.scaleMode = .aspectFill
-                    let transition = SKTransition.fade(withDuration: 1.0)
-                    self.view?.presentScene(gameScene, transition: transition)
-                }
-            }
-        }
-    
-    // MARK: - Funções de Controle do Overlay (NOVA SEÇÃO)
+        let isCameraEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+        cameraToggleButton?.text = isCameraEnabled ? "Pré-visualização da Câmera: Ligada" : "Pré-visualização da Câmera: Desligada"
+    }
     
     func showSettingsOverlay() {
         updateValidationToggleButtonText()
         updateCameraToggleButtonText()
         
-
         settingsOverlay?.isHidden = false
-        // Efeito suave de fade-in
         settingsOverlay?.alpha = 0
         settingsOverlay?.run(SKAction.fadeIn(withDuration: 0.3))
     }
     
     func hideSettingsOverlay() {
-        // Efeito suave de fade-out e depois esconde o nó
         settingsOverlay?.run(SKAction.fadeOut(withDuration: 0.3), completion: { [weak self] in
             self?.settingsOverlay?.isHidden = true
         })
@@ -213,62 +173,91 @@ class MenuScene: SKScene {
     // MARK: - Entrada do Usuário
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-            guard let touch = touches.first else { return }
-            let location = touch.location(in: self)
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+        
+        // Verifica se o overlay de configurações está ativo
+        if settingsOverlay?.isHidden == false {
             let touchedNode = atPoint(location)
             
-        if settingsOverlay?.isHidden == false {
-            if touchedNode.name == "closeSettingsButton" {
+            switch touchedNode.name {
+            case "closeSettingsButton":
                 hideSettingsOverlay()
-            }
-            
-            // --- NOVO: Lógica para o botão da câmera ---
-            if touchedNode.name == "cameraToggleButton" {
-                // 1. Pega o valor atual
+                
+            case "cameraToggleButton":
                 let currentStatus = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
-                // 2. Inverte o valor (true vira false, false vira true)
                 UserDefaults.standard.set(!currentStatus, forKey: "isCameraPreviewEnabled")
-                // 3. Atualiza o texto do botão para refletir a mudança
                 updateCameraToggleButtonText()
-            }
-            
-            
-            
-            if touchedNode.name == "validationToggleButton" {
+                
+            case "validationToggleButton":
                 let currentStatus = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
                 UserDefaults.standard.set(!currentStatus, forKey: "isValidationModeEnabled")
                 updateValidationToggleButtonText()
+                
+            default:
+                break // Se tocar em qualquer outro lugar do overlay, não faz nada
             }
-            return
+            return // Impede que o toque "vaze" para os botões do menu principal
         }
-            
-            if touchedNode.name == "settingsButton" {
-                showSettingsOverlay()
+        
+        // Lógica para os botões do menu principal (só executa se o overlay estiver fechado)
+        let touchedNode = atPoint(location)
+        guard let nodeName = touchedNode.name else { return }
+
+        switch nodeName {
+        case "settingsButton":
+            showSettingsOverlay()
+
+        case "GestureMode", "JogarLabel":
+            if let button = touchedNode as? SKNode { // Pode ser um SKLabelNode ou SKSpriteNode
+                button.runButtonAnimation {
+                    self.transitionToScene(named: "GameScene", isGestureMode: true)
+                }
             }
-            
-            if touchedNode.name == "GestureMode" || touchedNode.name == "JogarLabel" {
-                if let gameScene = SKScene(fileNamed: "GameScene") as? GameScene {
-                    gameScene.startInGestureMode = true
-                    gameScene.scaleMode = .aspectFill
-                    let transition = SKTransition.fade(withDuration: 1.0)
-                    view?.presentScene(gameScene, transition: transition)
+
+        case "ButtonMode", "TutorialLabel":
+            if let button = touchedNode as? SKNode {
+                button.runButtonAnimation {
+                    self.transitionToScene(named: "ButtonMode", isGestureMode: false)
                 }
             }
             
-            if touchedNode.name == "ButtonMode" || touchedNode.name == "TutorialLabel" {
-                if let buttonScene = SKScene(fileNamed: "ButtonMode") {
-                    buttonScene.scaleMode = .aspectFill
-                    let transition = SKTransition.fade(withDuration: 1.0)
-                    view?.presentScene(buttonScene, transition: transition)
-
-        if button.name == "ButtonMode" || button.name == "TutorialLabel" {
-            button.runButtonAnimation {
-                if let buttonScene = SKScene(fileNamed: "ButtonMode") {
-                    buttonScene.scaleMode = .aspectFill
-                    let transition = SKTransition.fade(withDuration: 1.0)
-                    self.view?.presentScene(buttonScene, transition: transition)
-
-                }
+        default:
+            break // Tocou em uma área sem botão
+        }
+    }
+    
+    // MARK: - Navegação
+    
+    func transitionToScene(named sceneName: String, isGestureMode: Bool) {
+        if sceneName == "GameScene" {
+            if let gameScene = SKScene(fileNamed: "GameScene") as? GameScene {
+                gameScene.startInGestureMode = isGestureMode
+                gameScene.scaleMode = .aspectFill
+                let transition = SKTransition.fade(withDuration: 1.0)
+                view?.presentScene(gameScene, transition: transition)
+            }
+        } else if sceneName == "ButtonMode" {
+            if let buttonScene = SKScene(fileNamed: "ButtonMode") {
+                buttonScene.scaleMode = .aspectFill
+                let transition = SKTransition.fade(withDuration: 1.0)
+                view?.presentScene(buttonScene, transition: transition)
             }
         }
+    }
+}
+
+
+// MARK: - Animação de Botão (Extensão)
+
+// **IMPORTANTE**: Coloque este código fora da classe `MenuScene`, mas no mesmo arquivo.
+// Ele cria a função `runButtonAnimation` que você estava tentando usar.
+extension SKNode {
+    func runButtonAnimation(completion: @escaping () -> Void) {
+        let scaleDown = SKAction.scale(to: 0.95, duration: 0.1)
+        let scaleUp = SKAction.scale(to: 1.0, duration: 0.1)
+        
+        // Roda a animação e, ao final, executa a transição de cena.
+        self.run(SKAction.sequence([scaleDown, scaleUp]), completion: completion)
+    }
 }
