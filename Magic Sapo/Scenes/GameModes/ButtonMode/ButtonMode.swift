@@ -38,6 +38,20 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
             setupScene()
             sceneIsInitialized = true
         }
+        let stopMusicAction = SKAction.run {
+            AudioManager.shared.stopBackgroundMusic(fadeOutDuration: 1.0) // Duração do fade
+        }
+
+
+        let waitAction = SKAction.wait(forDuration: 0.5) // Seu timer de 1.5 segundos
+
+        let playMusicAction = SKAction.run {
+            AudioManager.shared.playBackgroundMusic(filename: "croak-music.m4a")
+        }
+
+
+        let musicSequence = SKAction.sequence([stopMusicAction, waitAction, playMusicAction])
+        self.run(musicSequence) // 'self' aqui é a sua cena (GameScene, etc.)
     }
     
     private func setupScene() {
@@ -134,6 +148,7 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         print("🛑 PAUSANDO JOGO COMPLETAMENTE")
         enemySpawner.stopSpawningEnemies()
         self.isPaused = true
+        AudioManager.shared.pauseBackgroundMusic()
         pauseOverlayComponent.show()
     }
 
@@ -142,7 +157,7 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         print("▶️ RETOMANDO JOGO COMPLETAMENTE")
         pauseOverlayComponent.hide()
         self.isPaused = false
-        
+        AudioManager.shared.resumeBackgroundMusic()
         // --- MUDANÇA: Lógica igual à GameScene para não respawnar inimigos durante a boss fight ---
         if gameState == .normalPlay {
             enemySpawner.startSpawningEnemies()
@@ -169,6 +184,8 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
                
                // 2. ATIVA A TRAVA: Impede que esta lógica seja executada novamente.
                isPlayerDead = true
+             
+               AudioManager.shared.stopBackgroundMusic()
                
                // 3. EXECUTA A LÓGICA DE GAME OVER (agora de forma segura)
                let waitAction = SKAction.wait(forDuration: 0.1)
