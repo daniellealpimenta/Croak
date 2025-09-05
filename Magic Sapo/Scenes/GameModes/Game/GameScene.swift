@@ -900,9 +900,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             secondBody = contact.bodyA
         }
 
+        // Verifica se a colisão foi entre o jogador e um inimigo
         if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
+            
             isPlayerDead = true
             
+            self.coinsComponent.saveSessionCoins()
+        
+            // Para a música de fundo
             AudioManager.shared.stopBackgroundMusic()
             
             let waitAction = SKAction.wait(forDuration: 0.1)
@@ -910,11 +915,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                 if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
                     gameOverScene.scaleMode = .aspectFill
                     gameOverScene.finalScore = self.scoreComponent.scoreCount
+                    
+                    // Informa para a próxima cena qual modo de jogo deve ser reiniciado.
                     gameOverScene.previousSceneName = "GameScene"
+                    
                     let transition = SKTransition.fade(withDuration: 1.0)
                     self.view?.presentScene(gameOverScene, transition: transition)
                 }
             }
+            
+            // Roda a sequência: espera um pouco e depois faz a transição.
             self.run(SKAction.sequence([waitAction, transitionAction]))
         }
     }

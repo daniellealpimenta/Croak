@@ -29,17 +29,17 @@ class CoinsComponent {
         self.coinsLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
         self.coinIcon = SKSpriteNode(imageNamed: "Coin")
         
-        switch UIDevice.current.userInterfaceIdiom {
-        case .phone:
-            self.coinsLabel.fontSize = 35
-            self.coinIcon.size = CGSize(width: 35, height: 35)
-        case .pad:
-            self.coinsLabel.fontSize = 50
-            self.coinIcon.size = CGSize(width: 60, height: 60)
-        default:
-            self.coinsLabel.fontSize = 70
-            self.coinIcon.size = CGSize(width: 60, height: 60)
-        }
+    switch UIDevice.current.userInterfaceIdiom {
+        case .phone:
+        self.coinsLabel.fontSize = 35
+        self.coinIcon.size = CGSize(width: 35, height: 35)
+        case .pad:
+        self.coinsLabel.fontSize = 50
+        self.coinIcon.size = CGSize(width: 60, height: 60)
+        default:
+        self.coinsLabel.fontSize = 70
+        self.coinIcon.size = CGSize(width: 60, height: 60)
+    }
         
         self.coinsLabel.fontColor = UIColor(red: 1, green: 0.7764705882352941, blue: 0.3568627450980392, alpha: 1.0)
         self.coinsLabel.horizontalAlignmentMode = .left
@@ -110,10 +110,19 @@ class CoinsComponent {
         self.coinsLabel.text = formattedText
         self.labelShadow.text = formattedText
         
-        let currentTotal = UserDefaults.standard.integer(forKey: totalCoinsKey)
-        let newTotal = currentTotal + coins
-        UserDefaults.standard.set(newTotal, forKey: totalCoinsKey)
     }
+    
+    func saveSessionCoins() {
+        // Se não houver moedas na sessão, não faz nada.
+        guard sessionCoins > 0 else { return }
+        
+        let currentTotal = UserDefaults.standard.integer(forKey: totalCoinsKey)
+        let newTotal = currentTotal + self.sessionCoins
+        UserDefaults.standard.set(newTotal, forKey: totalCoinsKey)
+        
+        print("\(self.sessionCoins) moedas da sessão foram salvas. Novo total: \(newTotal)")
+    }
+
 
     /// Atualiza o texto do placar para um valor específico.
     func updateLabel(with value: Int) {

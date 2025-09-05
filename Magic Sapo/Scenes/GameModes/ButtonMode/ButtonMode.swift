@@ -195,50 +195,48 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         }
     }
     
-    // (Lógica de contato, movimento e do jogo permanece a mesma)
     func didBegin(_ contact: SKPhysicsContact) {
-         // 1. VERIFICA A TRAVA: Se o jogador já morreu, não faz mais nada.
-         guard !isPlayerDead else { return }
+        guard !isPlayerDead else { return }
 
-         let firstBody: SKPhysicsBody
-         let secondBody: SKPhysicsBody
+        let firstBody: SKPhysicsBody
+        let secondBody: SKPhysicsBody
 
-         if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
-               firstBody = contact.bodyA
-               secondBody = contact.bodyB
-         } else {
-               firstBody = contact.bodyB
-               secondBody = contact.bodyA
-         }
+        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
+            firstBody = contact.bodyA
+            secondBody = contact.bodyB
+        } else {
+            firstBody = contact.bodyB
+            secondBody = contact.bodyA
+        }
 
-         if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
-               
-               // 2. ATIVA A TRAVA: Impede que esta lógica seja executada novamente.
-               isPlayerDead = true
-             
-               AudioManager.shared.stopBackgroundMusic()
-               
-               // 3. EXECUTA A LÓGICA DE GAME OVER (agora de forma segura)
-               let waitAction = SKAction.wait(forDuration: 0.1)
-               let transitionAction = SKAction.run {
-                     if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
-                           gameOverScene.scaleMode = .aspectFill
-                           gameOverScene.finalScore = self.scoreComponent.scoreCount
-                         
-                           // --- LINHA ADICIONADA ---
-                           // Informa para a próxima cena qual modo de jogo deve ser reiniciado.
-                           gameOverScene.previousSceneName = "ButtonMode"
-                         
-                           let transition = SKTransition.fade(withDuration: 1.0)
-                           self.view?.presentScene(gameOverScene, transition: transition)
-                     }
-               }
-               
-               // Roda a sequência: espera um pouco e depois faz a transição.
-               self.run(SKAction.sequence([waitAction, transitionAction]))
-         }
+        // Verifica se a colisão foi entre o jogador e um inimigo
+        if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
+            
+            isPlayerDead = true
+            
+            self.coinsComponent.saveSessionCoins()
+        
+            // Para a música de fundo
+            AudioManager.shared.stopBackgroundMusic()
+            
+            let waitAction = SKAction.wait(forDuration: 0.1)
+            let transitionAction = SKAction.run {
+                if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
+                    gameOverScene.scaleMode = .aspectFill
+                    gameOverScene.finalScore = self.scoreComponent.scoreCount
+                    
+                    // Informa para a próxima cena qual modo de jogo deve ser reiniciado.
+                    gameOverScene.previousSceneName = "ButtonMode"
+                    
+                    let transition = SKTransition.fade(withDuration: 1.0)
+                    self.view?.presentScene(gameOverScene, transition: transition)
+                }
+            }
+            
+            // Roda a sequência: espera um pouco e depois faz a transição.
+            self.run(SKAction.sequence([waitAction, transitionAction]))
+        }
     }
-    
     
     /// Método chamado pouco antes da cena ser removida da tela (ex: ao pausar o jogo).
     /// É o lugar ideal para "limpar" a cena e parar processos contínuos.
