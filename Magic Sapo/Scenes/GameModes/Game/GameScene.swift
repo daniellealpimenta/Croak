@@ -194,6 +194,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         if isOnboarding {
             scoreComponent.scoreLabel.isHidden = true
             coinsComponent.coinsLabel.isHidden = true
+            coinsComponent.labelShadow.isHidden = true
             coinsComponent.coinIcon.isHidden = true
             pauseButtonComponent.pauseButtonNode.isHidden = true
         }
@@ -852,6 +853,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             self.isOnboarding = false
             self.scoreComponent.scoreLabel.isHidden = false
             self.coinsComponent.coinsLabel.isHidden = false
+            self.coinsComponent.labelShadow.isHidden = false
             self.coinsComponent.coinIcon.isHidden = false
             self.pauseButtonComponent.pauseButtonNode.isHidden = false
             self.onboardingState = .completed
