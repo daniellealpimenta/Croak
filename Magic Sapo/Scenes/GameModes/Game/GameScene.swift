@@ -234,13 +234,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
             
             if startInGestureMode {
-                setupValidationInstructionLabel()
-                setupCountdownLabel()
-                enterGestureValidationMode()
+                // --- LÓGICA ATUALIZADA ---
+                // 1. Lê o valor da nova configuração que criamos.
+                let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
+                        // 2. Só entra no modo de validação se ele estiver LIGADO.
+                    if isValidationEnabled {
+                        print("Modo de validação está ATIVADO. Iniciando...")
+                        setupValidationInstructionLabel()
+                        setupCountdownLabel()
+                        enterGestureValidationMode()
+                    } else {
+                        // 3. Se estiver DESLIGADO, pula a validação e começa o jogo diretamente.
+                        print("Modo de validação está DESATIVADO. Pulando para o jogo.")
+                        // A função cameraDidShrink é a que inicia o onboarding ou o spawner de inimigos,
+                        // que é exatamente o que aconteceria após a validação ser bem-sucedida.
+                        cameraDidShrink()
+                    }
             }
         }
-        // 3. Configura a UI de debug que depende da detecção.
-//        setupGestureDebugUI()
     }
     
     private func setupCountdownLabel() {

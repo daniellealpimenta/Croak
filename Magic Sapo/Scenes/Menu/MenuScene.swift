@@ -15,10 +15,12 @@ class MenuScene: SKScene {
     private var settingsButton: SKSpriteNode?
     private var settingsOverlay: SKNode?
     private var cameraToggleButton: SKLabelNode?
+    private var validationToggleButton: SKLabelNode?
     
     // MARK: - Ciclo de Vida da Cena
     
     override func didMove(to view: SKView) {
+        UserDefaults.standard.register(defaults: ["isValidationModeEnabled": true])
         // --- CONFIGURAÇÃO EXISTENTE ---
         setupLabels()
         setupButtonsPixelation()
@@ -137,6 +139,14 @@ class MenuScene: SKScene {
         cameraToggleButton?.position = CGPoint(x: panel.position.x, y: titleLabel.position.y - 80)
         settingsOverlay?.addChild(cameraToggleButton!)
         
+        validationToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
+        validationToggleButton?.name = "validationToggleButton"
+        validationToggleButton?.fontSize = 28
+        validationToggleButton?.fontColor = .white
+        // Posiciona o novo botão 60 pixels abaixo do botão da câmera
+        validationToggleButton?.position = CGPoint(x: panel.position.x, y: cameraToggleButton!.position.y - 60)
+        settingsOverlay?.addChild(validationToggleButton!)
+        
         // O overlay começa escondido
         settingsOverlay?.isHidden = true
         
@@ -144,6 +154,16 @@ class MenuScene: SKScene {
             self.addChild(overlay)
         }
     }
+    
+    func updateValidationToggleButtonText() {
+        let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
+        if isValidationEnabled {
+            validationToggleButton?.text = "Modo de Validação: Ligado"
+        } else {
+            validationToggleButton?.text = "Modo de Validação: Desligado"
+        }
+    }
+    
     //atualiza o texto do botao com base no valor salvo no UserDefaults
     func updateCameraToggleButtonText() {
             let isCameraEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
@@ -157,7 +177,7 @@ class MenuScene: SKScene {
     // MARK: - Funções de Controle do Overlay (NOVA SEÇÃO)
     
     func showSettingsOverlay() {
-        
+        updateValidationToggleButtonText()
         updateCameraToggleButtonText()
         
         settingsOverlay?.isHidden = false
@@ -180,24 +200,30 @@ class MenuScene: SKScene {
             let location = touch.location(in: self)
             let touchedNode = atPoint(location)
             
-            if settingsOverlay?.isHidden == false {
-                if touchedNode.name == "closeSettingsButton" {
-                    hideSettingsOverlay()
-                }
-                
-                // --- NOVO: Lógica para o botão da câmera ---
-                if touchedNode.name == "cameraToggleButton" {
-                    // 1. Pega o valor atual
-                    let currentStatus = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
-                    // 2. Inverte o valor (true vira false, false vira true)
-                    UserDefaults.standard.set(!currentStatus, forKey: "isCameraPreviewEnabled")
-                    // 3. Atualiza o texto do botão para refletir a mudança
-                    updateCameraToggleButtonText()
-                }
-                // --- FIM DA NOVIDADE ---
-                
-                return
+        if settingsOverlay?.isHidden == false {
+            if touchedNode.name == "closeSettingsButton" {
+                hideSettingsOverlay()
             }
+            
+            // --- NOVO: Lógica para o botão da câmera ---
+            if touchedNode.name == "cameraToggleButton" {
+                // 1. Pega o valor atual
+                let currentStatus = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+                // 2. Inverte o valor (true vira false, false vira true)
+                UserDefaults.standard.set(!currentStatus, forKey: "isCameraPreviewEnabled")
+                // 3. Atualiza o texto do botão para refletir a mudança
+                updateCameraToggleButtonText()
+            }
+            
+            
+            
+            if touchedNode.name == "validationToggleButton" {
+                let currentStatus = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
+                UserDefaults.standard.set(!currentStatus, forKey: "isValidationModeEnabled")
+                updateValidationToggleButtonText()
+            }
+            return
+        }
             
             if touchedNode.name == "settingsButton" {
                 showSettingsOverlay()
