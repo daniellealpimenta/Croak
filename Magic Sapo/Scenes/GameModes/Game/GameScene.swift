@@ -224,17 +224,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
         if DeviceHelper.isIPad {
             if let view = self.view {
-                self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
-            }
+                // 1. Lê o valor que você salvou no UserDefaults lá do MenuScene.
+                // O valor padrão será 'false' se a chave ainda não existir.
+                let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+
+                if isCameraPreviewEnabled {
+                    print("Pré-visualização da câmera está ATIVADA. Configurando a view...")
+                    self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
+                }
+        }
             
             if startInGestureMode {
-                setupValidationInstructionLabel()
-                setupCountdownLabel()
-                enterGestureValidationMode()
+                // --- LÓGICA ATUALIZADA ---
+                // 1. Lê o valor da nova configuração que criamos.
+                let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
+                        // 2. Só entra no modo de validação se ele estiver LIGADO.
+                    if isValidationEnabled {
+                        print("Modo de validação está ATIVADO. Iniciando...")
+                        setupValidationInstructionLabel()
+                        setupCountdownLabel()
+                        enterGestureValidationMode()
+                    } else {
+                        // 3. Se estiver DESLIGADO, pula a validação e começa o jogo diretamente.
+                        print("Modo de validação está DESATIVADO. Pulando para o jogo.")
+                        // A função cameraDidShrink é a que inicia o onboarding ou o spawner de inimigos,
+                        // que é exatamente o que aconteceria após a validação ser bem-sucedida.
+                        cameraDidShrink()
+                    }
             }
         }
-        // 3. Configura a UI de debug que depende da detecção.
-//        setupGestureDebugUI()
     }
     
     private func setupCountdownLabel() {
@@ -290,7 +308,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         guard let view = self.view else { return }
         
-        // 1. Expande a câmera para tela cheia.
+        // --- CORREÇÃO 1: Corrigido o nome da chave para "isCameraPreviewEnabled" ---
+        let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+        
+        if !isCameraPreviewEnabled {
+                print("Preview estava desativada. Criando temporariamente para a validação.")
+                self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
+        }
+        
         isOnGestureValidationMode = true
         gestureManager?.expandCameraPreviewToFullScreen(in: view)
         
@@ -298,6 +323,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         countdownLabel?.text = "\(countdownValue)"
         countdownLabel?.isHidden = false
         instructionLabel?.isHidden = false
+        
+        // --- CORREÇÃO 2: Trazer os labels para a FRENTE da view ---
+        // Isso garante que eles fiquem por cima da preview da câmera que foi criada.
+        if let countdown = countdownLabel {
+            view.bringSubviewToFront(countdown)
+        }
+        if let instruction = instructionLabel {
+            view.bringSubviewToFront(instruction)
+        }
     }
     
     private func startOrContinueValidationCountdown() {
@@ -335,6 +369,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         isOnGestureValidationMode = false
         
         gestureManager?.shrinkCameraPreviewToOriginal(in: view)
+        
+        // --- CORREÇÃO: Corrigido o nome da chave para "isCameraPreviewEnabled" ---
+        let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+        if !isCameraPreviewEnabled {
+            print("Validação concluída. Removendo a preview com base nas configurações")
+            gestureManager?.removeCameraPreview()
+        }
     }
     
     // MARK: - Camera WillExpand e DidShrink

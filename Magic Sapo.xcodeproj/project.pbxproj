@@ -267,10 +267,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+
 				DEVELOPMENT_TEAM = HG54MS3295;
+
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Magic-Sapo-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = CroakEnzo;
+				INFOPLIST_KEY_CFBundleDisplayName = CroakJotaPe;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
 				INFOPLIST_KEY_NSCameraUsageDescription = "O app precisa da câmera para detectar os gestos do usuário";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -307,7 +309,7 @@
 				DEVELOPMENT_TEAM = HG54MS3295;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Magic-Sapo-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = CroakEnzo;
+				INFOPLIST_KEY_CFBundleDisplayName = CroakJotaPe;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
 				INFOPLIST_KEY_NSCameraUsageDescription = "O app precisa da câmera para detectar os gestos do usuário";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
