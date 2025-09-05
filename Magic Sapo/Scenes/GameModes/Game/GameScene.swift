@@ -227,7 +227,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
         
         // 3. Configura a UI de debug que depende da detecção.
-        setupGestureDebugUI()
+//        setupGestureDebugUI()
     }
     
     private func setupCountdownLabel() {
