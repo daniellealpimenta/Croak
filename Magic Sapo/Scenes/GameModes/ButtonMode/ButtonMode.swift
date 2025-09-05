@@ -80,17 +80,17 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         enemySpawner.startSpawningEnemies()
         
         let frog = Frog(parent: self)
-        
-        // --- MUDANÇA: Posição do sapo agora é adaptativa ---
         let frogNode: SKNode
+
         switch DeviceHelper.current {
         case .iPad:
-            frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+            frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 150))
         case .iPhone:
             frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 100))
         case .unknown:
-            frogNode = frog.createNode(at: CGPoint(x: -30, y: -self.size.height/2 + 150))
+            frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 150))
         }
+
         self.addChild(frogNode)
         
         // --- MUDANÇA: Tamanho e posição dos botões agora são adaptativos ---
