@@ -232,7 +232,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             }
         }
         // 3. Configura a UI de debug que depende da detecção.
-        setupGestureDebugUI()
+//        setupGestureDebugUI()
     }
     
     private func setupCountdownLabel() {
@@ -634,14 +634,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             secondInstructionImageView.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(secondInstructionImageView)
             
-            let InstructionImageWidth: CGFloat = 170 // Largura do mago
-            let InstructionImageHeight: CGFloat = 170 // Altura do mago
+            let InstructionImageWidth: CGFloat = 200 // Largura do mago
+            let InstructionImageHeight: CGFloat = 200 // Altura do mago
             let InstructionPaddingRight: CGFloat = 100  // Padding da esquerda
             
             self.onboardingThiefInstructionOverlay1 = firstInstructionImageView
             
             NSLayoutConstraint.activate([
-                firstInstructionImageView.trailingAnchor.constraint(equalTo: secondInstructionImageView.leadingAnchor, constant: -5),
+                firstInstructionImageView.trailingAnchor.constraint(equalTo: secondInstructionImageView.leadingAnchor),
                 firstInstructionImageView.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor),
                 firstInstructionImageView.widthAnchor.constraint(equalToConstant: InstructionImageWidth),
                 firstInstructionImageView.heightAnchor.constraint(equalToConstant: InstructionImageHeight)
@@ -665,8 +665,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             dialogueBox.addSubview(instructionImageView)
             self.onboardingGuardInstructionOverlay = instructionImageView
             
-            let InstructionImageWidth: CGFloat = 170 // Largura do mago
-            let InstructionImageHeight: CGFloat = 170 // Altura do mago
+            let InstructionImageWidth: CGFloat = 200 // Largura do mago
+            let InstructionImageHeight: CGFloat = 200 // Altura do mago
             let InstructionPaddingRight: CGFloat = 172  // Padding da esquerda
             
             NSLayoutConstraint.activate([

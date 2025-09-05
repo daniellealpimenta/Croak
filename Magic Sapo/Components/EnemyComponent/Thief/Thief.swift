@@ -103,15 +103,24 @@ class Thief: Enemy {
     }
     
     static func createForOnboarding(at position: CGPoint, withGestures gestures: [String]) -> SKSpriteNode? {
+        
+        guard let firstFrame = walkAnimation.first else {
+            print("Erro: Textura inicial do Ladrão não encontrada.")
+            return nil
+        }
+        
         let thiefSize = DeviceHelper.isIPhone ? CGSize(width: 70, height: 70) : CGSize(width: 100, height: 100)
         let gestureSize = DeviceHelper.isIPhone ? CGSize(width: 35, height: 35) : CGSize(width: 50, height: 50)
         let spacing: CGFloat = DeviceHelper.isIPhone ? 7.0 : 10.0
         let yOffset: CGFloat = DeviceHelper.isIPhone ? 56.0 : 80.0
 
         // 1. Cria o nó principal do Ladrão
-        let thiefNode = SKSpriteNode(color: .purple, size: thiefSize)
+        let thiefNode = SKSpriteNode(texture: firstFrame, size: thiefSize)
         thiefNode.name = "Thief"
         thiefNode.position = position
+        
+        let walk = SKAction.animate(with: walkAnimation, timePerFrame: 0.15)
+        thiefNode.run(SKAction.repeatForever(walk), withKey: "walkAnimation")
         
         // Configura a física (igual ao create normal)
         thiefNode.physicsBody = SKPhysicsBody(rectangleOf: thiefNode.size)
