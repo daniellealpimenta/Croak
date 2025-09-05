@@ -15,6 +15,13 @@ class AudioManager {
     private var backgroundMusicPlayer: AVAudioPlayer?
     private var fadeTimer: Timer?
     
+    private var soundEffectPlayer: AVAudioPlayer?
+    var soundEffectVolume: Float = 1.0
+    var musicVolume: Float = 0.5
+
+    
+    static let woodenTap = ["toque-madeira0.m4a", "toque-madeira1.m4a", "toque-madeira2.m4a", "toque-madeira3.m4a"]
+    
     private init() {}
 
     func playBackgroundMusic(filename: String) {
@@ -33,7 +40,7 @@ class AudioManager {
 
             backgroundMusicPlayer = try AVAudioPlayer(contentsOf: url)
             backgroundMusicPlayer?.numberOfLoops = -1
-            backgroundMusicPlayer?.volume = 0.3
+            backgroundMusicPlayer?.volume = musicVolume
             backgroundMusicPlayer?.prepareToPlay()
             backgroundMusicPlayer?.play()
             print("Música de fundo iniciada: \(filename)")
@@ -87,8 +94,34 @@ class AudioManager {
         }
     }
 
-    func playSoundEffect(named name: String, on node: SKNode) {
-        let playSoundAction = SKAction.playSoundFileNamed(name, waitForCompletion: false)
-        node.run(playSoundAction)
+    func setSoundEffectVolume(to volume: Float) {
+        self.soundEffectVolume = max(0.0, min(1.0, volume))
+    }
+    
+    func setMusicVolume(to volume: Float) {
+        self.musicVolume = max(0.0, min(1.0, volume))
+    }
+
+    func playSoundEffect(named name: String) {
+        guard let url = Bundle.main.url(forResource: name, withExtension: nil) else {
+            print("Erro: Arquivo de efeito sonoro não encontrado: \(name)")
+            return
+        }
+
+        do {
+            soundEffectPlayer = try AVAudioPlayer(contentsOf: url)
+            soundEffectPlayer?.volume = self.soundEffectVolume
+            soundEffectPlayer?.play()
+        } catch {
+            print("Erro ao tocar efeito sonoro: \(error.localizedDescription)")
+        }
+    }
+    
+    func playRandomSoundEffect(from names: [String]) {
+        guard let randomName = names.randomElement() else {
+            print("Erro: A lista de sons aleatórios está vazia.")
+            return
+        }
+        playSoundEffect(named: randomName)
     }
 }

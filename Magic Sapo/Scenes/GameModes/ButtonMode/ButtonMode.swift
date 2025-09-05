@@ -38,6 +38,9 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
             setupScene()
             sceneIsInitialized = true
         }
+        
+        AudioManager.shared.setSoundEffectVolume(to: 0.5)
+        
         let stopMusicAction = SKAction.run {
             AudioManager.shared.stopBackgroundMusic(fadeOutDuration: 1.0) // Duração do fade
         }
@@ -341,14 +344,18 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     
     func didTapPauseButton() {
         print("Botão Pausar foi tocado na ButtonScene! (via Delegate)")
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         self.pauseGame()
     }
     
     func didTapResumeButton() {
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         resumeGame()
     }
     
     func didTapResetButton() {
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+        
         self.view?.isPaused = false
         
         if let newButtonScene = SKScene(fileNamed: "ButtonMode") as? ButtonScene {
@@ -359,6 +366,8 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     }
      
     func didTapExitButton() {
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+        
         self.view?.isPaused = false
         
         if let menuScene = SKScene(fileNamed: "MenuScene") {
