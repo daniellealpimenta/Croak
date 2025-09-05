@@ -16,12 +16,11 @@ class MenuScene: SKScene {
         AudioManager.shared.setSoundEffectVolume(to: 0.5)
         
         // Nomes de todos os labels que você quer configurar
-        let labelNames = ["LojaLabel", "JogarLabel", "TutorialLabel"]
+        let labelNames = ["JogarLabel", "TutorialLabel"]
         
         // Passa por cada nome na lista
         for name in labelNames {
             
-            // A MUDANÇA ESTÁ AQUI: Adicionamos "//" para procurar em toda a cena
             if let label = self.childNode(withName: "//\(name)") as? SKLabelNode {
                 // Aplica a mesma configuração a todos
                 label.fontName = "Ari-W9500Bold"
@@ -33,13 +32,13 @@ class MenuScene: SKScene {
             AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
         }
         
-        let buttonNames = ["GestureMode", "ButtonMode", "Loja"]
+        let buttonNames = ["GestureMode", "ButtonMode"]
         
         for name in buttonNames {
             if let buttonNode = self.childNode(withName: "//\(name)") as? SKSpriteNode {
-                // APLIQUE AS DUAS CONFIGURAÇÕES
+
                 buttonNode.texture?.filteringMode = .nearest
-                buttonNode.texture?.usesMipmaps = false // <-- ADICIONE ESTA LINHA
+                buttonNode.texture?.usesMipmaps = false
 
                 print("Configurado '\(name)' com .nearest e sem mipmaps")
             } else {
@@ -55,6 +54,7 @@ class MenuScene: SKScene {
         let location = touch.location(in: self)
         let touchedNode = atPoint(location)
         
+<<<<<<< HEAD
         if touchedNode.name == "GestureMode" || touchedNode.name == "JogarLabel" {
             
             if let gameScene = SKScene(fileNamed: "GameScene") as? GameScene {
@@ -79,6 +79,28 @@ class MenuScene: SKScene {
                 buttonScene.scaleMode = .aspectFill
                 let transition = SKTransition.fade(withDuration: 1.0)
                 view?.presentScene(buttonScene, transition: transition)
+=======
+        guard let button = touchedNode as? SKSpriteNode else { return }
+
+        if button.name == "GestureMode" || button.name == "JogarLabel" {
+            button.runButtonAnimation {
+                if let gameScene = SKScene(fileNamed: "GameScene") as? GameScene {
+                    gameScene.startInGestureMode = true
+                    gameScene.scaleMode = .aspectFill
+                    let transition = SKTransition.fade(withDuration: 1.0)
+                    self.view?.presentScene(gameScene, transition: transition)
+                }
+            }
+        }
+        
+        if button.name == "ButtonMode" || button.name == "TutorialLabel" {
+            button.runButtonAnimation {
+                if let buttonScene = SKScene(fileNamed: "ButtonMode") {
+                    buttonScene.scaleMode = .aspectFill
+                    let transition = SKTransition.fade(withDuration: 1.0)
+                    self.view?.presentScene(buttonScene, transition: transition)
+                }
+>>>>>>> 09e1ce81f719259f3ab25f2534f064d1310d4d31
             }
         }
     }

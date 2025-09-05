@@ -15,85 +15,113 @@ class CoinsComponent {
     var sessionCoins: Int = 0
     
     var coinsLabel: SKLabelNode
+    var labelShadow: SKLabelNode! // Propriedade para a sombra
     var coinIcon: SKSpriteNode
     private var parentScene: SKScene
     
-    // A chave usada para salvar e carregar o TOTAL de moedas no dispositivo.
     private let totalCoinsKey = "totalCoins"
     
     // MARK: - Inicialização
 
-    /// Configura o placar de moedas no canto superior esquerdo da tela.
-    /// - Parameter parent: A cena que será a "dona" deste componente.
     init(parent: SKScene) {
         self.parentScene = parent
                 
-        // --- 1. Cria e estiliza os nós. ---
         self.coinsLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
         self.coinIcon = SKSpriteNode(imageNamed: "Coin")
         
-        // Lógica de tamanho adaptativo (sem alterações)
-        switch UIDevice.current.userInterfaceIdiom {
-        case .phone:
-            self.coinsLabel.fontSize = 35
-            self.coinIcon.size = CGSize(width: 35, height: 35)
-        case .pad:
-            self.coinsLabel.fontSize = 50
-            self.coinIcon.size = CGSize(width: 60, height: 60)
-        default:
-            self.coinsLabel.fontSize = 70
-            self.coinIcon.size = CGSize(width: 60, height: 60)
-        }
+        switch UIDevice.current.userInterfaceIdiom {
+        case .phone:
+            self.coinsLabel.fontSize = 35
+            self.coinIcon.size = CGSize(width: 35, height: 35)
+        case .pad:
+            self.coinsLabel.fontSize = 50
+            self.coinIcon.size = CGSize(width: 60, height: 60)
+        default:
+            self.coinsLabel.fontSize = 70
+            self.coinIcon.size = CGSize(width: 60, height: 60)
+        }
         
         self.coinsLabel.fontColor = UIColor(red: 1, green: 0.7764705882352941, blue: 0.3568627450980392, alpha: 1.0)
         self.coinsLabel.horizontalAlignmentMode = .left
         self.coinsLabel.verticalAlignmentMode = .center
-        
         self.coinsLabel.text = "\(self.sessionCoins)"
-        
         self.coinIcon.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
         self.coinsLabel.zPosition = 100
         self.coinIcon.zPosition = 100
 
-        // Lógica de posicionamento adaptativo (sem alterações)
         switch UIDevice.current.userInterfaceIdiom {
         case .phone:
             self.coinIcon.position = CGPoint(x: -150, y: 300)
-            self.coinsLabel.position = CGPoint(
-                x: self.coinIcon.position.x + self.coinIcon.size.width / 2 + 10,
-                y: self.coinIcon.position.y
-            )
-            
         default:
-            self.coinIcon.position = CGPoint(
-                x: -450,
-                y: 300
-            )
-            self.coinsLabel.position = CGPoint(
-                x: self.coinIcon.position.x + self.coinIcon.size.width / 2 + 10,
-                y: self.coinIcon.position.y
-            )
+            self.coinIcon.position = CGPoint(x: -450, y: 300)
         }
+        self.coinsLabel.position = CGPoint(
+            x: self.coinIcon.position.x + self.coinIcon.size.width / 2 + 10,
+            y: self.coinIcon.position.y
+        )
         
-        // --- 3. Adiciona os nós na cena ---
+        let shadowOffset = CGPoint(x: 3, y: -3)
+
+        // Atribui à PROPRIEDADE da classe
+        self.labelShadow = self.coinsLabel.copy() as? SKLabelNode
+        self.labelShadow.fontColor = .black
+        self.labelShadow.position = CGPoint(x: self.coinsLabel.position.x + shadowOffset.x,
+                                       y: self.coinsLabel.position.y + shadowOffset.y)
+        self.labelShadow.zPosition = self.coinsLabel.zPosition - 1
+        
+        //        // Cria e configura a SOMBRA PARA O ÍCONE
+        //        let iconShadow = self.coinIcon.copy() as! SKSpriteNode
+        //        iconShadow.color = .black
+        //        iconShadow.colorBlendFactor = 1.0
+        //        iconShadow.position = CGPoint(x: self.coinIcon.position.x + shadowOffset.x,
+        //                                      y: self.coinIcon.position.y + shadowOffset.y)
+        //        iconShadow.zPosition = self.coinIcon.zPosition - 1
+                
+                //self.parentScene.addChild(iconShadow)
+
         self.parentScene.addChild(self.coinIcon)
+        self.parentScene.addChild(self.labelShadow)
         self.parentScene.addChild(self.coinsLabel)
     }
     
     // MARK: - Métodos Públicos
-    
+
+    private func formatNumber(_ number: Int) -> String {
+        if number >= 1_000_000 {
+            let milhao = Double(number) / 1_000_000.0
+            let milhaoCerto = floor(milhao * 10) / 10.0
+            return String(format: "%.1fM", milhaoCerto)
+            
+        } else if number >= 1_000 {
+            let mil = Double(number) / 1_000.0
+            let milCerto = floor(mil * 10) / 10.0
+            return String(format: "%.1fK", milCerto)
+            
+        } else {
+            return "\(number)"
+        }
+    }
+
     func addCoins(coins: Int) {
         self.sessionCoins += coins
-        self.coinsLabel.text = "\(self.sessionCoins)"
         
-        // 1. Carrega o total que já estava salvo no dispositivo.
+        let formattedText = formatNumber(self.sessionCoins)
+        self.coinsLabel.text = formattedText
+        self.labelShadow.text = formattedText
+        
         let currentTotal = UserDefaults.standard.integer(forKey: totalCoinsKey)
-        
-        // 2. Soma as novas moedas ao total.
         let newTotal = currentTotal + coins
-        
-        // 3. Salva o novo total de volta no dispositivo.
         UserDefaults.standard.set(newTotal, forKey: totalCoinsKey)
     }
+
+    /// Atualiza o texto do placar para um valor específico.
+    func updateLabel(with value: Int) {
+        // USA A FUNÇÃO DE FORMATAÇÃO
+        let formattedText = formatNumber(value)
+        self.coinsLabel.text = formattedText
+        self.labelShadow.text = formattedText
+    }
+    
+    
 }
