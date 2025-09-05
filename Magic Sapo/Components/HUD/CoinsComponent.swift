@@ -29,16 +29,19 @@ class CoinsComponent {
         self.coinsLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
         self.coinIcon = SKSpriteNode(imageNamed: "Coin")
         
-        switch UIDevice.current.userInterfaceIdiom {
-        case .phone:
-            self.coinsLabel.fontSize = 35
-            self.coinIcon.size = CGSize(width: 35, height: 35)
-        default:
-            self.coinsLabel.fontSize = 70
-            self.coinIcon.size = CGSize(width: 60, height: 60)
-        }
+        switch UIDevice.current.userInterfaceIdiom {
+        case .phone:
+            self.coinsLabel.fontSize = 35
+            self.coinIcon.size = CGSize(width: 35, height: 35)
+        case .pad:
+            self.coinsLabel.fontSize = 50
+            self.coinIcon.size = CGSize(width: 60, height: 60)
+        default:
+            self.coinsLabel.fontSize = 70
+            self.coinIcon.size = CGSize(width: 60, height: 60)
+        }
         
-        self.coinsLabel.fontColor = .yellow
+        self.coinsLabel.fontColor = UIColor(red: 1, green: 0.7764705882352941, blue: 0.3568627450980392, alpha: 1.0)
         self.coinsLabel.horizontalAlignmentMode = .left
         self.coinsLabel.verticalAlignmentMode = .center
         self.coinsLabel.text = "\(self.sessionCoins)"
