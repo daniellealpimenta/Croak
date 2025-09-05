@@ -9,7 +9,7 @@ import SpriteKit
 import Vision
 
 // Conformidade com o GestureDetectionDelegate
-class GameOverScene: SKScene, GestureDetectionDelegate {
+class GameOverScene: SKScene {
     
     // MARK: - Propriedades
     
@@ -29,11 +29,13 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
 
     override func didMove(to view: SKView) {
         
-        // --- LÓGICA DE RECORDE ---
         handleHighScore()
         
-        // Carrega o total de moedas salvas no dispositivo
         totalCoins = UserDefaults.standard.integer(forKey: "totalCoins")
+        
+        AudioManager.shared.setSoundEffectVolume(to: 0.4)
+        
+        AudioManager.shared.playSoundEffect(named: "game-over.mp3")
         
         // Configura o título "GAME OVER"
         if let gameOverLabel = self.childNode(withName: "//GameOver_Label") as? SKLabelNode {
@@ -72,8 +74,6 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
             coinsLabel.fontColor = .yellow
         }
         
-        // Configuração da Detecção de Gestos
-        setupGestureDetection(in: view)
     }
 
     // MUDANÇA 2: Nova função para gerenciar a lógica do recorde
@@ -121,35 +121,6 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
         gestureManager = nil
     }
     
-    // MARK: - Configuração dos Gestos
-    
-    private func setupGestureDetection(in view: SKView) {
-        gestureManager = GestureDetectionManager()
-        gestureManager.delegate = self
-        gestureManager.startDetection()
-    }
-    
-    // MARK: - GestureDetectionDelegate
-    
-    func gestureDetected(_ gesture: String, confidence: Double) {
-        gestureDebugLabel?.text = "Gesto: \(gesture)"
-        
-        switch gesture {
-        case "L":
-            print("Gesto 'L' detectado. Saindo para o menu.")
-            exitToMenu()
-        case "Top":
-            print("Gesto 'Top' detectado. Reiniciando")
-            restartPreviousScene()
-        default:
-            break
-        }
-    }
-    
-    func gestureDetectionLost() {
-        gestureDebugLabel?.text = "Gesto: Nenhum"
-    }
-    
     func cameraWillExpand() { }
     func cameraDidShrink() { }
     
@@ -191,6 +162,8 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
         if touchedNode.name == "ResetButton" {
             print("Botão Reiniciar foi tocado!")
             
+            AudioManager.shared.playSoundEffect(named: "toque-reiniciar.mp3")
+            
             let scaleUp = SKAction.scale(to: 1.1, duration: 0.1)
             let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
             let restartAction = SKAction.run { [weak self] in
@@ -206,6 +179,8 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
             
         if touchedNode.name == "ExitButton" {
             print("Botão Menu Principal foi tocado!")
+            
+            AudioManager.shared.playSoundEffect(named: "toque-voltar.mp3")
             
             let scaleUp = SKAction.scale(by: 1.1, duration: 0.1)
             let scaleDown = scaleUp.reversed()

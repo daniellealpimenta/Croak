@@ -321,7 +321,7 @@ class GestureDetectionManager: NSObject {
     
     func startDetection() {
         DispatchQueue.global(qos: .userInitiated).async {
-            self.session.startRunning()
+            self.session.startRunning()	
         }
     }
     

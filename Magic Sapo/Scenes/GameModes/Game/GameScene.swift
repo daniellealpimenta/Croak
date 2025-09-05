@@ -77,6 +77,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         if !sceneIsInitialized {
             checkCameraPermission()
         }
+        
+        AudioManager.shared.setSoundEffectVolume(to: 0.5)
+        		
         let stopMusicAction = SKAction.run {
             AudioManager.shared.stopBackgroundMusic(fadeOutDuration: 1.0)
         }
@@ -449,7 +452,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         enemySpawner.stopSpawningEnemies()
         gestureManager?.stopDetection()
         self.isPaused = true
+        
         AudioManager.shared.pauseBackgroundMusic()
+        
         gestureManager?.removeCameraPreview()
         pauseOverlayComponent.show()
     }
@@ -468,7 +473,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         if !isOnGestureValidationMode && !isOnboarding {
             self.isPaused = false
+            
             AudioManager.shared.resumeBackgroundMusic()
+            
             if gameState == .normalPlay {
                 enemySpawner.startSpawningEnemies()
             }
@@ -1024,15 +1031,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     // MARK: - Delegates
     
     func didTapPauseButton() {
-        print("Botão Pausar foi tocado (via Delegate)!")
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         self.pauseGame()
+        
     }
     
     func didTapResumeButton() {
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         resumeGame()
     }
     
     func didTapResetButton() {
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+        
         if let newGameScene = SKScene(fileNamed: "GameScene") as? GameScene {
             newGameScene.scaleMode = .aspectFill
             let transition = SKTransition.fade(withDuration: 1.0)
@@ -1041,6 +1052,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     func didTapExitButton() {
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         if let menuScene = SKScene(fileNamed: "MenuScene") {
             menuScene.scaleMode = .aspectFill
             let transition = SKTransition.fade(withDuration: 1.0)

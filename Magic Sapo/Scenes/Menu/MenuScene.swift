@@ -13,6 +13,8 @@ class MenuScene: SKScene {
     
     override func didMove(to view: SKView) {
         
+        AudioManager.shared.setSoundEffectVolume(to: 0.5)
+        
         // Nomes de todos os labels que você quer configurar
         let labelNames = ["LojaLabel", "JogarLabel", "TutorialLabel"]
         
@@ -53,15 +55,11 @@ class MenuScene: SKScene {
         let location = touch.location(in: self)
         let touchedNode = atPoint(location)
         
-        // --- LINHA DE DEBUG ---
-        // Adicione esta linha para ver no console o nome exato do nó que está sendo tocado.
-        print("Nó tocado: \(touchedNode.name ?? "Nenhum nome")")
-        
-        // O resto do seu código continua igual...
         if touchedNode.name == "GestureMode" || touchedNode.name == "JogarLabel" {
-            print("Botão GestureMode foi tocado!")
             
             if let gameScene = SKScene(fileNamed: "GameScene") as? GameScene {
+                
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 
                 // 2. AGORA VOCÊ PODE ACESSAR A SUA VARIÁVEL!
                 // Avisa à próxima cena que ela deve iniciar com a câmera expandida.
@@ -74,7 +72,8 @@ class MenuScene: SKScene {
         }
         
         if touchedNode.name == "ButtonMode" || touchedNode.name == "TutorialLabel" {
-            print("Botão ButtonMode foi tocado!")
+            
+            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
             
             if let buttonScene = SKScene(fileNamed: "ButtonMode") {
                 buttonScene.scaleMode = .aspectFill

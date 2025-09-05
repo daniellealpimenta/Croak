@@ -38,6 +38,9 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
             setupScene()
             sceneIsInitialized = true
         }
+        
+        AudioManager.shared.setSoundEffectVolume(to: 0.5)
+        
         let stopMusicAction = SKAction.run {
             AudioManager.shared.stopBackgroundMusic(fadeOutDuration: 1.0) // Duração do fade
         }
@@ -254,7 +257,7 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
            let scoreSinceLastBoss = score - scoreAtLastBossDefeat
                
            // A condição agora é muito mais simples e robusta.
-           if gameState == .normalPlay && scoreSinceLastBoss >= 75 { // Use 5 para testar
+           if gameState == .normalPlay && scoreSinceLastBoss >= 25 { // Use 5 para testar
                print("--- PREPARANDO PARA O CHEFE! Limpando inimigos restantes... ---")
                
                // Não precisamos mais atualizar 'lastBossTriggerScore'.
@@ -310,14 +313,18 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     
     func didTapPauseButton() {
         print("Botão Pausar foi tocado na ButtonScene! (via Delegate)")
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         self.pauseGame()
     }
     
     func didTapResumeButton() {
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         resumeGame()
     }
     
     func didTapResetButton() {
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+        
         if let newButtonScene = SKScene(fileNamed: "ButtonMode") as? ButtonScene {
             newButtonScene.scaleMode = .aspectFill
             let transition = SKTransition.fade(withDuration: 1.0)
@@ -326,6 +333,8 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     }
     
     func didTapExitButton() {
+        AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+
         if let menuScene = SKScene(fileNamed: "MenuScene") {
             menuScene.scaleMode = .aspectFill
             let transition = SKTransition.fade(withDuration: 1.0)
