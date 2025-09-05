@@ -58,7 +58,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     private var cameraPreviewNode: SKEffectNode!
     private var gestureDebugLabel: SKLabelNode?
-    private var gestureDebugImageNode: SKSpriteNode? // NOVO: Nó para exibir a imagem do gesto
+    private var gestureDebugImageNode: SKSpriteNode?
     
     private var gameState: GameState = .normalPlay
     private var mageControl: MageControl?
