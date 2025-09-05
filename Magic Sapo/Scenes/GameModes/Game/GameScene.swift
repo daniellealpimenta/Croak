@@ -6,6 +6,7 @@
 //
 import SpriteKit
 import GameplayKit
+import AVFoundation
 
 class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, ScoreHavingScene, PauseButtonDelegate, PauseOverlayDelegate, BossFightScene{
     
@@ -74,9 +75,90 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     override func didMove(to view: SKView) {
         if !sceneIsInitialized {
-            setupScene()
-            sceneIsInitialized = true
+            checkCameraPermission()
         }
+    }
+    
+    private func checkCameraPermission() {
+        let cameraAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        
+        switch cameraAuthorizationStatus {
+        case .authorized:
+            // Permissão já concedida, pode configurar a cena.
+            self.initializeScene()
+            
+        case .notDetermined:
+            // Permissão ainda não solicitada, vamos pedir.
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        // O usuário concedeu a permissão.
+                        self?.initializeScene()
+                    } else {
+                        // O usuário negou a permissão.
+                        self?.handlePermissionDenied()
+                    }
+                }
+            }
+            
+        case .denied, .restricted:
+            // O usuário já negou a permissão ou ela está restrita.
+            handlePermissionDenied()
+            
+        @unknown default:
+            // Lida com qualquer outro caso futuro.
+            handlePermissionDenied()
+        }
+    }
+    
+    private func handlePermissionDenied() {
+        let alertController = UIAlertController(
+            title: "Acesso à Câmera Necessário",
+            message: "Este jogo utiliza a câmera para detectar seus gestos. Por favor, habilite o acesso nas Configurações para poder jogar.",
+            preferredStyle: .alert
+        )
+
+        // Botão para levar o usuário aos Ajustes do app
+        let settingsAction = UIAlertAction(title: "Ir para Ajustes", style: .default) { _ in
+            // Abre a URL de configurações do aplicativo
+            guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
+
+            if UIApplication.shared.canOpenURL(settingsUrl) {
+                UIApplication.shared.open(settingsUrl, completionHandler: { (success) in
+                    print("Settings opened: \(success)") // Opcional: para depuração
+                })
+            }
+        }
+        alertController.addAction(settingsAction)
+
+        // Botão para voltar ao menu, agora com o estilo .cancel
+        let cancelAction = UIAlertAction(title: "Voltar ao Menu", style: .cancel) { [weak self] _ in
+            self?.transitionToMenu()
+        }
+        alertController.addAction(cancelAction)
+
+        // Apresenta o alerta na thread principal
+        DispatchQueue.main.async {
+            if let viewController = self.view?.window?.rootViewController {
+                viewController.present(alertController, animated: true)
+            }
+        }
+    }
+    
+    private func transitionToMenu() {
+        if let menuScene = SKScene(fileNamed: "MenuScene") {
+            menuScene.scaleMode = .aspectFill
+            let transition = SKTransition.fade(withDuration: 0.5)
+            self.view?.presentScene(menuScene, transition: transition)
+        }
+    }
+    
+    private func initializeScene() {
+        // Evita que a cena seja inicializada múltiplas vezes.
+        guard !sceneIsInitialized else { return }
+        
+        setupScene()
+        sceneIsInitialized = true
     }
     
     private func setupScene() {
