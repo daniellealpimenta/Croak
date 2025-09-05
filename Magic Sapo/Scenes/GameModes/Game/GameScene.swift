@@ -165,7 +165,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         print("Configurando a GameScene pela primeira vez.")
     
         NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppWillResignActive"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(resumeGame), name: NSNotification.Name("AppDidBecomeActive"), object: nil)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppDidBecomeActive"), object: nil)
         
         self.physicsWorld.contactDelegate = self
         
@@ -211,13 +212,33 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
         if DeviceHelper.isIPad {
             if let view = self.view {
-                self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
-            }
+                // 1. Lê o valor que você salvou no UserDefaults lá do MenuScene.
+                // O valor padrão será 'false' se a chave ainda não existir.
+                let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+
+                if isCameraPreviewEnabled {
+                    print("Pré-visualização da câmera está ATIVADA. Configurando a view...")
+                    self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
+                }
+        }
             
             if startInGestureMode {
-                setupValidationInstructionLabel()
-                setupCountdownLabel()
-                enterGestureValidationMode()
+                // --- LÓGICA ATUALIZADA ---
+                // 1. Lê o valor da nova configuração que criamos.
+                let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
+                        // 2. Só entra no modo de validação se ele estiver LIGADO.
+                    if isValidationEnabled {
+                        print("Modo de validação está ATIVADO. Iniciando...")
+                        setupValidationInstructionLabel()
+                        setupCountdownLabel()
+                        enterGestureValidationMode()
+                    } else {
+                        // 3. Se estiver DESLIGADO, pula a validação e começa o jogo diretamente.
+                        print("Modo de validação está DESATIVADO. Pulando para o jogo.")
+                        // A função cameraDidShrink é a que inicia o onboarding ou o spawner de inimigos,
+                        // que é exatamente o que aconteceria após a validação ser bem-sucedida.
+                        cameraDidShrink()
+                    }
             }
         }
         
@@ -284,6 +305,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         pauseButtonComponent.pauseButtonNode.isHidden = true
         
         // 1. Expande a câmera para tela cheia.
+        // --- CORREÇÃO 1: Corrigido o nome da chave para "isCameraPreviewEnabled" ---
+        let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+        
+        if !isCameraPreviewEnabled {
+                print("Preview estava desativada. Criando temporariamente para a validação.")
+                self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
+        }
+        
         isOnGestureValidationMode = true
         gestureManager?.expandCameraPreviewToFullScreen(in: view)
         
@@ -291,6 +320,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         countdownLabel?.text = "\(countdownValue)"
         countdownLabel?.isHidden = false
         instructionLabel?.isHidden = false
+        
+        // --- CORREÇÃO 2: Trazer os labels para a FRENTE da view ---
+        // Isso garante que eles fiquem por cima da preview da câmera que foi criada.
+        if let countdown = countdownLabel {
+            view.bringSubviewToFront(countdown)
+        }
+        if let instruction = instructionLabel {
+            view.bringSubviewToFront(instruction)
+        }
     }
     
     private func startOrContinueValidationCountdown() {
@@ -327,6 +365,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         if !isOnboarding {
             pauseButtonComponent.pauseButtonNode.isHidden = false
+        }
+        
+        // --- CORREÇÃO: Corrigido o nome da chave para "isCameraPreviewEnabled" ---
+        let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+        if !isCameraPreviewEnabled {
+            print("Validação concluída. Removendo a preview com base nas configurações")
+            gestureManager?.removeCameraPreview()
         }
         
         gestureManager?.shrinkCameraPreviewToOriginal(in: view)
@@ -422,36 +467,54 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     @objc func pauseGame() {
-        guard !isPaused else { return }
+        // 1. Usa a VIEW como "fonte da verdade" para o estado de pausa.
+        if self.view?.isPaused ?? false {
+            return
+        }
         print("🛑 PAUSANDO JOGO COMPLETAMENTE")
+
+        // 2. Mostra a UI de pausa.
+        pauseOverlayComponent.show()
+
+        // 3. Para sistemas específicos da GameScene (câmera, gestos, timers).
         enemySpawner.stopSpawningEnemies()
         gestureManager?.stopDetection()
-        self.isPaused = true
+        gestureManager?.removeCameraPreview() // Garante que a câmera saia ao pausar.
         AudioManager.shared.pauseBackgroundMusic()
-        gestureManager?.removeCameraPreview()
-        pauseOverlayComponent.show()
+
+        // 4. A MÁGICA: Agenda a pausa da VIEW para o próximo quadro, permitindo que a UI apareça.
+        let wait = SKAction.wait(forDuration: 0)
+        let pauseAction = SKAction.run { [weak self] in
+            self?.view?.isPaused = true
+        }
+        self.run(SKAction.sequence([wait, pauseAction]))
     }
 
     @objc func resumeGame() {
-        guard isPaused else { return }
+        // 1. Usa a VIEW como "fonte da verdade".
+        guard self.view?.isPaused ?? false else { return }
         print("▶️ RETOMANDO JOGO COMPLETAMENTE")
-        gestureManager.startDetection()
+
+        // 2. Despausa a VIEW PRIMEIRO para "acordar" a renderização.
+        self.view?.isPaused = false
+
+        // 3. Remove a UI de pausa.
         pauseOverlayComponent.hide()
-        
+
+        // 4. Lógica específica da GameScene para reativar a câmera e os gestos.
+        gestureManager.startDetection()
         if DeviceHelper.isIPad {
             if let view = self.view {
                 self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
             }
         }
         
+        // 5. Lógica condicional original para reiniciar a música e os inimigos.
         if !isOnGestureValidationMode && !isOnboarding {
-            self.isPaused = false
             AudioManager.shared.resumeBackgroundMusic()
             if gameState == .normalPlay {
                 enemySpawner.startSpawningEnemies()
             }
-        } else {
-            return
         }
     }
     
@@ -475,9 +538,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             secondBody = contact.bodyA
         }
 
+        // Verifica se a colisão foi entre o jogador e um inimigo
         if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
+            
             isPlayerDead = true
             
+            self.coinsComponent.saveSessionCoins()
+        
+            // Para a música de fundo
             AudioManager.shared.stopBackgroundMusic()
             
             let waitAction = SKAction.wait(forDuration: 0.1)
@@ -485,11 +553,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                 if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
                     gameOverScene.scaleMode = .aspectFill
                     gameOverScene.finalScore = self.scoreComponent.scoreCount
+                    
+                    // Informa para a próxima cena qual modo de jogo deve ser reiniciado.
                     gameOverScene.previousSceneName = "GameScene"
+                    
                     let transition = SKTransition.fade(withDuration: 1.0)
                     self.view?.presentScene(gameOverScene, transition: transition)
                 }
             }
+            
+            // Roda a sequência: espera um pouco e depois faz a transição.
             self.run(SKAction.sequence([waitAction, transitionAction]))
         }
     }
@@ -594,12 +667,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     // MARK: - Entrada do Usuário
-    
+         
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
 
-        if isPaused {
+        // --- CORREÇÃO AQUI ---
+        // Verifica se a VIEW está pausada para encaminhar o toque ao menu.
+        if self.view?.isPaused ?? false {
             pauseOverlayComponent.handleTouch(at: location)
             return
         }
@@ -661,14 +736,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     func didTapResetButton() {
+        self.view?.isPaused = false
+
         if let newGameScene = SKScene(fileNamed: "GameScene") as? GameScene {
             newGameScene.scaleMode = .aspectFill
             let transition = SKTransition.fade(withDuration: 1.0)
             view?.presentScene(newGameScene, transition: transition)
         }
     }
-    
+     
     func didTapExitButton() {
+        self.view?.isPaused = false
+        
         if let menuScene = SKScene(fileNamed: "MenuScene") {
             menuScene.scaleMode = .aspectFill
             let transition = SKTransition.fade(withDuration: 1.0)

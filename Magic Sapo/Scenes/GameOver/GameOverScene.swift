@@ -9,7 +9,7 @@ import SpriteKit
 import Vision
 
 // Conformidade com o GestureDetectionDelegate
-class GameOverScene: SKScene, GestureDetectionDelegate {
+class GameOverScene: SKScene {
     
     // MARK: - Propriedades
     
@@ -108,7 +108,7 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
     
         
         // Configuração da Detecção de Gestos
-        setupGestureDetection(in: view)
+       //  setupGestureDetection(in: view)
     }
     
     // MARK: Verificação do modo de jogo para definição da pontucao recorde
@@ -164,35 +164,35 @@ class GameOverScene: SKScene, GestureDetectionDelegate {
     
     // MARK: - Configuração dos Gestos
     
-    private func setupGestureDetection(in view: SKView) {
-        gestureManager = GestureDetectionManager()
-        gestureManager.delegate = self
-        gestureManager.startDetection()
-    }
+//    private func setupGestureDetection(in view: SKView) {
+//        gestureManager = GestureDetectionManager()
+//        gestureManager.delegate = self
+//        gestureManager.startDetection()
+//    }
     
     // MARK: - GestureDetectionDelegate
     
-    func gestureDetected(_ gesture: String, confidence: Double) {
-        gestureDebugLabel?.text = "Gesto: \(gesture)"
-        
-        switch gesture {
-        case "L":
-            print("Gesto 'L' detectado. Saindo para o menu.")
-            exitToMenu()
-        case "Top":
-            print("Gesto 'Top' detectado. Reiniciando")
-            restartPreviousScene()
-        default:
-            break
-        }
-    }
-    
-    func gestureDetectionLost() {
-        gestureDebugLabel?.text = "Gesto: Nenhum"
-    }
-    
-    func cameraWillExpand() { }
-    func cameraDidShrink() { }
+//    func gestureDetected(_ gesture: String, confidence: Double) {
+//        gestureDebugLabel?.text = "Gesto: \(gesture)"
+//        
+//        switch gesture {
+//        case "L":
+//            print("Gesto 'L' detectado. Saindo para o menu.")
+//            exitToMenu()
+//        case "Top":
+//            print("Gesto 'Top' detectado. Reiniciando")
+//            restartPreviousScene()
+//        default:
+//            break
+//        }
+//    }
+//    
+//    func gestureDetectionLost() {
+//        gestureDebugLabel?.text = "Gesto: Nenhum"
+//    }
+//    
+//    func cameraWillExpand() { }
+//    func cameraDidShrink() { }
     
     // MARK: - Ações de Navegação
     
