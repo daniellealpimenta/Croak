@@ -11,32 +11,33 @@ import GameplayKit
 import AVFoundation
 
 class GameViewController: UIViewController {
+    
+    //                print("--- LISTANDO FONTES DISPONÍVEIS NO APP ---")
+    //                for family in UIFont.familyNames.sorted() {
+    //                    let names = UIFont.fontNames(forFamilyName: family)
+    //                    print("Família: \(family) | Nomes: \(names)")
+    //                }
+    //                print("--- FIM DA LISTA DE FONTES ---")
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-                print("--- LISTANDO FONTES DISPONÍVEIS NO APP ---")
-                for family in UIFont.familyNames.sorted() {
-                    let names = UIFont.fontNames(forFamilyName: family)
-                    print("Família: \(family) | Nomes: \(names)")
-                }
-                print("--- FIM DA LISTA DE FONTES ---")
-                
+          
         if let view = self.view as! SKView? {
-            // Load the SKScene from 'GameScene.sks'
-            if let scene = SKScene(fileNamed: "MenuScene") {
-                
-                // CONFIGURAÇÃO ADAPTATIVA DO SCALE MODE
+            
+            // 1. Determina o nome do arquivo da cena com base no dispositivo
+            let sceneName = DeviceHelper.isIPhone ? "MenuScene_iphone" : "MenuScene"
+              
+            // 2. Tenta carregar a SKScene a partir do nome do arquivo definido acima
+            if let scene = SKScene(fileNamed: sceneName) {
+                  
+                // A configuração adaptativa do scale mode continua a mesma
                 if DeviceHelper.isIPhone {
-                    scene.scaleMode = .aspectFit  // Melhor para iPhone
+                    scene.scaleMode = .aspectFill  // Melhor para iPhone
                 } else {
                     scene.scaleMode = .aspectFill   // Melhor para iPad
                 }
-                
-                // Set the scale mode to scale to fit the window
-//                scene.scaleMode = .aspectFill
-                
-                // Present the scene
+                  
+                // Apresenta a cena correta
                 view.presentScene(scene)
             }
             
