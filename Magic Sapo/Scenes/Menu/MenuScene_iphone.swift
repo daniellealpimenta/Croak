@@ -90,7 +90,7 @@ class MenuScene_iphone: SKScene {
             y: self.frame.maxY - topPadding
         )
         
-        settingsButton?.size = CGSize(width: 80, height: 80)
+        settingsButton?.size = CGSize(width: 90, height: 90)
         settingsButton?.zPosition = 10
         
         if let button = settingsButton {
@@ -104,13 +104,19 @@ class MenuScene_iphone: SKScene {
         settingsOverlay?.name = "settingsOverlay"
         settingsOverlay?.zPosition = 100
         
+        // O fundo preto preenche a tela inteira
         let background = SKShapeNode(rectOf: self.size)
         background.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         background.fillColor = SKColor.black
         background.alpha = 0.7
         settingsOverlay?.addChild(background)
         
-        let panelSize = CGSize(width: self.frame.width * 0.9, height: self.frame.height * 0.6)
+        // Painel com tamanho relativo à tela
+        // AJUSTES AQUI: largura menor e altura maior
+        let panelWidth = self.frame.width * 0.75 // Diminuído para 75% da largura da tela
+        let panelHeight = self.frame.height * 0.4 // Aumentado para 70% da altura da tela
+        let panelSize = CGSize(width: panelWidth, height: panelHeight)
+        
         let panel = SKShapeNode(rectOf: panelSize, cornerRadius: 15)
         panel.fillColor = SKColor(red: 0.2, green: 0.2, blue: 0.25, alpha: 1.0)
         panel.strokeColor = .white
@@ -118,31 +124,41 @@ class MenuScene_iphone: SKScene {
         panel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         settingsOverlay?.addChild(panel)
         
+        // Título com fonte escalável
         let titleLabel = SKLabelNode(text: "Configurações")
         titleLabel.fontName = "Ari-W9500Bold"
-        titleLabel.fontSize = 32
+        titleLabel.fontSize = panelWidth * 0.09 // Ajustado para ser maior, relativo à nova largura do painel
         titleLabel.fontColor = .white
-        titleLabel.position = CGPoint(x: 0, y: (panelSize.height / 2) - 50)
+        // Posição ajustada para ficar um pouco mais abaixo do topo
+        titleLabel.position = CGPoint(x: 0, y: (panelSize.height / 2.1) - (titleLabel.fontSize * 1.5))
         panel.addChild(titleLabel)
         
+        // Botão de fechar com tamanho relativo e MENOR
+        let closeButtonSize = panelWidth * 0.12 // Diminuído para 12% da largura do painel
         let closeButton = SKSpriteNode(imageNamed: "botaoClose")
         closeButton.name = "closeSettingsButton"
-        closeButton.size = CGSize(width: 40, height: 40)
-        closeButton.position = CGPoint(x: (panelSize.width / 2) - 30, y: (panelSize.height / 2) - 30)
+        closeButton.size = CGSize(width: closeButtonSize, height: closeButtonSize)
+        // Posição ajustada para ficar mais próxima da borda e centralizada com o topo do painel
+        closeButton.position = CGPoint(x: (panelSize.width / 2) - (closeButtonSize * 0.7), y: (panelSize.height / 2) - (closeButtonSize * 0.7))
         panel.addChild(closeButton)
+        
+        // Botões de toggle com fonte e posição relativas
+        let toggleFontSize = panelWidth * 0.08 // Aumentado ligeiramente para ser mais legível
         
         cameraToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
         cameraToggleButton?.name = "cameraToggleButton"
-        cameraToggleButton?.fontSize = 22
+        cameraToggleButton?.fontSize = toggleFontSize * 0.7
         cameraToggleButton?.fontColor = .white
-        cameraToggleButton?.position = CGPoint(x: 0, y: titleLabel.position.y - 70)
+        // Posição ajustada para ficar abaixo do título e com espaçamento
+        cameraToggleButton?.position = CGPoint(x: 0, y: titleLabel.position.y - (titleLabel.fontSize * 2))
         panel.addChild(cameraToggleButton!)
         
         validationToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
         validationToggleButton?.name = "validationToggleButton"
-        validationToggleButton?.fontSize = 22
+        validationToggleButton?.fontSize = toggleFontSize * 0.7
         validationToggleButton?.fontColor = .white
-        validationToggleButton?.position = CGPoint(x: 0, y: cameraToggleButton!.position.y - 50)
+        // Posição ajustada para ficar abaixo do primeiro toggle com espaçamento consistente
+        validationToggleButton?.position = CGPoint(x: 0, y: cameraToggleButton!.position.y - (toggleFontSize * 2))
         panel.addChild(validationToggleButton!)
         
         settingsOverlay?.isHidden = true
