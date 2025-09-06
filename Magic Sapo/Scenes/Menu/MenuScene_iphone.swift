@@ -16,6 +16,8 @@ class MenuScene_iphone: SKScene {
     private var cameraToggleButton: SKLabelNode?
     private var validationToggleButton: SKLabelNode?
     
+    var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    
     // MARK: - Ciclo de Vida da Cena
     
     override func didMove(to view: SKView) {
@@ -25,7 +27,10 @@ class MenuScene_iphone: SKScene {
         setupLabels()
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
 
-        setupSettingsButton()
+        if !isOnboarding {
+            setupSettingsButton()
+        }
+        
         createSettingsOverlay()
     }
     

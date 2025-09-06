@@ -119,44 +119,44 @@ class EnemySpawner {
     
     func spawnOnboardingGuard(withGesture gesture: String, completion: @escaping (SKNode) -> Void) {
         guard let scene = self.scene else { return }
-        
-        // Usa o sistema existente para calcular posições
+            
         let startPosition: CGPoint
         let middlePosition: CGPoint
-        
-        if UIDevice.current.userInterfaceIdiom == .pad {
+                    
+        // Usando DeviceHelper para consistência com o resto do código
+        if DeviceHelper.isIPad {
             let halfHeight = scene.size.height / 2
-            
+                
             startPosition = CGPoint(x: 0, y: halfHeight + 50)
-            middlePosition = CGPoint(x: 0, y: 50) // Centro da tela
+            middlePosition = CGPoint(x: 0, y: 50) // Posição original para iPad
         } else {
-            // Para iPhone, usa sistema de coordenadas da view (igual ao createEnemy normal)
+            // --- LÓGICA PARA IPHONE ---
             guard let view = scene.view else { return }
-            
+                
             let topPointInView = CGPoint(x: view.bounds.midX, y: -100)
             startPosition = scene.convertPoint(fromView: topPointInView)
-            
-            let middlePointInView = CGPoint(x: view.bounds.midX, y: view.bounds.midY)
+                
+            // Isso fará o inimigo parar mais para cima.
+            let middleY = view.bounds.height * 0.4
+            let middlePointInView = CGPoint(x: view.bounds.midX, y: middleY)
             middlePosition = scene.convertPoint(fromView: middlePointInView)
         }
         
-        // USA O NOVO MÉTODO específico para onboarding
+            
         guard let enemy = Guards.createForOnboarding(at: startPosition, withGesture: gesture) else {
             print("Erro ao criar inimigo de onboarding")
             return
         }
-        
-        // Adiciona à lista de inimigos ativos e à cena
+            
         enemyControl.activeEnemies.append(enemy)
         scene.addChild(enemy)
-        
-        // Move até o meio da tela e para
+            
         let moveToMiddle = SKAction.move(to: middlePosition, duration: 3.5)
         let stopAction = SKAction.run {
             enemy.removeAllActions()
-            completion(enemy) // Chama o callback quando chegar no meio
+            completion(enemy)
         }
-        
+            
         let sequence = SKAction.sequence([moveToMiddle, stopAction])
         enemy.run(sequence)
     }
@@ -164,32 +164,33 @@ class EnemySpawner {
     func spawnOnboardingThief(withGestures gestures: [String], completion: @escaping (SKNode) -> Void) {
         guard let scene = self.scene else { return }
 
-        // Reutiliza a mesma lógica de posição do spawnOnboardingEnemy
         let startPosition: CGPoint
         let middlePosition: CGPoint
-        
-        if UIDevice.current.userInterfaceIdiom == .pad {
+                    
+        // Usando DeviceHelper para consistência
+        if DeviceHelper.isIPad {
             startPosition = CGPoint(x: 0, y: scene.size.height / 2 + 50)
-            middlePosition = CGPoint(x: 0, y: 50)
+            middlePosition = CGPoint(x: 0, y: 50) // Posição original para iPad
         } else {
+            // --- LÓGICA PARA IPHONE ---
             guard let view = scene.view else { return }
             let topPointInView = CGPoint(x: view.bounds.midX, y: -100)
             startPosition = scene.convertPoint(fromView: topPointInView)
-            let middlePointInView = CGPoint(x: view.bounds.midX, y: view.bounds.midY)
+                
+            // AJUSTE AQUI: Repetimos a mesma lógica do Guarda para o Ladrão.
+            let middleY = view.bounds.height * 0.4
+            let middlePointInView = CGPoint(x: view.bounds.midX, y: middleY)
             middlePosition = scene.convertPoint(fromView: middlePointInView)
         }
-
-        // USA O NOVO MÉTODO específico do Ladrão para onboarding
+        
         guard let enemy = Thief.createForOnboarding(at: startPosition, withGestures: gestures) else {
             print("Erro ao criar Ladrão de onboarding")
             return
         }
 
-        // Adiciona à lista de inimigos ativos e à cena
         enemyControl.activeEnemies.append(enemy)
         scene.addChild(enemy)
 
-        // Move até o meio da tela, para, e chama o callback
         let moveToMiddle = SKAction.move(to: middlePosition, duration: 2.0)
         let stopAction = SKAction.run {
             enemy.removeAllActions()
