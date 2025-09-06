@@ -20,6 +20,7 @@ class MenuScene_iphone: SKScene {
     
     override func didMove(to view: SKView) {
         UserDefaults.standard.register(defaults: ["isValidationModeEnabled": true])
+        UserDefaults.standard.register(defaults: ["isCameraPreviewEnabled": true])
         
         setupLabels()
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")

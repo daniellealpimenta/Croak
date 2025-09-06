@@ -22,7 +22,7 @@ class MenuScene: SKScene {
     override func didMove(to view: SKView) {
         // Registra um valor padrão para o modo de validação na primeira vez que o app abrir
         UserDefaults.standard.register(defaults: ["isValidationModeEnabled": true])
-        
+        UserDefaults.standard.register(defaults: ["isCameraPreviewEnabled": true])
         // --- CONFIGURAÇÃO EXISTENTE ---
         setupLabels()
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
