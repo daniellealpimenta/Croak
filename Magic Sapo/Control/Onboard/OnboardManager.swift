@@ -162,25 +162,27 @@ class OnboardManager: NSObject {
 
     // MARK: - Gerenciamento da UI
 
+    // OnboardManager.swift
+
     private func showOnboardingInstruction() {
         guard let view = self.view, currentStepIndex < onboardingSteps.count else { return }
             
         let currentStep = onboardingSteps[currentStepIndex]
         removeOnboardingInstruction()
             
+        // --- VALORES ADAPTATIVOS ---
         let dialogueBoxPadding: CGFloat = DeviceHelper.isIPad ? 70 : 20
         let dialogueBoxBottomPadding: CGFloat = DeviceHelper.isIPad ? 20 : 10
-        let dialogueBoxHeight: CGFloat = DeviceHelper.isIPad ? 200 : 180
+        let dialogueBoxHeight: CGFloat = DeviceHelper.isIPad ? 200 : 160
 
         let labelPaddingX: CGFloat = DeviceHelper.isIPad ? 44 : 20
         let labelPaddingY: CGFloat = DeviceHelper.isIPad ? 30 : 15
-        let labelFontSize: CGFloat = DeviceHelper.isIPad ? 32 : 22
+        let labelFontSize: CGFloat = DeviceHelper.isIPad ? 32 : 20
             
-        let frogImageWidth: CGFloat = DeviceHelper.isIPad ? 300 : 180
-        let frogImageHeight: CGFloat = DeviceHelper.isIPad ? 300 : 180
+        let frogImageWidth: CGFloat = DeviceHelper.isIPad ? 300 : 140
+        let frogImageHeight: CGFloat = DeviceHelper.isIPad ? 300 : 140
         let frogPaddingLeft: CGFloat = DeviceHelper.isIPad ? 90 : 15
             
-        // Aumentamos o tamanho da imagem no iPad para 200, como era antes.
         let instructionImageSize: CGFloat = DeviceHelper.isIPad ? 200 : 80
         
         // --- Caixa de Diálogo ---
@@ -211,13 +213,6 @@ class OnboardManager: NSObject {
         dialogueBox.addSubview(dialogueLabel)
         self.onboardingDialogueLabel = dialogueLabel
             
-        NSLayoutConstraint.activate([
-            dialogueLabel.topAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: labelPaddingY),
-            dialogueLabel.leadingAnchor.constraint(equalTo: dialogueBox.leadingAnchor, constant: labelPaddingX),
-            dialogueLabel.trailingAnchor.constraint(equalTo: dialogueBox.trailingAnchor, constant: -labelPaddingX),
-            dialogueLabel.bottomAnchor.constraint(equalTo: dialogueBox.bottomAnchor, constant: -labelPaddingY)
-        ])
-            
         // --- Imagem do Sapo ---
         let frogImageView = UIImageView(image: UIImage(named: currentStep.frogImageName))
         frogImageView.contentMode = .scaleAspectFit
@@ -225,13 +220,22 @@ class OnboardManager: NSObject {
         view.addSubview(frogImageView)
         self.onboardingFrogImageView = frogImageView
 
-        NSLayoutConstraint.activate([
-            frogImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: frogPaddingLeft),
-            frogImageView.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: 30),
-            frogImageView.widthAnchor.constraint(equalToConstant: frogImageWidth),
-            frogImageView.heightAnchor.constraint(equalToConstant: frogImageHeight)
-        ])
-            
+        if DeviceHelper.isIPad {
+            NSLayoutConstraint.activate([
+                frogImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: frogPaddingLeft),
+                frogImageView.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: 30),
+                frogImageView.widthAnchor.constraint(equalToConstant: frogImageWidth),
+                frogImageView.heightAnchor.constraint(equalToConstant: frogImageHeight)
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+                frogImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: frogPaddingLeft),
+                frogImageView.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: 20),
+                frogImageView.widthAnchor.constraint(equalToConstant: frogImageWidth),
+                frogImageView.heightAnchor.constraint(equalToConstant: frogImageHeight)
+            ])
+        }
+
             
         // --- Imagens de Instrução ---
         if currentStep.instructionImages.count > 1 { // Caso do Ladrão (2 imagens)
@@ -239,29 +243,27 @@ class OnboardManager: NSObject {
             let secondIV = createInstructionImageView(imageName: currentStep.instructionImages[1], size: instructionImageSize, in: view)
             
             if DeviceHelper.isIPad {
-                // LÓGICA PARA IPAD: Recriando o layout horizontal da versão antiga.
-                let paddingDireita: CGFloat = -100 // Padding da imagem mais à direita
-
+                let paddingDireita: CGFloat = -100
                 NSLayoutConstraint.activate([
-                    // Posiciona a segunda imagem (a da direita)
                     secondIV.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: paddingDireita),
                     secondIV.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor),
-                    
-                    // Posiciona a primeira imagem (à esquerda da segunda)
                     firstIV.trailingAnchor.constraint(equalTo: secondIV.leadingAnchor),
                     firstIV.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor)
                 ])
-                
             } else {
-                // LÓGICA PARA IPHONE: Manter as imagens lado a lado no topo central.
-                let horizontalSpacing: CGFloat = 20
-                let instructionImageYOffset: CGFloat = 120
+                let paddingDireita: CGFloat = -20
+                let verticalSpacing: CGFloat = 5
                 
                 NSLayoutConstraint.activate([
-                    firstIV.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -horizontalSpacing / 2),
-                    secondIV.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: horizontalSpacing / 2),
-                    firstIV.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: instructionImageYOffset),
-                    secondIV.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: instructionImageYOffset)
+                    // Alinha ambas na borda direita
+                    firstIV.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: paddingDireita),
+                    secondIV.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: paddingDireita),
+                    
+                    // "Gruda" a imagem de baixo no topo da caixa de diálogo
+                    secondIV.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: 0),
+                    
+                    // Coloca a imagem de cima sobre a de baixo
+                    firstIV.bottomAnchor.constraint(equalTo: secondIV.topAnchor, constant: -verticalSpacing)
                 ])
             }
             
@@ -272,27 +274,36 @@ class OnboardManager: NSObject {
             let iv = createInstructionImageView(imageName: imageName, size: instructionImageSize, in: view)
             
             if DeviceHelper.isIPad {
-                // LÓGICA PARA IPAD: Recriando o layout da versão antiga.
                 let paddingDireita: CGFloat = -172
-                
                 NSLayoutConstraint.activate([
                     iv.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: paddingDireita),
                     iv.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor)
                 ])
-                
             } else {
-                // LÓGICA PARA IPHONE: Manter no topo central.
-                let instructionImageYOffset: CGFloat = 120
+                
+                let paddingDireita: CGFloat = -20
                 
                 NSLayoutConstraint.activate([
-                    iv.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                    iv.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: instructionImageYOffset)
+                    // Alinha na borda direita
+                    iv.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: paddingDireita),
+                    
+                    // "Gruda" a base da imagem no topo da caixa de diálogo
+                    iv.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: 0)
                 ])
             }
             
             self.onboardingGuardInstructionOverlay = iv
         }
-                    
+        
+        // O texto sempre ocupa a caixa inteira
+        NSLayoutConstraint.activate([
+            dialogueLabel.leadingAnchor.constraint(equalTo: dialogueBox.leadingAnchor, constant: labelPaddingX),
+            dialogueLabel.trailingAnchor.constraint(equalTo: dialogueBox.trailingAnchor, constant: -labelPaddingX),
+            dialogueLabel.topAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: labelPaddingY),
+            dialogueLabel.bottomAnchor.constraint(equalTo: dialogueBox.bottomAnchor, constant: -labelPaddingY)
+        ])
+        
+            
         // --- Animação de Entrada ---
         onboardingGuardInstructionOverlay?.alpha = 0
         onboardingThiefInstructionOverlay1?.alpha = 0
@@ -308,6 +319,8 @@ class OnboardManager: NSObject {
             dialogueBox.alpha = 1.0
         }
     }
+    // MARK: FIm da show
+    
     // Função auxiliar para criar as ImageViews de instrução e evitar código repetido
     private func createInstructionImageView(imageName: String, size: CGFloat, in view: UIView) -> UIImageView {
         let imageView = UIImageView(image: UIImage(named: imageName))
