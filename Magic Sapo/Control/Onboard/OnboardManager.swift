@@ -174,21 +174,22 @@ class OnboardManager: NSObject {
         let dialogueBoxPadding: CGFloat = DeviceHelper.isIPad ? 70 : 20
         let dialogueBoxBottomPadding: CGFloat = DeviceHelper.isIPad ? 20 : 10
         let dialogueBoxHeight: CGFloat = DeviceHelper.isIPad ? 200 : 160
+        let dialogueBoxCorner: CGFloat = DeviceHelper.isIPad ? 10 : 8
 
         let labelPaddingX: CGFloat = DeviceHelper.isIPad ? 44 : 20
         let labelPaddingY: CGFloat = DeviceHelper.isIPad ? 30 : 15
         let labelFontSize: CGFloat = DeviceHelper.isIPad ? 32 : 20
             
-        let frogImageWidth: CGFloat = DeviceHelper.isIPad ? 300 : 140
-        let frogImageHeight: CGFloat = DeviceHelper.isIPad ? 300 : 140
-        let frogPaddingLeft: CGFloat = DeviceHelper.isIPad ? 90 : 15
+        let frogImageWidth: CGFloat = DeviceHelper.isIPad ? 300 : 170
+        let frogImageHeight: CGFloat = DeviceHelper.isIPad ? 300 : 170
+        let frogPaddingLeft: CGFloat = DeviceHelper.isIPad ? 90 : 10
             
-        let instructionImageSize: CGFloat = DeviceHelper.isIPad ? 200 : 80
+        let instructionImageSize: CGFloat = DeviceHelper.isIPad ? 200 : 95
         
         // --- Caixa de Diálogo ---
         let dialogueBox = UIView()
         dialogueBox.backgroundColor = .white
-        dialogueBox.layer.cornerRadius = 10
+        dialogueBox.layer.cornerRadius = dialogueBoxCorner
         dialogueBox.layer.borderColor = UIColor.black.cgColor
         dialogueBox.layer.borderWidth = 4
         dialogueBox.translatesAutoresizingMaskIntoConstraints = false
@@ -223,14 +224,14 @@ class OnboardManager: NSObject {
         if DeviceHelper.isIPad {
             NSLayoutConstraint.activate([
                 frogImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: frogPaddingLeft),
-                frogImageView.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: 30),
+                frogImageView.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor),
                 frogImageView.widthAnchor.constraint(equalToConstant: frogImageWidth),
                 frogImageView.heightAnchor.constraint(equalToConstant: frogImageHeight)
             ])
         } else {
             NSLayoutConstraint.activate([
                 frogImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: frogPaddingLeft),
-                frogImageView.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: 20),
+                frogImageView.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor),
                 frogImageView.widthAnchor.constraint(equalToConstant: frogImageWidth),
                 frogImageView.heightAnchor.constraint(equalToConstant: frogImageHeight)
             ])
@@ -251,19 +252,19 @@ class OnboardManager: NSObject {
                     firstIV.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor)
                 ])
             } else {
-                let paddingDireita: CGFloat = -20
-                let verticalSpacing: CGFloat = 5
+                let paddingDireita: CGFloat = -25
+                let horizontalSpacing: CGFloat = 20
                 
                 NSLayoutConstraint.activate([
                     // Alinha ambas na borda direita
-                    firstIV.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: paddingDireita),
                     secondIV.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: paddingDireita),
+                    firstIV.trailingAnchor.constraint(equalTo: secondIV.leadingAnchor, constant: horizontalSpacing),
                     
                     // "Gruda" a imagem de baixo no topo da caixa de diálogo
                     secondIV.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: 0),
                     
                     // Coloca a imagem de cima sobre a de baixo
-                    firstIV.bottomAnchor.constraint(equalTo: secondIV.topAnchor, constant: -verticalSpacing)
+                    firstIV.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: 0)
                 ])
             }
             
@@ -281,7 +282,7 @@ class OnboardManager: NSObject {
                 ])
             } else {
                 
-                let paddingDireita: CGFloat = -20
+                let paddingDireita: CGFloat = -40
                 
                 NSLayoutConstraint.activate([
                     // Alinha na borda direita

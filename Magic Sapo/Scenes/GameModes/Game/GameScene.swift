@@ -11,6 +11,7 @@ import AVFoundation
 class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, ScoreHavingScene, PauseButtonDelegate, PauseOverlayDelegate, BossFightScene, OnboardDelegate {
     
     var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    
     // MARK: VARIAVEL PARA TESTE
 //    var isOnboarding = true
     
@@ -285,6 +286,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         label.font = UIFont.systemFont(ofSize: fontSize, weight: .medium)
         label.textColor = .white
         label.textAlignment = .center
+        label.numberOfLines = 0
         label.isHidden = true
         
         view.addSubview(label)
@@ -294,7 +296,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         NSLayoutConstraint.activate([
             label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            label.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50)
+            label.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50),
+            label.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            label.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20)
         ])
     }
     
@@ -504,10 +508,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
         // 4. Lógica específica da GameScene para reativar a câmera e os gestos.
         gestureManager.startDetection()
-        if DeviceHelper.isIPad {
-            if let view = self.view {
-                self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
-            }
+        if let view = self.view {
+            self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
         }
         
         // 5. Lógica condicional original para reiniciar a música e os inimigos.

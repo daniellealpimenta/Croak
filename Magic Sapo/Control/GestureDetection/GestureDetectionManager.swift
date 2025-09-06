@@ -106,9 +106,11 @@ class GestureDetectionManager: NSObject {
         // Garante que não vamos criar a view múltiplas vezes
         guard self.cameraView == nil else { return }
         
-        let cameraViewWidth: CGFloat = 350
-        let cameraViewHeight: CGFloat = 200
-        let padding: CGFloat = 20
+        let cameraViewWidth: CGFloat = DeviceHelper.isIPad ? 350 : 110
+        let cameraViewHeight: CGFloat = DeviceHelper.isIPad ? 200 : 170
+        let paddingTop: CGFloat = DeviceHelper.isIPad ? 20 : 50
+        let paddingHorizontal: CGFloat = DeviceHelper.isIPad ? 20 : 16
+        let paddingBottom: CGFloat = 20
         
         // 1. Cria o frame (a posição e o tamanho) para a câmera.
         let frame: CGRect
@@ -117,8 +119,8 @@ class GestureDetectionManager: NSObject {
             // Posição: Canto SUPERIOR DIREITO
             print("📹 Configurando câmera para o Onboarding (Canto Superior Direito).")
             frame = CGRect(
-                x: skView.bounds.width - cameraViewWidth - padding,
-                y: padding,
+                x: skView.bounds.width - cameraViewWidth - paddingHorizontal,
+                y: paddingTop,
                 width: cameraViewWidth,
                 height: cameraViewHeight
             )
@@ -126,8 +128,8 @@ class GestureDetectionManager: NSObject {
             // Posição: Canto INFERIOR ESQUERDO (Sua posição final desejada)
             print("📹 Configurando câmera para o Jogo Normal (Canto Inferior Esquerdo).")
             frame = CGRect(
-                x: padding,
-                y: skView.bounds.height - cameraViewHeight - padding,
+                x: paddingHorizontal,
+                y: skView.bounds.height - cameraViewHeight - paddingBottom,
                 width: cameraViewWidth,
                 height: cameraViewHeight
             )
@@ -243,14 +245,15 @@ class GestureDetectionManager: NSObject {
         guard let camView = self.cameraView else { return }
         
         // 2. Define as mesmas constantes para consistência.
-        let cameraViewWidth: CGFloat = 350
-        let cameraViewHeight: CGFloat = 200
-        let padding: CGFloat = 20
+        let cameraViewWidth: CGFloat = DeviceHelper.isIPad ? 350 : 110
+        let cameraViewHeight: CGFloat = DeviceHelper.isIPad ? 200 : 170
+        let paddingHorizontal: CGFloat = DeviceHelper.isIPad ? 20 : 16
+        let paddingBottom: CGFloat = 20
         
         // 3. Calcula o novo frame para a posição normal (canto inferior esquerdo).
         let normalFrame = CGRect(
-            x: padding,
-            y: skView.bounds.height - cameraViewHeight - padding,
+            x: paddingHorizontal,
+            y: skView.bounds.height - cameraViewHeight - paddingBottom,
             width: cameraViewWidth,
             height: cameraViewHeight
         )
@@ -279,12 +282,15 @@ class GestureDetectionManager: NSObject {
         // Adiciona ao container
         parentView.addSubview(imageView)
         
+        let widthMultiplier: CGFloat = DeviceHelper.isIPad ? 0.4 : 0.65
+        let heightMultiplier: CGFloat = DeviceHelper.isIPad ? 0.6 : 0.85
+        
         // Constraints para centralizar e dimensionar
         NSLayoutConstraint.activate([
             imageView.centerXAnchor.constraint(equalTo: parentView.centerXAnchor),
             imageView.centerYAnchor.constraint(equalTo: parentView.centerYAnchor),
-            imageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: 0.4), // 60% da largura
-            imageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: 0.6) // 80% da altura
+            imageView.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: widthMultiplier),
+            imageView.heightAnchor.constraint(equalTo: parentView.heightAnchor, multiplier: heightMultiplier)
         ])
         
         self.handFeedbackOverlayImageView = imageView
