@@ -278,9 +278,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     private func setupValidationInstructionLabel() {
         guard let view = self.view else { return }
         
+        let fontSize: CGFloat = DeviceHelper.isIPad ? 30 : 20
+        
         let label = UILabel()
         label.text = "Mantenha sua mão na área enquanto joga!"
-        label.font = UIFont.systemFont(ofSize: 30, weight: .medium)
+        label.font = UIFont.systemFont(ofSize: fontSize, weight: .medium)
         label.textColor = .white
         label.textAlignment = .center
         label.isHidden = true
