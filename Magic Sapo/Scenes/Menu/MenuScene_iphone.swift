@@ -73,15 +73,15 @@ class MenuScene_iphone: SKScene {
         }
     }
     
-    // Cria o Botão de Configurações
+    //o botao de configuracoes
     func setupSettingsButton() {
         settingsButton = SKSpriteNode(imageNamed: "botaoSettings")
         settingsButton?.name = "settingsButton"
         
-        // Para mover MAIS PARA BAIXO, aumente este valor
+        //para mover MAIS PARA BAIXO, aumente este valor
         let topPadding: CGFloat = 100
         
-        // Para mover MAIS PARA A ESQUERDA, aumente este valor
+        //para mover MAIS PARA A ESQUERDA, aumente este valor
         let trailingPadding: CGFloat = 150
         
         // O cálculo da posição usa os novos paddings
@@ -98,23 +98,19 @@ class MenuScene_iphone: SKScene {
         }
     }
     
-    // Cria o Overlay de Configurações
     func createSettingsOverlay() {
         settingsOverlay = SKNode()
         settingsOverlay?.name = "settingsOverlay"
         settingsOverlay?.zPosition = 100
         
-        // O fundo preto preenche a tela inteira
         let background = SKShapeNode(rectOf: self.size)
         background.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         background.fillColor = SKColor.black
         background.alpha = 0.7
         settingsOverlay?.addChild(background)
         
-        // Painel com tamanho relativo à tela
-        // AJUSTES AQUI: largura menor e altura maior
         let panelWidth = self.frame.width * 0.75 // Diminuído para 75% da largura da tela
-        let panelHeight = self.frame.height * 0.4 // Aumentado para 70% da altura da tela
+        let panelHeight = self.frame.height * 0.4 // Aumentado para 40% da altura da tela
         let panelSize = CGSize(width: panelWidth, height: panelHeight)
         
         let panel = SKShapeNode(rectOf: panelSize, cornerRadius: 15)
@@ -127,9 +123,8 @@ class MenuScene_iphone: SKScene {
         // Título com fonte escalável
         let titleLabel = SKLabelNode(text: "Configurações")
         titleLabel.fontName = "Ari-W9500Bold"
-        titleLabel.fontSize = panelWidth * 0.09 // Ajustado para ser maior, relativo à nova largura do painel
+        titleLabel.fontSize = panelWidth * 0.09
         titleLabel.fontColor = .white
-        // Posição ajustada para ficar um pouco mais abaixo do topo
         titleLabel.position = CGPoint(x: 0, y: (panelSize.height / 2.1) - (titleLabel.fontSize * 1.5))
         panel.addChild(titleLabel)
         
@@ -157,7 +152,6 @@ class MenuScene_iphone: SKScene {
         validationToggleButton?.name = "validationToggleButton"
         validationToggleButton?.fontSize = toggleFontSize * 0.7
         validationToggleButton?.fontColor = .white
-        // Posição ajustada para ficar abaixo do primeiro toggle com espaçamento consistente
         validationToggleButton?.position = CGPoint(x: 0, y: cameraToggleButton!.position.y - (toggleFontSize * 2))
         panel.addChild(validationToggleButton!)
         
