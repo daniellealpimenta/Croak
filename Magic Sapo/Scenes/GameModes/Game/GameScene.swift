@@ -164,25 +164,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         sceneIsInitialized = true
     }
     
+    // GameScene.swift
+
     private func setupScene() {
         print("Configurando a GameScene pela primeira vez.")
-    
-        NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppWillResignActive"), object: nil)
 
+        NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppWillResignActive"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppDidBecomeActive"), object: nil)
-        
+            
         self.physicsWorld.contactDelegate = self
-        
-        // --- Configuração dos Componentes ---
+            
         backgroundComponent = BackgroundComponent(parent: self)
         backgroundComponent.setupAnimatedBackground()
-        
+            
         scoreComponent = ScoreComponent(parent: self)
         coinsComponent = CoinsComponent(parent: self)
-        
+            
         pauseButtonComponent = PauseButtonComponent(parent: self)
         pauseButtonComponent.delegate = self
-        
+            
         if isOnboarding {
             scoreComponent.scoreLabel.isHidden = true
             coinsComponent.coinsLabel.isHidden = true
@@ -190,13 +190,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             coinsComponent.coinIcon.isHidden = true
             pauseButtonComponent.pauseButtonNode.isHidden = true
         }
-        
+            
         pauseOverlayComponent = PauseOverlayComponent(parent: self)
         pauseOverlayComponent.delegate = self
-        
+            
         enemySpawner = EnemySpawner(scene: self)
-        enemySpawner.startSpawningEnemies()
-        
+            
         let frog = Frog(parent: self)
         let frogNode: SKNode
 
@@ -210,48 +209,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
 
         self.addChild(frogNode)
-        
+            
         setupGestureDetection()
 
-        if DeviceHelper.isIPad {
-            if let view = self.view {
-                // 1. Lê o valor que você salvou no UserDefaults lá do MenuScene.
-                // O valor padrão será 'false' se a chave ainda não existir.
-                let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+        // Esta seção agora funciona para TODOS os dispositivos, não apenas para o iPad.
 
-                if isCameraPreviewEnabled {
-                    print("Pré-visualização da câmera está ATIVADA. Configurando a view...")
-                    self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
-                }
-        }
-            
-            if startInGestureMode {
-                // --- LÓGICA ATUALIZADA ---
-                // 1. Lê o valor da nova configuração que criamos.
-                let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
-                        // 2. Só entra no modo de validação se ele estiver LIGADO.
-                    if isValidationEnabled {
-                        print("Modo de validação está ATIVADO. Iniciando...")
-                        setupValidationInstructionLabel()
-                        setupCountdownLabel()
-                        enterGestureValidationMode()
-                    } else {
-                        // 3. Se estiver DESLIGADO, pula a validação e começa o jogo diretamente.
-                        print("Modo de validação está DESATIVADO. Pulando para o jogo.")
-                        // A função cameraDidShrink é a que inicia o onboarding ou o spawner de inimigos,
-                        // que é exatamente o que aconteceria após a validação ser bem-sucedida.
-                        cameraDidShrink()
-                    }
+        // 1. Verifique se a pré-visualização da câmera está habilitada nas configurações.
+        let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+        if isCameraPreviewEnabled {
+            if let view = self.view {
+                print("Pré-visualização da câmera está ATIVADA. Configurando a view...")
+                self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
             }
         }
-        
+
+        // 2. Verifique se o jogo deve começar no modo de validação de gestos.
+        if startInGestureMode {
+            let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
+            
+            if isValidationEnabled {
+                print("Modo de validação está ATIVADO. Iniciando...")
+                setupValidationInstructionLabel()
+                setupCountdownLabel()
+                enterGestureValidationMode()
+            } else {
+                print("Modo de validação está DESATIVADO. Pulando para o jogo.")
+                // Chama cameraDidShrink() para iniciar o onboarding ou o jogo principal.
+                cameraDidShrink()
+            }
+        } else {
+
+            // para que o onboarding ou o jogo comecem. Este é o caminho normal.
+            cameraDidShrink()
+        }
+                    
         if let view = self.view {
             onboardManager = OnboardManager(view: view, spawner: self.enemySpawner, gestureManager: self.gestureManager)
             onboardManager.delegate = self
         }
-        
-        // 3. Configura a UI de debug que depende da detecção.
-//        setupGestureDebugUI()
+            
     }
     
     private func setupCountdownLabel() {
