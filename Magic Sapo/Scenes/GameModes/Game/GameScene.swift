@@ -517,6 +517,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         gestureManager?.stopDetection()
         gestureManager?.removeCameraPreview() // Garante que a câmera saia ao pausar.
         AudioManager.shared.pauseBackgroundMusic()
+        AudioManager.shared.pauseBossMusic()
 
         // 4. A MÁGICA: Agenda a pausa da VIEW para o próximo quadro, permitindo que a UI apareça.
         let wait = SKAction.wait(forDuration: 0)
@@ -544,12 +545,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
         
         // 5. Lógica condicional original para reiniciar a música e os inimigos.
-        if !isOnGestureValidationMode && !isOnboarding {
+        if !isOnGestureValidationMode && !isOnboarding && gameState == .normalPlay {
             AudioManager.shared.resumeBackgroundMusic()
             if gameState == .normalPlay {
                 enemySpawner.startSpawningEnemies()
             }
+        }else if gameState == .bossFight {
+            AudioManager.shared.resumeBossMusic()
         }
+        
     }
     
     // MARK: - Funções do onboarding
@@ -657,15 +661,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     private func checkToStartBossEncounter() {
         let score = scoreComponent.scoreCount
         
-        // Se as condições forem atendidas, muda para o estado de LIMPEZA.
         let scoreSinceLastBoss = score - scoreAtLastBossDefeat
         
-        // A condição agora é muito mais simples e robusta.
-        if gameState == .normalPlay && scoreSinceLastBoss >= 15  { // Use 5 para testar
-            
-            // Não precisamos mais atualizar 'lastBossTriggerScore'.
-            
+        if gameState == .normalPlay && scoreSinceLastBoss >= 15  {
+                        
             gameState = .clearingField
+            
+            AudioManager.shared.pauseBackgroundMusic()
+            AudioManager.shared.playBossMusic()
             
             mageControl = MageControl(scene: self, spawner: self.enemySpawner)
             mageControl?.startBossEncounter()
@@ -678,6 +681,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     func bossFightDidEnd() {
         self.scoreAtLastBossDefeat = self.scoreComponent.scoreCount
+        
+        AudioManager.shared.stopBossMusic()
+        AudioManager.shared.resumeBackgroundMusic()
         
         mageControl = nil
         gameState = .normalPlay

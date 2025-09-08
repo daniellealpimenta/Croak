@@ -296,16 +296,14 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     private func checkToStartBossEncounter() {
            let score = scoreComponent.scoreCount
            
-           // Se as condições forem atendidas, muda para o estado de LIMPEZA.
            let scoreSinceLastBoss = score - scoreAtLastBossDefeat
                
-           // A condição agora é muito mais simples e robusta.
-           if gameState == .normalPlay && scoreSinceLastBoss >= 75 { // Use 5 para testar
-               print("--- PREPARANDO PARA O CHEFE! Limpando inimigos restantes... ---")
-               
-               // Não precisamos mais atualizar 'lastBossTriggerScore'.
-               
+           if gameState == .normalPlay && scoreSinceLastBoss >= 75 {
+                              
                gameState = .clearingField
+               
+               AudioManager.shared.pauseBackgroundMusic()
+               AudioManager.shared.playBossMusic()
                
                mageControl = MageControl(scene: self, spawner: self.enemySpawner)
                mageControl?.startBossEncounter()
@@ -314,13 +312,14 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     
     
     func enterBossFightState() {
-            print("A cena entrou no estado de Batalha do Chefe.")
             self.gameState = .bossFight
         }
     
     func bossFightDidEnd() {
-        print("--- CHEFE DERROTADO! Retornando ao jogo normal. ---")
         self.scoreAtLastBossDefeat = self.scoreComponent.scoreCount
+        
+        AudioManager.shared.stopBossMusic()
+        AudioManager.shared.resumeBackgroundMusic()
         
         mageControl = nil
         gameState = .normalPlay
