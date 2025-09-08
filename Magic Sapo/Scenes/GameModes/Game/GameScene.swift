@@ -9,7 +9,7 @@ import GameplayKit
 import AVFoundation
 
 class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, ScoreHavingScene, PauseButtonDelegate, PauseOverlayDelegate, BossFightScene, OnboardDelegate {
-    
+    // comente abaixo se for testar tambem
     var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     
     // MARK: VARIAVEL PARA TESTE
@@ -202,7 +202,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         print("Configurando a GameScene pela primeira vez.")
 
         NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppWillResignActive"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppDidBecomeActive"), object: nil)
             
         self.physicsWorld.contactDelegate = self
             
@@ -507,9 +506,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         if self.view?.isPaused ?? false {
             return
         }
+        
         print("🛑 PAUSANDO JOGO COMPLETAMENTE")
 
         // 2. Mostra a UI de pausa.
+        
+        if isOnboarding || isOnGestureValidationMode {
+            print("Pause travado!")
+            return
+        }
+        
         pauseOverlayComponent.show()
 
         // 3. Para sistemas específicos da GameScene (câmera, gestos, timers).
