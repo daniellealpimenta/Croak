@@ -167,18 +167,21 @@ class EnemyControl {
     public func killEnemy(withGesture gesture: String, in scene: SKScene) -> (points: Int, coins: Int)? {
         
         // Define a "Kill Zone" para que os inimigos só possam ser atingidos em uma área específica.
-        let killZoneTopY: CGFloat = scene.size.height / 2 - 125
-        let killZoneBottomY: CGFloat = -scene.size.height / 2 + 215
         
         var totalPoints = 0
         var totalCoins = 0
         var anyEnemyHit = false
         
+        guard let scene = scene as? ScoreHavingScene else {
+            print("Erro: A cena não é uma GameScene e não possui uma killZoneRect.")
+            return nil
+        }
+        
         // Itera por todos os inimigos ativos.
         for (index, enemy) in activeEnemies.enumerated().reversed() {
             
             // Pula o inimigo se ele não estiver dentro da zona de ataque.
-            guard enemy.position.y < killZoneTopY && enemy.position.y > killZoneBottomY else {
+            guard scene.killZoneRect.contains(enemy.position) else {
                 continue
             }
             

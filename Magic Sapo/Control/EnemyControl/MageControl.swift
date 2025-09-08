@@ -30,6 +30,9 @@ class MageControl {
     private var mageNode: SKSpriteNode?
     private var spawnedGuards: [SKNode] = []
     private var currentState: BossState = .waitingForFieldClear
+    
+    let mageSpeed: Double = DeviceHelper.isIPhone ? 9.5 : 10.5
+    let guardSpeed: Double = DeviceHelper.isIPhone ? 5.5 : 6.5
 
     // O inicializador também foi atualizado para aceitar o tipo do protocolo.
     init(scene: BossFightScene, spawner: EnemySpawner) {
@@ -103,7 +106,7 @@ class MageControl {
         }
         
         let endPosition = CGPoint(x: 0, y: -scene.size.height / 2 - 150)
-        let moveAction = SKAction.move(to: endPosition, duration: 12.0) // Duração maior = mais lento
+        let moveAction = SKAction.move(to: endPosition, duration: mageSpeed) // Duração maior = mais lento
         mage.run(moveAction, withKey: "mageMovement")
     }
     
@@ -124,11 +127,8 @@ class MageControl {
         
         guard let scene = self.scene else { return }
         
-        let killZoneTopY: CGFloat = DeviceHelper.isIPhone ? scene.size.height / 2 - 100 : scene.size.height / 2 - 125
-        let killZoneBottomY: CGFloat = DeviceHelper.isIPhone ? -scene.size.height / 2 + 180 : -scene.size.height / 2 + 215
-        
         for guardNode in spawnedGuards {
-            guard guardNode.position.y < killZoneTopY && guardNode.position.y > killZoneBottomY else {
+            guard scene.killZoneRect.contains(guardNode.position) else {
                 continue
             }
             
@@ -162,10 +162,7 @@ class MageControl {
     private func handleMageHit(gesture: String) {
         guard let mage = self.mageNode, let scene = self.scene else { return }
         
-        let killZoneTopY: CGFloat = DeviceHelper.isIPhone ? scene.size.height / 2 - 100 : scene.size.height / 2 - 125
-        let killZoneBottomY: CGFloat = DeviceHelper.isIPhone ? -scene.size.height / 2 + 180 : -scene.size.height / 2 + 215
-        
-        guard mage.position.y < killZoneTopY && mage.position.y > killZoneBottomY else {
+        guard scene.killZoneRect.contains(mage.position) else {
             return
         }
         
@@ -225,7 +222,7 @@ class MageControl {
                 scene.addChild(guardNode)
                 
                 let endPosition = CGPoint(x: 0, y: -scene.size.height / 2 - 100)
-                let moveAction = SKAction.move(to: endPosition, duration: 8.0)
+                let moveAction = SKAction.move(to: endPosition, duration: guardSpeed)
                 
                 let removeAction = SKAction.run { [weak self] in
                     self?.spawnedGuards.removeAll { $0 === guardNode }

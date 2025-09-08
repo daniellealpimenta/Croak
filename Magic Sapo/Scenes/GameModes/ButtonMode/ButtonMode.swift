@@ -24,6 +24,20 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     private var scoreAtLastBossDefeat = 0
     var pauseOverlayComponent: PauseOverlayComponent!
     
+    var killZoneRect: CGRect {
+        // Borda SUPERIOR da zona: Começa da base da tela e sobe.
+        let topY: CGFloat = (+self.size.height / 2) - (Guards.enemySize.height + Guards.gestureSize.height / 2)
+        
+        // Borda INFERIOR da zona: A base da tela.
+        let bottomY: CGFloat = (-self.size.height / 2) + 125
+        
+        // Calcula a altura da zona
+        let height = topY - bottomY
+        
+        // Cria e retorna o retângulo
+        return CGRect(x: -self.size.width / 2, y: bottomY, width: self.size.width, height: height)
+    }
+    
     override func sceneDidLoad() {
         self.physicsWorld.contactDelegate = self
       }
