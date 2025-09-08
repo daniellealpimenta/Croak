@@ -192,6 +192,7 @@ struct Guards: Enemy {
         let gestureSprite = SKSpriteNode(imageNamed: gestureName)
         gestureSprite.size = gestureSize
         gestureSprite.position = CGPoint(x: 0, y: gestureYPosition)
+        gestureSprite.zPosition = Layer.effects.rawValue
         gestureSprite.name = gestureName
         
         evilGuard.addChild(gestureSprite)

@@ -149,6 +149,7 @@ class Thief: Enemy {
             let gestureSprite = SKSpriteNode(imageNamed: gestureName)
             gestureSprite.size = gestureSize
             gestureSprite.position = CGPoint(x: xOffset, y: yOffset)
+            gestureSprite.zPosition = Layer.effects.rawValue
             gestureSprite.name = gestureName
             
             thiefNode.addChild(gestureSprite)
