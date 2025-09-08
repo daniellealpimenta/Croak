@@ -282,8 +282,8 @@ class GestureDetectionManager: NSObject {
         // Adiciona ao container
         parentView.addSubview(imageView)
         
-        let widthMultiplier: CGFloat = DeviceHelper.isIPad ? 0.4 : 0.65
-        let heightMultiplier: CGFloat = DeviceHelper.isIPad ? 0.6 : 0.85
+        let widthMultiplier: CGFloat = DeviceHelper.isIPad ? 0.4 : 0.8
+        let heightMultiplier: CGFloat = DeviceHelper.isIPad ? 0.6 : 1
         
         // Constraints para centralizar e dimensionar
         NSLayoutConstraint.activate([
@@ -320,9 +320,26 @@ class GestureDetectionManager: NSObject {
     /// Remove a janela de preview da câmera da tela.
     func removeCameraPreview() {
         DispatchQueue.main.async {
-            self.cameraView?.removeFromSuperview()
-            self.cameraView = nil
+            
+            let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+            
+            if !isCameraPreviewEnabled {
+                let cameraPreviewToRemove = self.cameraView
+                
+                self.cameraView = nil
+                
+                UIView.animate(withDuration: 0.3, animations: {
+                    cameraPreviewToRemove?.alpha = 0
+                }) { (finished) in
+                    cameraPreviewToRemove?.removeFromSuperview()
+                }
+            } else {
+                self.cameraView?.removeFromSuperview()
+                self.cameraView = nil
+            }
+            
             self.previewLayer = nil
+
         }
     }
     

@@ -72,12 +72,6 @@ class EnemySpawner {
     
     // MARK: - Ações Públicas
     
-    /// Repassa a chamada de atualização de velocidade para o controlador de inimigos.
-    public func updateEnemySpeed(basedOn score: Int) {
-        enemyControl.updateSpeed(basedOn: score)
-    }
-    
-    
     /// Delega a chamada para matar um inimigo para o `enemyControl`.
     /// A GameScene falará com este método, e ele repassará a ordem.
     public func killEnemy(withGesture gesture: String) -> (points: Int, coins: Int)? {
