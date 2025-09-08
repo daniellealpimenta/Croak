@@ -124,7 +124,7 @@ class PauseOverlayComponent {
     /// Processa um toque na tela, verificando se atingiu um dos botões do overlay.
     /// Deve ser chamado pela cena no método `touchesBegan`.
     func handleTouch(at location: CGPoint) {
-        guard let overlay = overlayNode, let scene = parentScene else { return }
+        guard let scene = parentScene else { return }
 
         // Mesmo com a view pausada, podemos pedir os nós diretamente.
         let touchedNodes = scene.nodes(at: location)

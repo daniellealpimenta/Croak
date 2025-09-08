@@ -425,7 +425,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
         
         gestureDebugImageNode = SKSpriteNode() // Inicializa o nó vazio
-        if let imageNode = gestureDebugImageNode, let labelNode = gestureDebugLabel {
+        if let imageNode = gestureDebugImageNode {
             imageNode.size = DeviceHelper.isIPad ? CGSize(width: 80, height: 80) : CGSize(width: 50, height: 50)
             imageNode.position = DeviceHelper.isIPhone ?  CGPoint(x: 85, y: -200) : CGPoint(x: 80, y: -170)
             imageNode.isHidden = true
