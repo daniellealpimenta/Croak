@@ -50,7 +50,7 @@ class Mage: SKSpriteNode {
         invokingTexture.filteringMode = .nearest
         invokingTextureCrack.filteringMode = .nearest
 
-        let mageSize = DeviceHelper.isIPhone ? CGSize(width: 105, height: 105) : CGSize(width: 180, height: 180)
+        let mageSize = DeviceHelper.isIPhone ? CGSize(width: 135, height: 135) : CGSize(width: 180, height: 180)
         
         // 1. Cria o nó principal do Mago (usando uma cor como placeholder)
         let mageNode = SKSpriteNode(texture: firstFrame, size: mageSize)

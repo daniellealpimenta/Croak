@@ -10,4 +10,5 @@ import SpriteKit
 protocol ScoreHavingScene: SKScene {
     var scoreComponent: ScoreComponent! { get }
     var coinsComponent: CoinsComponent! { get }
+    var killZoneRect: CGRect { get }
 }

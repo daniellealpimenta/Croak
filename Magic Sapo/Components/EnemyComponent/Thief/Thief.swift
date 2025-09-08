@@ -11,13 +11,16 @@ import SpriteKit
 
 class Thief: Enemy {
         
-    static var speed: Double = 1.25
+    static var speed: Double = DeviceHelper.isIPhone ? 1.15 : 1.25
     static var pointValue: Int = 1
     static var coinValue: Int = 5
     
     static var gestures: [String] = Gestures.availableGestures
     
     static let gestureCount: Int = 2
+    
+    static var enemySize = DeviceHelper.isIPhone ? CGSize(width: 70, height: 70) : CGSize(width: 100, height: 100)
+    static var gestureSize = DeviceHelper.isIPhone ? CGSize(width: 35, height: 35) : CGSize(width: 50, height: 50)
     
     private static func loadFrames(prefix: String, frameCount: Int) -> [SKTexture] {
         var frames: [SKTexture] = []
@@ -42,13 +45,12 @@ class Thief: Enemy {
             return nil
         }
 
-        let thiefSize = DeviceHelper.isIPhone ? CGSize(width: 70, height: 70) : CGSize(width: 100, height: 100)
-        let gestureSize = DeviceHelper.isIPhone ? CGSize(width: 35, height: 35) : CGSize(width: 50, height: 50)
+        
         let spacing: CGFloat = DeviceHelper.isIPhone ? 7.0 : 10.0
         let yOffset: CGFloat = DeviceHelper.isIPhone ? 56.0 : 80.0
 
         // 1. Cria o nó principal do Ladrão, agora usando o tamanho adaptativo
-        let thiefNode = SKSpriteNode(texture: firstFrame, size: thiefSize)
+        let thiefNode = SKSpriteNode(texture: firstFrame, size: self.enemySize)
         thiefNode.name = "Thief"
         thiefNode.position = position
         

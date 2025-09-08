@@ -33,6 +33,9 @@ protocol Enemy {
     
     static var speed: Double { get }
     
+    static var enemySize: CGSize { get }
+    
+    static var gestureSize: CGSize { get }
  //   static var gestureQuantity: Int { get }
     // Vai ficar um em cima do outro
 

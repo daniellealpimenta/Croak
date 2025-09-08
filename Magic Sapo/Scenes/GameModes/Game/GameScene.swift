@@ -60,6 +60,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     //    Flag para controlar a inicialização da cena.
     private var sceneIsInitialized = false
     
+    var killZoneRect: CGRect {
+        // Borda SUPERIOR da zona: Começa da base da tela e sobe.
+        let topY: CGFloat = (+self.size.height / 2) - (Guards.enemySize.height + Guards.gestureSize.height / 2)
+        
+        // Borda INFERIOR da zona: A base da tela.
+        let bottomY: CGFloat = (-self.size.height / 2) + 125
+        
+        // Calcula a altura da zona
+        let height = topY - bottomY
+        
+        // Cria e retorna o retângulo
+        return CGRect(x: -self.size.width / 2, y: bottomY, width: self.size.width, height: height)
+    }
+    
     // MARK: - Ciclo de Vida da Cena
     
     override func didMove(to view: SKView) {
@@ -81,7 +95,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
         let musicSequence = SKAction.sequence([stopMusicAction, waitAction, playMusicAction])
         self.run(musicSequence)
+        
+//        drawDebugKillZone()
     }
+    
+//    private func drawDebugKillZone() {
+//        let zoneRect = self.killZoneRect
+//        
+//        let killZoneNode = SKSpriteNode(
+//            color: UIColor.red.withAlphaComponent(0.3),
+//            size: zoneRect.size
+//        )
+//        
+//        killZoneNode.position = CGPoint(x: zoneRect.midX, y: zoneRect.midY)
+//        killZoneNode.zPosition = 10
+//        
+//        self.addChild(killZoneNode)
+//
+//    }
     
     private func checkCameraPermission() {
         let cameraAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
@@ -628,7 +659,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let scoreSinceLastBoss = score - scoreAtLastBossDefeat
         
         // A condição agora é muito mais simples e robusta.
-        if gameState == .normalPlay && scoreSinceLastBoss >= 75  { // Use 5 para testar
+        if gameState == .normalPlay && scoreSinceLastBoss >= 15  { // Use 5 para testar
             
             // Não precisamos mais atualizar 'lastBossTriggerScore'.
             
