@@ -42,20 +42,31 @@ class MenuScene: SKScene {
     
     // Função para configurar os labels e botões
     func setupLabels() {
-        // Removido "LojaLabel" para manter consistência com a versão do iPhone
+        // Aplica a tradução aos botões "Jogar" e "Botões"
         let labelNames = ["JogarLabel", "TutorialLabel"]
         for name in labelNames {
             if let label = self.childNode(withName: "//\(name)") as? SKLabelNode {
                 label.fontName = "Ari-W9500Bold"
                 label.fontSize = 35
+                
+                if name == "JogarLabel" {
+                    label.text = NSLocalizedString("menu_play", comment: "Play button text")
+                } else if name == "TutorialLabel" {
+                    label.text = NSLocalizedString("menu_tutorial", comment: "Tutorial/Buttons mode button text")
+                }
+                
             } else {
                 print("AVISO: Não foi possível encontrar o nó com o nome '\(name)' na cena.")
             }
         }
         
-        // --- NOVO CÓDIGO ---
+        // --- CÓDIGO CORRIGIDO ---
         // Adiciona a configuração de fonte e sombra para o TitleLabel
         if let titleNode = self.childNode(withName: "//Title"), let titleLabel = titleNode.childNode(withName: "TitleLabel") as? SKLabelNode {
+            
+            // ✅ CORREÇÃO AQUI: Define o texto do TitleLabel como "Modo de Jogo:"
+            titleLabel.text = NSLocalizedString("menu_gamemode_title", comment: "Game mode title")
+            
             titleLabel.fontName = "Ari-W9500Bold"
             titleLabel.fontSize = 36
             titleLabel.zPosition = 5
@@ -104,20 +115,18 @@ class MenuScene: SKScene {
         }
     }
     
-    // Cria o Overlay de Configurações (VERSÃO CORRIGIDA)
+    // Cria o Overlay de Configurações
     func createSettingsOverlay() {
         settingsOverlay = SKNode()
         settingsOverlay?.name = "settingsOverlay"
         settingsOverlay?.zPosition = 100 // zPosition alto para ficar na frente de tudo
         
-        // 1. Fundo semi-transparente
         let background = SKShapeNode(rectOf: self.size)
         background.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         background.fillColor = SKColor.black
         background.alpha = 0.7
         settingsOverlay?.addChild(background)
         
-        // 2. Painel principal
         let panelSize = CGSize(width: self.frame.width * 0.8, height: self.frame.height * 0.7)
         let panel = SKShapeNode(rectOf: panelSize, cornerRadius: 15)
         panel.fillColor = SKColor(red: 0.2, green: 0.2, blue: 0.25, alpha: 1.0)
@@ -126,22 +135,19 @@ class MenuScene: SKScene {
         panel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         settingsOverlay?.addChild(panel)
         
-        // 3. Título (agora filho do painel)
-        let titleLabel = SKLabelNode(text: "Configurações")
+        let titleLabel = SKLabelNode(text: NSLocalizedString("settings_title", comment: "Settings panel title"))
         titleLabel.fontName = "Ari-W9500Bold"
         titleLabel.fontSize = 40
         titleLabel.fontColor = .white
         titleLabel.position = CGPoint(x: 0, y: (panelSize.height / 2) - 60)
         panel.addChild(titleLabel)
         
-        // 4. Botão de fechar (agora filho do painel)
         let closeButton = SKSpriteNode(imageNamed: "botaoClose")
         closeButton.name = "closeSettingsButton"
         closeButton.size = CGSize(width: 50, height: 50)
         closeButton.position = CGPoint(x: (panelSize.width / 2) - 40, y: (panelSize.height / 2) - 35)
         panel.addChild(closeButton)
         
-        // 5. Botão de toggle para a câmera (agora filho do painel)
         cameraToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
         cameraToggleButton?.name = "cameraToggleButton"
         cameraToggleButton?.fontSize = 28
@@ -149,7 +155,6 @@ class MenuScene: SKScene {
         cameraToggleButton?.position = CGPoint(x: 0, y: titleLabel.position.y - 80)
         panel.addChild(cameraToggleButton!)
         
-        // 6. Botão de toggle para o modo de validação (agora filho do painel)
         validationToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
         validationToggleButton?.name = "validationToggleButton"
         validationToggleButton?.fontSize = 28
@@ -157,7 +162,6 @@ class MenuScene: SKScene {
         validationToggleButton?.position = CGPoint(x: 0, y: cameraToggleButton!.position.y - 60)
         panel.addChild(validationToggleButton!)
         
-        // O overlay começa escondido
         settingsOverlay?.isHidden = true
         
         if let overlay = settingsOverlay {
@@ -169,12 +173,18 @@ class MenuScene: SKScene {
     
     func updateValidationToggleButtonText() {
         let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
-        validationToggleButton?.text = isValidationEnabled ? "Modo de Validação: Ligado" : "Modo de Validação: Desligado"
+        
+        let stateString = isValidationEnabled ? NSLocalizedString("state_on", comment: "") : NSLocalizedString("state_off", comment: "")
+        let baseString = NSLocalizedString("settings_validation_mode", comment: "e.g., Validation Mode: On")
+        validationToggleButton?.text = String(format: baseString, stateString)
     }
     
     func updateCameraToggleButtonText() {
         let isCameraEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
-        cameraToggleButton?.text = isCameraEnabled ? "Câmera Preview: Ligada" : "Câmera Preview: Desligada"
+
+        let stateString = isCameraEnabled ? NSLocalizedString("state_on", comment: "") : NSLocalizedString("state_off", comment: "")
+        let baseString = NSLocalizedString("settings_camera_preview", comment: "e.g., Camera Preview: On")
+        cameraToggleButton?.text = String(format: baseString, stateString)
     }
     
     func showSettingsOverlay() {
@@ -198,7 +208,6 @@ class MenuScene: SKScene {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         
-        // Verifica se o overlay de configurações está ativo
         if settingsOverlay?.isHidden == false {
             let touchedNode = atPoint(location)
             
@@ -222,7 +231,6 @@ class MenuScene: SKScene {
             return
         }
         
-        // Lógica para os botões do menu principal (só executa se o overlay estiver fechado)
         let touchedNode = atPoint(location)
         guard let nodeName = touchedNode.name else { return }
 
@@ -231,8 +239,6 @@ class MenuScene: SKScene {
             showSettingsOverlay()
 
         case "GestureMode", "JogarLabel":
-            // Se tocamos no label, pegamos o seu pai (a imagem).
-            // Se tocamos na própria imagem, usamos ela mesma.
             let buttonToAnimate = (nodeName == "JogarLabel") ? touchedNode.parent : touchedNode
             
             if let button = buttonToAnimate {
@@ -242,18 +248,16 @@ class MenuScene: SKScene {
             }
 
         case "ButtonMode", "TutorialLabel":
-            // A mesma lógica para o outro botão
             let buttonToAnimate = (nodeName == "TutorialLabel") ? touchedNode.parent : touchedNode
             
             if let button = buttonToAnimate {
-                // (Bônus) Aplica a mesma animação aqui para consistência
                 button.runButtonAnimation {
                     self.transitionToScene(named: "ButtonMode", isGestureMode: false)
                 }
             }
             
         default:
-            break // Tocou em uma área sem botão
+            break
         }
     }
     
@@ -279,25 +283,17 @@ class MenuScene: SKScene {
     // MARK: - Funções Auxiliares
 
     private func addShadow(to label: SKLabelNode, in parentNode: SKNode, offset: CGPoint, color: SKColor) {
-        // Cria uma cópia exata do label original
         let shadowLabel = label.copy() as! SKLabelNode
         
-        // Define a cor da sombra
         shadowLabel.fontColor = color
         
-        // Posiciona a sombra com um pequeno deslocamento
         shadowLabel.position = CGPoint(x: label.position.x + offset.x, y: label.position.y + offset.y)
         
-        // Garante que a sombra fique atrás do label original
         shadowLabel.zPosition = label.zPosition - 1
         
-        // Adiciona a sombra ao mesmo nó pai do label original
         parentNode.addChild(shadowLabel)
     }
 }
-
-
-
 
 // MARK: - Animação de Botão Adaptativa
 

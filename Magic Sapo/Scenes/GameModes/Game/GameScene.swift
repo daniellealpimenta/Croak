@@ -313,7 +313,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let fontSize: CGFloat = DeviceHelper.isIPad ? 30 : 20
         
         let label = UILabel()
-        label.text = "Mantenha sua mão na área enquanto joga!"
+        label.text = NSLocalizedString("validation_instruction", comment: "Instruction for gesture validation mode")
         label.font = UIFont.systemFont(ofSize: fontSize, weight: .medium)
         label.textColor = .white
         label.textAlignment = .center

@@ -1,0 +1,48 @@
+/*
+  Localizable.strings (English)
+  Magic Sapo
+
+  Created by Pedro Santos on 08/09/25.
+*/
+
+/* Translations for the English language. */
+
+
+// MARK: Menu
+
+/* Main Menu */
+"menu_play" = "Gestures";
+"menu_tutorial" = "Buttons";
+"menu_gamemode_title" = "Game Mode:";
+
+/* Settings Screen */
+"settings_title" = "Settings";
+"settings_camera_preview" = "Camera Preview: %@";
+"settings_validation_mode" = "Validation Mode: %@";
+
+/* On/Off States */
+"state_on" = "On";
+"state_off" = "Off";
+
+/* Camera Permission Alert */
+"camera_permission_title" = "Camera Access Required";
+"camera_permission_message" = "This game uses the camera to detect your gestures. Please enable access in Settings to play.";
+"go_to_settings_button" = "Go to Settings";
+"back_to_menu_button" = "Back to Menu";
+
+// MARK: GameOver
+
+/* Game Over Screen */
+"gameover_highscore" = "High Score:";
+
+// MARK: Onboarding
+
+/* Tutorial Dialogues */
+"onboarding_step1_dialogue" = "Here comes a guard! He wants to take our magic book. Make the gesture on the screen with your hand to cast a spell on him!";
+"onboarding_step2_dialogue" = "One more time! To defeat each guard, mimic the gesture from the image above their head.";
+"onboarding_step3_dialogue" = "Careful... Now comes a thief. You need to make both of the 2 gestures to defeat him!";
+"onboarding_step4_dialogue" = "Defeat this other thief with what you've learned!";
+"onboarding_step5_dialogue" = "Well done! Now you are ready to truly begin. Pay attention to the enemies' gestures!";
+
+/* Validation Mode */
+"validation_instruction" = "Keep your hand in the area while playing!";
