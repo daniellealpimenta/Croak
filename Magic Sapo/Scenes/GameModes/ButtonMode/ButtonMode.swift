@@ -267,30 +267,28 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     
     func playerDidMake(gesture: String) {
           switch gameState {
-              case .bossFight:
-                  // Durante a batalha, apenas o chefe responde.
-                  mageControl?.handlePlayer(gesture: gesture)
-                  
-              case .normalPlay, .clearingField:
-                  // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
-                  if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
-                      scoreComponent.addScore(point: rewards.points)
-                      coinsComponent.addCoins(coins: rewards.coins)
-                      
-                      enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
-                      
-                  } else {
-                      if scoreComponent.scoreCount > 0 {
-                          print("Gesto errado com botão! Aplicando penalidade.")
-                          scoreComponent.decreaseScore(point: 1)
-                      } else {
-                          print("Gesto errado com botão, mas a pontuação já é 0. Nenhuma penalidade aplicada.")
-                      }
-                  }
-              }
-              
-              // Após cada jogada, verifica se é hora de iniciar a luta do chefe
-        checkToStartBossEncounter()
+            case .bossFight:
+                // Durante a batalha, apenas o chefe responde.
+                mageControl?.handlePlayer(gesture: gesture)
+                
+            case .normalPlay, .clearingField:
+                // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
+                if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
+                    scoreComponent.addScore(point: rewards.points)
+                    coinsComponent.addCoins(coins: rewards.coins)
+                    
+                } else {
+                    if scoreComponent.scoreCount > 0 {
+                        print("Gesto errado com botão! Aplicando penalidade.")
+                        scoreComponent.decreaseScore(point: 1)
+                    } else {
+                        print("Gesto errado com botão, mas a pontuação já é 0. Nenhuma penalidade aplicada.")
+                    }
+                }
+            }
+            
+            // Após cada jogada, verifica se é hora de iniciar a luta do chefe
+      checkToStartBossEncounter()
     }
     
     private func checkToStartBossEncounter() {
@@ -310,16 +308,19 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
            }
     }
     
-    
+   
     func enterBossFightState() {
             self.gameState = .bossFight
         }
     
     func bossFightDidEnd() {
         self.scoreAtLastBossDefeat = self.scoreComponent.scoreCount
+                // Notifica o controlador de inimigos para avançar o estágio e aumentar a velocidade.
         
         AudioManager.shared.stopBossMusic()
         AudioManager.shared.resumeBackgroundMusic()
+
+        enemySpawner.enemyControl.advanceToNextStage()
         
         mageControl = nil
         gameState = .normalPlay
@@ -343,14 +344,14 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
             pauseButtonComponent.delegate?.didTapPauseButton()
             return
         }
-         
+        
         if touchedNode.name == "rockButton" { playerDidMake(gesture: "Rock") }
         if touchedNode.name == "twoButton" { playerDidMake(gesture: "Two") }
         if touchedNode.name == "lButton" { playerDidMake(gesture: "L") }
         if touchedNode.name == "hangLButton" { playerDidMake(gesture: "HangLose") }
         if touchedNode.name == "openPButton" { playerDidMake(gesture: "OpenPalm") }
         if touchedNode.name == "TopButton" { playerDidMake(gesture: "Top") }
-     
+      
     }
     
     // MARK: - Delegates
@@ -397,4 +398,3 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         NotificationCenter.default.removeObserver(self)
     }
 }
-

@@ -1,0 +1,48 @@
+/*
+  Localizable.strings (Spanish)
+  Magic Sapo
+
+  Created by Pedro Santos on 08/09/25.
+*/
+
+/* Traducciones para el idioma Español. */
+
+
+// MARK: Menu
+
+/* Menú Principal */
+"menu_play" = "Gestos";
+"menu_tutorial" = "Botones";
+"menu_gamemode_title" = "Modo de Juego:";
+
+/* Pantalla de Configuración */
+"settings_title" = "Configuración";
+"settings_camera_preview" = "Vista Previa de Cámara: %@";
+"settings_validation_mode" = "Modo de Validación: %@";
+
+/* Estados Activado/Desactivado */
+"state_on" = "Activado";
+"state_off" = "Desactivado";
+
+/* Alerta de Permiso de Cámara */
+"camera_permission_title" = "Se Requiere Acceso a la Cámara";
+"camera_permission_message" = "Este juego utiliza la cámara para detectar tus gestos. Por favor, habilita el acceso en Configuración para poder jugar.";
+"go_to_settings_button" = "Ir a Configuración";
+"back_to_menu_button" = "Volver al Menú";
+
+// MARK: GameOver
+
+/* Pantalla de Fin de Juego */
+"gameover_highscore" = "Mejor Puntuación:";
+
+// MARK: Onboarding
+
+/* Diálogos del Tutorial */
+"onboarding_step1_dialogue" = "¡Ahí viene un guardia! Quiere llevarse nuestro libro mágico. ¡Haz el gesto de la pantalla con tu mano para lanzarle un hechizo!";
+"onboarding_step2_dialogue" = "¡Una vez más! Para derrotar a cada guardia, imita el gesto de la imagen sobre su cabeza.";
+"onboarding_step3_dialogue" = "Cuidado... Ahora viene un ladrón. ¡Necesitas hacer cada uno de los 2 gestos para derrotarlo!";
+"onboarding_step4_dialogue" = "¡Derrota a este otro ladrón con lo que has aprendido!";
+"onboarding_step5_dialogue" = "¡Muy bien! Ahora estás listo para empezar de verdad. ¡Presta atención a los gestos de los enemigos!";
+
+/* Modo de Validación */
+"validation_instruction" = "¡Mantén tu mano en el área mientras juegas!";

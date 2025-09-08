@@ -313,7 +313,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let fontSize: CGFloat = DeviceHelper.isIPad ? 30 : 20
         
         let label = UILabel()
-        label.text = "Mantenha sua mão na área enquanto joga!"
+        label.text = NSLocalizedString("validation_instruction", comment: "Instruction for gesture validation mode")
         label.font = UIFont.systemFont(ofSize: fontSize, weight: .medium)
         label.textColor = .white
         label.textAlignment = .center
@@ -647,9 +647,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                     if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
                         scoreComponent.addScore(point: rewards.points)
                         coinsComponent.addCoins(coins: rewards.coins)
-                        
-                        enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
-                        
+                                            
                     }
             }
             
@@ -663,7 +661,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         let scoreSinceLastBoss = score - scoreAtLastBossDefeat
         
-        if gameState == .normalPlay && scoreSinceLastBoss >= 15  {
+        if gameState == .normalPlay && scoreSinceLastBoss >= 75  {
                         
             gameState = .clearingField
             
@@ -684,6 +682,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         AudioManager.shared.stopBossMusic()
         AudioManager.shared.resumeBackgroundMusic()
+        enemySpawner.enemyControl.advanceToNextStage()
         
         mageControl = nil
         gameState = .normalPlay

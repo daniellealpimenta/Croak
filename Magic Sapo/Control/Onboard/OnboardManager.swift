@@ -8,7 +8,7 @@
 import SpriteKit
 import Foundation
 
-// MARK: - Modelo de Dados para o Onboarding
+// MARK: - Onboarding Data Model
 struct OnboardingStep {
     let dialogueText: String
     let frogImageName: String
@@ -23,7 +23,7 @@ struct OnboardingStep {
 
 class OnboardManager: NSObject {
     
-    // MARK: - Propriedades de UI
+    // MARK: - UI Properties
     private var onboardingGuardInstructionOverlay: UIImageView?
     private var onboardingThiefInstructionOverlay1: UIImageView?
     private var onboardingThiefInstructionOverlay2: UIImageView?
@@ -31,52 +31,52 @@ class OnboardManager: NSObject {
     private var onboardingDialogueBox: UIView?
     private var onboardingDialogueLabel: UILabel?
     
-    // MARK: - Propriedades de Estado e Dependências
+    // MARK: - State Properties and Dependencies
     private var currentStepIndex = 0
     private weak var view: SKView?
     private weak var enemySpawner: EnemySpawner?
     private weak var gestureManager: GestureDetectionManager?
     weak var delegate: OnboardDelegate?
     
-    // MARK: - Configuração do Onboarding (Fonte da Verdade)
+    // MARK: - Onboarding Configuration (Source of Truth)
     private let onboardingSteps: [OnboardingStep] = [
-        OnboardingStep(dialogueText: "Aí vem um guarda! Ele quer tomar o nosso livro mágico, faça o gesto que está na tela com sua mão para lançar uma magia nele!",
+        OnboardingStep(dialogueText: NSLocalizedString("onboarding_step1_dialogue", comment: ""),
                        frogImageName: "talking-frog",
                        enemyType: .guard,
                        requiredGestures: ["Rock"],
                        instructionImages: ["instruction_rock"]),
-        OnboardingStep(dialogueText: "Mais uma vez! Para derrotar cada guarda, imite o gesto da imagem em cima da sua cabeça.",
+        OnboardingStep(dialogueText: NSLocalizedString("onboarding_step2_dialogue", comment: ""),
                        frogImageName: "normal-frog",
                        enemyType: .guard,
                        requiredGestures: ["Two"],
                        instructionImages: ["instruction_two"]),
-        OnboardingStep(dialogueText: "Cuidado... Agora vem um ladrão. Você precisa fazer cada um dos 2 gestos para derrotá-lo!",
+        OnboardingStep(dialogueText: NSLocalizedString("onboarding_step3_dialogue", comment: ""),
                        frogImageName: "worried-frog",
                        enemyType: .thief,
                        requiredGestures: ["OpenPalm", "Top"],
                        instructionImages: ["instruction_openpalm", "instruction_top"]),
-        OnboardingStep(dialogueText: "Derrote esse outro ladrão com o que você aprendeu!",
+        OnboardingStep(dialogueText: NSLocalizedString("onboarding_step4_dialogue", comment: ""),
                        frogImageName: "talking-frog2",
                        enemyType: .thief,
                        requiredGestures: ["L", "HangLose"],
                        instructionImages: ["instruction_l", "instruction_hanglose"]),
-        OnboardingStep(dialogueText: "Muito bem! Agora você está pronto para começar de verdade. Atenção nos gestos dos inimigos!",
+        OnboardingStep(dialogueText: NSLocalizedString("onboarding_step5_dialogue", comment: ""),
                        frogImageName: "enchanted-frog",
                        enemyType: nil,
                        requiredGestures: [],
                        instructionImages: [])
     ]
     
-    // MARK: - Inicializador
+    // MARK: - Initializer
     init(view: SKView, spawner: EnemySpawner, gestureManager: GestureDetectionManager) {
         self.view = view
         self.enemySpawner = spawner
         self.gestureManager = gestureManager
     }
     
-    // MARK: - Funções Públicas (Controle do Onboarding)
+    // MARK: - Public Functions (Onboarding Control)
     func startOnboarding() {
-        print("🎓 Iniciando onboarding...")
+        print("🎓 Starting onboarding...")
         currentStepIndex = 0
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             self.showCurrentStep()
@@ -87,7 +87,7 @@ class OnboardManager: NSObject {
         delegate?.PlayerDidCorrectGesture()
         
         if self.enemySpawner!.hasActiveEnemies {
-            print("Ladrão atingido, mas ainda vivo. O jogador pode fazer o segundo gesto agora.")
+            print("Thief hit, but still alive. Player can now make the second gesture.")
             self.delegate?.EnterWaitingActionState()
         } else {
             removeOnboardingInstruction()
@@ -97,7 +97,7 @@ class OnboardManager: NSObject {
         }
     }
     
-    // MARK: - Lógica de Fluxo Privada
+    // MARK: - Private Flow Logic
     private func showCurrentStep() {
         guard currentStepIndex < onboardingSteps.count else {
             completeOnboardingFlow()
@@ -106,7 +106,7 @@ class OnboardManager: NSObject {
         
         let currentStep = onboardingSteps[currentStepIndex]
         
-        // Se o passo não tem inimigo (como a mensagem final), mostra só a UI e finaliza.
+        // If the step has no enemy (like the final message), just show the UI and finish.
         guard let enemyType = currentStep.enemyType else {
             showOnboardingInstruction()
             completeOnboardingFlow()
@@ -131,7 +131,7 @@ class OnboardManager: NSObject {
         showOnboardingInstruction()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            print("⏰ Delay de 1.5s concluído. Agora esperando a ação do jogador.")
+            print("⏰ 1.5s delay finished. Now waiting for player action.")
             self.delegate?.EnterWaitingActionState()
         }
         self.gestureManager?.startDetection()
@@ -143,7 +143,7 @@ class OnboardManager: NSObject {
     }
     
     private func completeOnboardingFlow() {
-        // Agenda a conclusão final.
+        // Schedule the final completion.
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) { [weak self] in
             guard let self = self else { return }
             print("🚀 Starting the real game now!")
@@ -160,17 +160,15 @@ class OnboardManager: NSObject {
         }
     }
 
-    // MARK: - Gerenciamento da UI
-
-    // OnboardManager.swift
+    // MARK: - UI Management
 
     private func showOnboardingInstruction() {
         guard let view = self.view, currentStepIndex < onboardingSteps.count else { return }
-            
+                
         let currentStep = onboardingSteps[currentStepIndex]
         removeOnboardingInstruction()
-            
-        // --- VALORES ADAPTATIVOS ---
+                
+        // --- ADAPTIVE VALUES ---
         let dialogueBoxPadding: CGFloat = DeviceHelper.isIPad ? 70 : 20
         let dialogueBoxBottomPadding: CGFloat = DeviceHelper.isIPad ? 20 : 10
         let dialogueBoxHeight: CGFloat = DeviceHelper.isIPad ? 200 : 160
@@ -179,14 +177,14 @@ class OnboardManager: NSObject {
         let labelPaddingX: CGFloat = DeviceHelper.isIPad ? 44 : 20
         let labelPaddingY: CGFloat = DeviceHelper.isIPad ? 30 : 15
         let labelFontSize: CGFloat = DeviceHelper.isIPad ? 32 : 20
-            
+                
         let frogImageWidth: CGFloat = DeviceHelper.isIPad ? 300 : 170
         let frogImageHeight: CGFloat = DeviceHelper.isIPad ? 300 : 170
         let frogPaddingLeft: CGFloat = DeviceHelper.isIPad ? 90 : 10
-            
+                
         let instructionImageSize: CGFloat = DeviceHelper.isIPad ? 200 : 95
         
-        // --- Caixa de Diálogo ---
+        // --- Dialogue Box ---
         let dialogueBox = UIView()
         dialogueBox.backgroundColor = .white
         dialogueBox.layer.cornerRadius = dialogueBoxCorner
@@ -195,7 +193,7 @@ class OnboardManager: NSObject {
         dialogueBox.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(dialogueBox)
         self.onboardingDialogueBox = dialogueBox
-            
+                
         NSLayoutConstraint.activate([
             dialogueBox.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: dialogueBoxPadding),
             dialogueBox.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -dialogueBoxPadding),
@@ -203,7 +201,7 @@ class OnboardManager: NSObject {
             dialogueBox.heightAnchor.constraint(equalToConstant: dialogueBoxHeight)
         ])
 
-        // --- Texto do Diálogo ---
+        // --- Dialogue Text ---
         let dialogueLabel = UILabel()
         dialogueLabel.text = currentStep.dialogueText
         dialogueLabel.textColor = .black
@@ -213,8 +211,8 @@ class OnboardManager: NSObject {
         dialogueLabel.translatesAutoresizingMaskIntoConstraints = false
         dialogueBox.addSubview(dialogueLabel)
         self.onboardingDialogueLabel = dialogueLabel
-            
-        // --- Imagem do Sapo ---
+                
+        // --- Frog Image ---
         let frogImageView = UIImageView(image: UIImage(named: currentStep.frogImageName))
         frogImageView.contentMode = .scaleAspectFit
         frogImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -237,33 +235,33 @@ class OnboardManager: NSObject {
             ])
         }
 
-            
-        // --- Imagens de Instrução ---
-        if currentStep.instructionImages.count > 1 { // Caso do Ladrão (2 imagens)
+                
+        // --- Instruction Images ---
+        if currentStep.instructionImages.count > 1 { // Thief case (2 images)
             let firstIV = createInstructionImageView(imageName: currentStep.instructionImages[0], size: instructionImageSize, in: view)
             let secondIV = createInstructionImageView(imageName: currentStep.instructionImages[1], size: instructionImageSize, in: view)
             
             if DeviceHelper.isIPad {
-                let paddingDireita: CGFloat = -100
+                let rightPadding: CGFloat = -100
                 NSLayoutConstraint.activate([
-                    secondIV.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: paddingDireita),
+                    secondIV.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: rightPadding),
                     secondIV.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor),
                     firstIV.trailingAnchor.constraint(equalTo: secondIV.leadingAnchor),
                     firstIV.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor)
                 ])
             } else {
-                let paddingDireita: CGFloat = -25
+                let rightPadding: CGFloat = -25
                 let horizontalSpacing: CGFloat = 20
                 
                 NSLayoutConstraint.activate([
-                    // Alinha ambas na borda direita
-                    secondIV.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: paddingDireita),
+                    // Align both to the right edge
+                    secondIV.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: rightPadding),
                     firstIV.trailingAnchor.constraint(equalTo: secondIV.leadingAnchor, constant: horizontalSpacing),
                     
-                    // "Gruda" a imagem de baixo no topo da caixa de diálogo
+                    // "Stick" the bottom image to the top of the dialogue box
                     secondIV.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: 0),
                     
-                    // Coloca a imagem de cima sobre a de baixo
+                    // Place the top image above the bottom one
                     firstIV.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: 0)
                 ])
             }
@@ -271,24 +269,24 @@ class OnboardManager: NSObject {
             self.onboardingThiefInstructionOverlay1 = firstIV
             self.onboardingThiefInstructionOverlay2 = secondIV
 
-        } else if let imageName = currentStep.instructionImages.first { // Caso do Guarda (1 imagem)
+        } else if let imageName = currentStep.instructionImages.first { // Guard case (1 image)
             let iv = createInstructionImageView(imageName: imageName, size: instructionImageSize, in: view)
             
             if DeviceHelper.isIPad {
-                let paddingDireita: CGFloat = -172
+                let rightPadding: CGFloat = -172
                 NSLayoutConstraint.activate([
-                    iv.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: paddingDireita),
+                    iv.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: rightPadding),
                     iv.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor)
                 ])
             } else {
                 
-                let paddingDireita: CGFloat = -40
+                let rightPadding: CGFloat = -40
                 
                 NSLayoutConstraint.activate([
-                    // Alinha na borda direita
-                    iv.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: paddingDireita),
+                    // Align to the right edge
+                    iv.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: rightPadding),
                     
-                    // "Gruda" a base da imagem no topo da caixa de diálogo
+                    // "Stick" the base of the image to the top of the dialogue box
                     iv.bottomAnchor.constraint(equalTo: dialogueBox.topAnchor, constant: 0)
                 ])
             }
@@ -296,7 +294,7 @@ class OnboardManager: NSObject {
             self.onboardingGuardInstructionOverlay = iv
         }
         
-        // O texto sempre ocupa a caixa inteira
+        // The text always fills the entire box
         NSLayoutConstraint.activate([
             dialogueLabel.leadingAnchor.constraint(equalTo: dialogueBox.leadingAnchor, constant: labelPaddingX),
             dialogueLabel.trailingAnchor.constraint(equalTo: dialogueBox.trailingAnchor, constant: -labelPaddingX),
@@ -304,14 +302,14 @@ class OnboardManager: NSObject {
             dialogueLabel.bottomAnchor.constraint(equalTo: dialogueBox.bottomAnchor, constant: -labelPaddingY)
         ])
         
-            
-        // --- Animação de Entrada ---
+                
+        // --- Fade-In Animation ---
         onboardingGuardInstructionOverlay?.alpha = 0
         onboardingThiefInstructionOverlay1?.alpha = 0
         onboardingThiefInstructionOverlay2?.alpha = 0
         frogImageView.alpha = 0
         dialogueBox.alpha = 0
-            
+                
         UIView.animate(withDuration: 0.3) {
             self.onboardingGuardInstructionOverlay?.alpha = 1.0
             self.onboardingThiefInstructionOverlay1?.alpha = 1.0
@@ -320,9 +318,8 @@ class OnboardManager: NSObject {
             dialogueBox.alpha = 1.0
         }
     }
-    // MARK: FIm da show
     
-    // Função auxiliar para criar as ImageViews de instrução e evitar código repetido
+    // Helper function to create instruction ImageViews and avoid repeated code
     private func createInstructionImageView(imageName: String, size: CGFloat, in view: UIView) -> UIImageView {
         let imageView = UIImageView(image: UIImage(named: imageName))
         imageView.contentMode = .scaleAspectFit
