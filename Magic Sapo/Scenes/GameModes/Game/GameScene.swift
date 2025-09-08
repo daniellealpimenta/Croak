@@ -663,7 +663,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         let scoreSinceLastBoss = score - scoreAtLastBossDefeat
         
-        if gameState == .normalPlay && scoreSinceLastBoss >= 15  {
+        if gameState == .normalPlay && scoreSinceLastBoss >= 75  {
                         
             gameState = .clearingField
             
