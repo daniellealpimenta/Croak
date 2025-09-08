@@ -31,9 +31,19 @@ class ScoreComponent {
         
         // Cria e estiliza o nó de texto (SKLabelNode).
         self.scoreLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
-        self.scoreLabel.fontSize = 90
+        switch UIDevice.current.userInterfaceIdiom {
+            case .phone:
+            self.scoreLabel.fontSize = 70
+            self.scoreLabel.position = CGPoint(x: 0, y: 215)
+            case .pad:
+            self.scoreLabel.fontSize = 90
+            self.scoreLabel.position = CGPoint(x: 0, y: 250)
+            default:
+            self.scoreLabel.fontSize = 90
+            self.scoreLabel.position = CGPoint(x: 0, y: 250)
+        }
+       
         self.scoreLabel.fontColor = UIColor(red: 0.294, green: 0.529, blue: 0.192, alpha: 1.0)
-        self.scoreLabel.position = CGPoint(x: 0, y: 250)
         self.scoreLabel.text = "\(self.scoreCount)"
         self.scoreLabel.zPosition = Layer.points.rawValue
         

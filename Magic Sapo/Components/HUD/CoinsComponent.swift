@@ -31,7 +31,7 @@ class CoinsComponent {
         
     switch UIDevice.current.userInterfaceIdiom {
         case .phone:
-        self.coinsLabel.fontSize = 35
+        self.coinsLabel.fontSize = 25
         self.coinIcon.size = CGSize(width: 35, height: 35)
         case .pad:
         self.coinsLabel.fontSize = 50
@@ -57,7 +57,7 @@ class CoinsComponent {
             self.coinIcon.position = CGPoint(x: -450, y: 300)
         }
         self.coinsLabel.position = CGPoint(
-            x: self.coinIcon.position.x + self.coinIcon.size.width / 2 + 10,
+            x: self.coinIcon.position.x + self.coinIcon.size.width / 2,
             y: self.coinIcon.position.y
         )
         
