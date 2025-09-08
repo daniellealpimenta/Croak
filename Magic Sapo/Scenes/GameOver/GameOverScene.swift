@@ -1,5 +1,5 @@
 //
-//  LoseScene.swift
+//  GameOverScene.swift
 //  Magic Sapo
 //
 //  Created by Daniel Leal Pimenta on 15/08/25.
@@ -8,10 +8,9 @@
 import SpriteKit
 import Vision
 
-// Conformidade com o GestureDetectionDelegate
 class GameOverScene: SKScene {
     
-    // MARK: - Propriedades
+    // MARK: - Properties
     
     var previousSceneName: String?
     var finalScore: Int = 0
@@ -23,17 +22,17 @@ class GameOverScene: SKScene {
     private var gestureDebugLabel: SKLabelNode?
     private var isTransitioning = false
 
-    // MUDANÇA 1: Definir chaves únicas para cada modo de jogo
+    // Unique keys for each game mode's high score
     private let gameSceneHighScoreKey = "highScore_GameScene"
     private let buttonModeHighScoreKey = "highScore_ButtonMode"
 
-    // MARK: - Ciclo de Vida da Cena
+    // MARK: - Scene Lifecycle
 
     override func didMove(to view: SKView) {
         
         handleHighScore()
         
-        // Carrega o total de moedas salvas no dispositivo
+        // Loads the total coins saved on the device
         totalCoins = UserDefaults.standard.integer(forKey: "totalCoins")
         
         AudioManager.shared.setSoundEffectVolume(to: 0.4)
@@ -43,9 +42,9 @@ class GameOverScene: SKScene {
         coinsComponent = CoinsComponent(parent: self)
         coinsComponent.updateLabel(with: totalCoins)
         
-        // game over
+        // Game Over Label
         if let gameOverLabel = self.childNode(withName: "//GameOver_Label") as? SKLabelNode {
-            gameOverLabel.text = "GAME OVER"
+            gameOverLabel.text = "GAME OVER" 
             if DeviceHelper.isIPhone {
                 gameOverLabel.fontSize = 50
                 gameOverLabel.position.y -= 10
@@ -59,7 +58,7 @@ class GameOverScene: SKScene {
         }
         
         
-        // Pontuacao da ultima run
+        // Last run's score
         if let scoreLabel = self.childNode(withName: "//scoreLabel") as? SKLabelNode {
             scoreLabel.text = "\(finalScore)"
             if DeviceHelper.isIPhone {
@@ -74,53 +73,51 @@ class GameOverScene: SKScene {
             addShadow(to: scoreLabel)
         }
         
-        // Recorde
-        if let record = self.childNode(withName: "//Record_Label") as? SKLabelNode {
-            record.text = "Melhor Pontuação:"
-            record.fontSize = 24
-            record.fontName = "Ari-W9500Bold"
-            record.fontColor = .white
-            record.zPosition = 4
+        // High Score Label
+        if let highScoreLabel = self.childNode(withName: "//Record_Label") as? SKLabelNode {
+            // ✅ USING LOCALIZATION
+            highScoreLabel.text = NSLocalizedString("gameover_highscore", comment: "High score text label")
+            highScoreLabel.fontSize = 24
+            highScoreLabel.fontName = "Ari-W9500Bold"
+            highScoreLabel.fontColor = .white
+            highScoreLabel.zPosition = 4
             
             if DeviceHelper.isIPhone {
-                    record.position.y -= 30
+                    highScoreLabel.position.y -= 30
             }
         }
         
-        // Vitoria Regia
-        if let vitoriaRegiaNode = self.childNode(withName: "//VitoriaRegia") as? SKSpriteNode {
+        // "Vitoria Regia" (Water Lily) Node
+        if let waterLilyNode = self.childNode(withName: "//VitoriaRegia") as? SKSpriteNode {
             if DeviceHelper.isIPhone {
-                vitoriaRegiaNode.setScale(0.5)
+                waterLilyNode.setScale(0.5)
             }
         }
         
-        //Botoes
+        //Buttons
         
-        if let PlayButtonNode = self.childNode(withName: "//ResetButton") as? SKSpriteNode {
+        if let playButtonNode = self.childNode(withName: "//ResetButton") as? SKSpriteNode {
             if DeviceHelper.isIPhone {
-                PlayButtonNode.setScale(0.7)
-                PlayButtonNode.position.x -= 30
+                playButtonNode.setScale(0.7)
+                playButtonNode.position.x -= 30
             }
         }
         
-        if let ExitButtonNode = self.childNode(withName: "//ExitButton") as? SKSpriteNode {
+        if let exitButtonNode = self.childNode(withName: "//ExitButton") as? SKSpriteNode {
             if DeviceHelper.isIPhone {
-                ExitButtonNode.setScale(1.3)
-                ExitButtonNode.position.x += 30
+                exitButtonNode.setScale(1.3)
+                exitButtonNode.position.x += 30
             }
         }
     
-        
-        // Configuração da Detecção de Gestos
-       //  setupGestureDetection(in: view)
     }
     
-    // MARK: Verificação do modo de jogo para definição da pontucao recorde
-
+    // MARK: - Game Mode Check for High Score
+    
     private func handleHighScore() {
         var highScoreKey: String?
         
-        // Decide qual chave usar com base na cena anterior
+        // Decide which key to use based on the previous scene
         if previousSceneName == "GameScene" {
             highScoreKey = gameSceneHighScoreKey
         } else if previousSceneName == "ButtonMode" {
@@ -128,77 +125,44 @@ class GameOverScene: SKScene {
         }
         
         guard let key = highScoreKey else {
-            print("Nome da cena anterior inválido, não foi possível processar o recorde.")
+            print("Invalid previous scene name, could not process high score.")
             return
         }
         
-        // Carrega o recorde atual para o modo de jogo específico
+        // Load the current high score for the specific game mode
         let currentHighScore = UserDefaults.standard.integer(forKey: key)
         var scoreToDisplay = currentHighScore
         
-        // Verifica se a pontuação final é um novo recorde
+        // Check if the final score is a new high score
         if finalScore > currentHighScore {
             UserDefaults.standard.set(finalScore, forKey: key)
             scoreToDisplay = finalScore
-            print("Novo recorde para \(previousSceneName ?? "modo"): \(finalScore)")
+            print("New high score for \(previousSceneName ?? "mode"): \(finalScore)")
         }
         
-        // Configura o número da melhor pontuação (substituindo o valor fixo "1000")
-        if let record_n = self.childNode(withName: "//Record_Label_number") as? SKLabelNode {
-            record_n.text = "\(scoreToDisplay)" // Exibe o recorde correto
-            record_n.fontSize = 40
-            record_n.fontName = "Ari-W9500Bold"
-            record_n.fontColor = .white
-            record_n.zPosition = 4
+        // Configure the high score number
+        if let highScoreNumberLabel = self.childNode(withName: "//Record_Label_number") as? SKLabelNode {
+            highScoreNumberLabel.text = "\(scoreToDisplay)" // Display the correct high score
+            highScoreNumberLabel.fontSize = 40
+            highScoreNumberLabel.fontName = "Ari-W9500Bold"
+            highScoreNumberLabel.fontColor = .white
+            highScoreNumberLabel.zPosition = 4
             
             if DeviceHelper.isIPhone {
-                    record_n.position.y -= 10
+                    highScoreNumberLabel.position.y -= 10
             }
-
         }
     }
     
     override func willMove(from view: SKView) {
         super.willMove(from: view)
-        // Limpeza da Detecção de Gestos
+        // Gesture Detection Cleanup
         gestureManager?.stopDetection()
         gestureManager?.removeCameraPreview()
         gestureManager = nil
     }
     
-    // MARK: - Configuração dos Gestos
-    
-//    private func setupGestureDetection(in view: SKView) {
-//        gestureManager = GestureDetectionManager()
-//        gestureManager.delegate = self
-//        gestureManager.startDetection()
-//    }
-    
-    // MARK: - GestureDetectionDelegate
-    
-//    func gestureDetected(_ gesture: String, confidence: Double) {
-//        gestureDebugLabel?.text = "Gesto: \(gesture)"
-//        
-//        switch gesture {
-//        case "L":
-//            print("Gesto 'L' detectado. Saindo para o menu.")
-//            exitToMenu()
-//        case "Top":
-//            print("Gesto 'Top' detectado. Reiniciando")
-//            restartPreviousScene()
-//        default:
-//            break
-//        }
-//    }
-//    
-//    func gestureDetectionLost() {
-//        gestureDebugLabel?.text = "Gesto: Nenhum"
-//    }
-//    
-//    func cameraWillExpand() { }
-//    func cameraDidShrink() { }
-    
-    // MARK: - Ações de Navegação
+    // MARK: - Navigation Actions
     
     private func restartPreviousScene() {
         guard !isTransitioning else { return }
@@ -209,7 +173,7 @@ class GameOverScene: SKScene {
             let transition = SKTransition.fade(withDuration: 1.0)
             view?.presentScene(newGameScene, transition: transition)
         } else {
-            print("Erro: Nome da cena anterior não encontrado. Voltando para o Menu.")
+            print("Error: Previous scene name not found. Returning to Menu.")
             exitToMenu()
         }
     }
@@ -227,16 +191,16 @@ class GameOverScene: SKScene {
         }
     }
     
-    // MARK: - Entrada do Usuário (Toque)
+    // MARK: - User Input (Touch)
         
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard !isTransitioning, let touch = touches.first else { return }
-                
+            
         let location = touch.location(in: self)
         let touchedNode = atPoint(location)
-                
+            
         if touchedNode.name == "ResetButton" {
-            print("Botão Reiniciar foi tocado!")
+            print("Reset button was touched!")
             
             AudioManager.shared.playSoundEffect(named: "toque-reiniciar.mp3")
             
@@ -268,9 +232,9 @@ class GameOverScene: SKScene {
             
             touchedNode.run(sequence)
         }
-                
+            
         if touchedNode.name == "ExitButton" {
-            print("Botão Menu Principal foi tocado!")
+            print("Main Menu button was touched!")
             
             AudioManager.shared.playSoundEffect(named: "toque-voltar.mp3")
             
@@ -289,7 +253,7 @@ class GameOverScene: SKScene {
         }
     }
     
-    // MARK: - Funções Auxiliares
+    // MARK: - Helper Functions
 
     private func addShadow(to label: SKLabelNode, withOffset offset: CGPoint = CGPoint(x: 3, y: -3), color: SKColor = .black) {
         let shadowLabel = label.copy() as! SKLabelNode

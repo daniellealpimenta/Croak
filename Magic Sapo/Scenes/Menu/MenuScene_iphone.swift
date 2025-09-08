@@ -15,6 +15,7 @@ class MenuScene_iphone: SKScene {
     private var settingsOverlay: SKNode?
     private var cameraToggleButton: SKLabelNode?
     private var validationToggleButton: SKLabelNode?
+    // REMOVIDO: private var gameModeLabel: SKLabelNode? // Não precisamos mais deste
     
     var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     
@@ -25,6 +26,7 @@ class MenuScene_iphone: SKScene {
         UserDefaults.standard.register(defaults: ["isCameraPreviewEnabled": true])
         
         setupLabels()
+        // REMOVIDO: setupGameModeLabel() // Não precisamos mais desta função
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
 
         if !isOnboarding {
@@ -35,19 +37,33 @@ class MenuScene_iphone: SKScene {
     }
     
     // MARK: - Configuração da UI
-    
+        
     func setupLabels() {
         
+        // Aplica a tradução aos botões existentes
         let labelNames = ["JogarLabel", "TutorialLabel"]
         for name in labelNames {
             if let label = self.childNode(withName: "//\(name)") as? SKLabelNode {
                 label.fontName = "Ari-W9500Bold"
+                
+                if name == "JogarLabel" {
+                    label.text = NSLocalizedString("menu_play", comment: "Play button text")
+                } else if name == "TutorialLabel" {
+                    label.text = NSLocalizedString("menu_tutorial", comment: "Tutorial/Buttons mode button text")
+                }
+                
             } else {
                 print("AVISO: Não foi possível encontrar o nó com o nome '\(name)' na cena.")
             }
         }
         
         if let titleNode = self.childNode(withName: "//Title"), let titleLabel = titleNode.childNode(withName: "TitleLabel") as? SKLabelNode {
+            
+            // ✅ CORREÇÃO AQUI: Define o texto do TitleLabel diretamente
+            titleLabel.text = NSLocalizedString("menu_gamemode_title", comment: "Game mode title")
+            
+            // REMOVIDO: (titleNode as? SKLabelNode)?.text = "" // Isso não é mais necessário e causava confusão
+            
             titleLabel.fontName = "Ari-W9500Bold"
             titleLabel.fontSize = 36
             titleLabel.zPosition = 5
@@ -120,8 +136,8 @@ class MenuScene_iphone: SKScene {
         panel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         settingsOverlay?.addChild(panel)
         
-        // Título com fonte escalável
-        let titleLabel = SKLabelNode(text: "Configurações")
+        // Título com fonte escalável e tradução
+        let titleLabel = SKLabelNode(text: NSLocalizedString("settings_title", comment: ""))
         titleLabel.fontName = "Ari-W9500Bold"
         titleLabel.fontSize = panelWidth * 0.09
         titleLabel.fontColor = .white
@@ -166,12 +182,18 @@ class MenuScene_iphone: SKScene {
     
     func updateValidationToggleButtonText() {
         let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
-        validationToggleButton?.text = isValidationEnabled ? "Modo de Validação: Ligado" : "Modo de Validação: Desligado"
+        
+        let stateString = isValidationEnabled ? NSLocalizedString("state_on", comment: "") : NSLocalizedString("state_off", comment: "")
+        let baseString = NSLocalizedString("settings_validation_mode", comment: "")
+        validationToggleButton?.text = String(format: baseString, stateString)
     }
     
     func updateCameraToggleButtonText() {
         let isCameraEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
-        cameraToggleButton?.text = isCameraEnabled ? "Câmera Preview: Ligada" : "Câmera Preview: Desligada"
+        
+        let stateString = isCameraEnabled ? NSLocalizedString("state_on", comment: "") : NSLocalizedString("state_off", comment: "")
+        let baseString = NSLocalizedString("settings_camera_preview", comment: "")
+        cameraToggleButton?.text = String(format: baseString, stateString)
     }
     
     func showSettingsOverlay() {
@@ -279,5 +301,3 @@ class MenuScene_iphone: SKScene {
         parentNode.addChild(shadowLabel)
     }
 }
-
-
