@@ -31,8 +31,8 @@ class MageControl {
     private var spawnedGuards: [SKNode] = []
     private var currentState: BossState = .waitingForFieldClear
     
-    let mageSpeed: Double = DeviceHelper.isIPhone ? 9.5 : 10.5
-    let guardSpeed: Double = DeviceHelper.isIPhone ? 5.5 : 6.5
+    let mageSpeed: Double = DeviceHelper.isIPhone ? 9.0 : 10.0
+    let guardSpeed: Double = DeviceHelper.isIPhone ? 5.0 : 6.0
 
     // O inicializador também foi atualizado para aceitar o tipo do protocolo.
     init(scene: BossFightScene, spawner: EnemySpawner) {
