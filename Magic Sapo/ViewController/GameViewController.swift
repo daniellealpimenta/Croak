@@ -11,13 +11,6 @@ import GameplayKit
 import AVFoundation
 
 class GameViewController: UIViewController {
-    
-    //                print("--- LISTANDO FONTES DISPONÍVEIS NO APP ---")
-    //                for family in UIFont.familyNames.sorted() {
-    //                    let names = UIFont.fontNames(forFamilyName: family)
-    //                    print("Família: \(family) | Nomes: \(names)")
-    //                }
-    //                print("--- FIM DA LISTA DE FONTES ---")
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,10 +54,3 @@ class GameViewController: UIViewController {
         return true
     }
 }
-
-//        print("--- LISTANDO FONTES DISPONÍVEIS NO APP ---")
-//        for family in UIFont.familyNames.sorted() {
-//            let names = UIFont.fontNames(forFamilyName: family)
-//            print("Família: \(family) | Nomes: \(names)")
-//        }
-//        print("--- FIM DA LISTA DE FONTES ---")

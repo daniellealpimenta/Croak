@@ -76,7 +76,6 @@ class OnboardManager: NSObject {
     
     // MARK: - Public Functions (Onboarding Control)
     func startOnboarding() {
-        print("🎓 Starting onboarding...")
         currentStepIndex = 0
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             self.showCurrentStep()
@@ -87,7 +86,6 @@ class OnboardManager: NSObject {
         delegate?.PlayerDidCorrectGesture()
         
         if self.enemySpawner!.hasActiveEnemies {
-            print("Thief hit, but still alive. Player can now make the second gesture.")
             self.delegate?.EnterWaitingActionState()
         } else {
             removeOnboardingInstruction()
@@ -127,11 +125,9 @@ class OnboardManager: NSObject {
     }
     
     private func handleOnboardingEnemyReachedPosition(enemy: SKNode) {
-        print("🛑 Enemy reached middle position, pausing and showing instruction")
         showOnboardingInstruction()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            print("⏰ 1.5s delay finished. Now waiting for player action.")
             self.delegate?.EnterWaitingActionState()
         }
         self.gestureManager?.startDetection()
@@ -146,7 +142,6 @@ class OnboardManager: NSObject {
         // Schedule the final completion.
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) { [weak self] in
             guard let self = self else { return }
-            print("🚀 Starting the real game now!")
             
             self.removeOnboardingInstruction()
             

@@ -160,7 +160,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
             if UIApplication.shared.canOpenURL(settingsUrl) {
                 UIApplication.shared.open(settingsUrl, completionHandler: { (success) in
-                    print("Settings opened: \(success)") // Opcional: para depuração
                 })
             }
         }
@@ -199,7 +198,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     // GameScene.swift
 
     private func setupScene() {
-        print("Configurando a GameScene pela primeira vez.")
 
         NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppWillResignActive"), object: nil)
             
@@ -249,7 +247,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
         if isCameraPreviewEnabled {
             if let view = self.view {
-                print("Pré-visualização da câmera está ATIVADA. Configurando a view...")
                 self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
             }
         }
@@ -259,12 +256,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
             
             if isValidationEnabled {
-                print("Modo de validação está ATIVADO. Iniciando...")
                 setupValidationInstructionLabel()
                 setupCountdownLabel()
                 enterGestureValidationMode()
             } else {
-                print("Modo de validação está DESATIVADO. Pulando para o jogo.")
                 // Chama cameraDidShrink() para iniciar o onboarding ou o jogo principal.
                 cameraDidShrink()
             }
@@ -344,7 +339,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
         
         if !isCameraPreviewEnabled {
-                print("Preview estava desativada. Criando temporariamente para a validação.")
                 self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
         }
         
@@ -405,7 +399,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         // --- CORREÇÃO: Corrigido o nome da chave para "isCameraPreviewEnabled" ---
         let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
         if !isCameraPreviewEnabled {
-            print("Validação concluída. Removendo a preview com base nas configurações")
             gestureManager?.removeCameraPreview()
         }
         
@@ -506,13 +499,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         if self.view?.isPaused ?? false {
             return
         }
-        
-        print("🛑 PAUSANDO JOGO COMPLETAMENTE")
+
 
         // 2. Mostra a UI de pausa.
         
         if isOnboarding || isOnGestureValidationMode {
-            print("Pause travado!")
             return
         }
         
@@ -536,7 +527,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     @objc func resumeGame() {
         // 1. Usa a VIEW como "fonte da verdade".
         guard self.view?.isPaused ?? false else { return }
-        print("▶️ RETOMANDO JOGO COMPLETAMENTE")
 
         // 2. Despausa a VIEW PRIMEIRO para "acordar" a renderização.
         self.view?.isPaused = false
@@ -777,7 +767,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     func didTapPauseButton() {
-        print("Botão Pausar foi tocado (via Delegate)!")
         AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         self.pauseGame()
     }
@@ -814,7 +803,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     deinit {
-        print("GameScene está sendo removida, limpando os observers.")
         NotificationCenter.default.removeObserver(self)
     }
 }

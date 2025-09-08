@@ -120,7 +120,7 @@ class CoinsComponent {
         let newTotal = currentTotal + self.sessionCoins
         UserDefaults.standard.set(newTotal, forKey: totalCoinsKey)
         
-        print("\(self.sessionCoins) moedas da sessão foram salvas. Novo total: \(newTotal)")
+//        print("\(self.sessionCoins) moedas da sessão foram salvas. Novo total: \(newTotal)")
     }
 
 

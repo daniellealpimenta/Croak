@@ -43,7 +43,6 @@ class Mage: SKSpriteNode {
     static func create(at position: CGPoint) -> SKSpriteNode? {
         
         guard let firstFrame = walkAnimation.first else {
-            print("Erro: Textura inicial do Mago não encontrada.")
             return nil
         }
         
