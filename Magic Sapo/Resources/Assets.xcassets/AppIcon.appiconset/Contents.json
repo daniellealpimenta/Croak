@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "MagicFrogIcon.png",
+      "filename" : "IconCroak.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "MagicFrogIcon 1.png",
+      "filename" : "IconCroak 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "MagicFrogIcon 2.png",
+      "filename" : "IconCroak 2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
