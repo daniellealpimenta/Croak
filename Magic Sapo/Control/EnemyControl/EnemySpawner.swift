@@ -50,8 +50,6 @@ class EnemySpawner {
         // Se já houver um timer rodando, esta função não faz nada.
         guard spawnTimer == nil else { return }
         
-        print("Spawner iniciado.")
-        
         // Cria um timer que chama a função 'spawnEnemy' a cada 3 segundos.
         // Usar target/selector deixa o código de start/stop mais limpo.
         spawnTimer = Timer.scheduledTimer(
@@ -85,7 +83,6 @@ class EnemySpawner {
 
         guard let scoreScene = self.scene as? ScoreHavingScene,
               let actualScene = self.scene else {
-            print("[DEBUG] ERRO: A cena atual não tem um scoreComponent ou é nula. Parando o spawner.")
             stopSpawningEnemies()
             return
         }
@@ -100,8 +97,7 @@ class EnemySpawner {
             enemyToSpawn = Thief.self
 
             scoreAtLastThiefSpawn = currentScore
-            
-            print("--- LADRÃO SPAWNADO --- Pontuação atual: \(currentScore)")
+
         } else {
             enemyToSpawn = Guards.self
         }
@@ -138,7 +134,6 @@ class EnemySpawner {
         
             
         guard let enemy = Guards.createForOnboarding(at: startPosition, withGesture: gesture) else {
-            print("Erro ao criar inimigo de onboarding")
             return
         }
             
@@ -178,7 +173,6 @@ class EnemySpawner {
         }
         
         guard let enemy = Thief.createForOnboarding(at: startPosition, withGestures: gestures) else {
-            print("Erro ao criar Ladrão de onboarding")
             return
         }
 

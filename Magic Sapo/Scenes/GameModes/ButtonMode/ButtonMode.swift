@@ -72,7 +72,6 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     }
     
     private func setupScene() {
-        print("Configurando a ButtonScene pela primeira vez.")
         
         NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppWillResignActive"), object: nil)
 
@@ -172,7 +171,6 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
             return
         }
         
-        print("🛑 PAUSANDO JOGO COMPLETAMENTE")
 
         // 1. Mostra o overlay primeiro.
         pauseOverlayComponent.show()
@@ -197,7 +195,6 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         // Se a VIEW não está pausada, não há o que resumir.
         guard self.view?.isPaused ?? false else { return }
         
-        print("▶️ RETOMANDO JOGO COMPLETAMENTE")
 
         // 1. DESPAUSA A VIEW PRIMEIRO. Isso "acorda" o motor de renderização.
         self.view?.isPaused = false
@@ -279,10 +276,8 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
                     
                 } else {
                     if scoreComponent.scoreCount > 0 {
-                        print("Gesto errado com botão! Aplicando penalidade.")
                         scoreComponent.decreaseScore(point: 1)
                     } else {
-                        print("Gesto errado com botão, mas a pontuação já é 0. Nenhuma penalidade aplicada.")
                     }
                 }
             }
@@ -357,7 +352,6 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     // MARK: - Delegates
     
     func didTapPauseButton() {
-        print("Botão Pausar foi tocado na ButtonScene! (via Delegate)")
         AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         self.pauseGame()
     }
@@ -394,7 +388,6 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     }
     
     deinit {
-        print("ButtonScene está sendo removida, limpando os observers.")
         NotificationCenter.default.removeObserver(self)
     }
 }

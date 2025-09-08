@@ -37,7 +37,6 @@ struct Guards: Enemy {
     static func create(at position: CGPoint) -> SKSpriteNode? {
         
         guard let firstFrame = animationFrames.first else {
-            print("Erro: Texturas de animação para 'Guards' não foram encontradas.")
             return nil
         }
         
@@ -69,7 +68,6 @@ struct Guards: Enemy {
         evilGuard.userData?.setValue(1, forKey: "health")
 
         guard let randomGestureName = self.gestures.randomElement() else {
-            print("Erro: Não foi possível obter um gesto aleatório.")
             return nil
         }
 
@@ -86,7 +84,6 @@ struct Guards: Enemy {
     static func createdByMage(at position: CGPoint, withGesture gestureName: String) -> SKSpriteNode? {
                 
         guard let firstFrame = animationFrames.first else {
-            print("Erro: Texturas de animação para 'Guards' não foram encontradas.")
             return nil
         }
         
@@ -132,7 +129,6 @@ struct Guards: Enemy {
     static func createForOnboarding(at position: CGPoint, withGesture gestureName: String) -> SKSpriteNode? {
         
         guard let firstFrame = animationFrames.first else {
-            print("Erro: Texturas de animação para 'Guards' não foram encontradas.")
             return nil
         }
         

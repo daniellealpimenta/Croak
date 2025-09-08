@@ -30,7 +30,6 @@ class AudioManager {
         fadeTimer?.invalidate()
         
         guard let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
-            print("Erro: Arquivo de áudio não encontrado: \(filename)")
             return
         }
         
@@ -44,7 +43,6 @@ class AudioManager {
             backgroundMusicPlayer?.volume = musicVolume
             backgroundMusicPlayer?.prepareToPlay()
             backgroundMusicPlayer?.play()
-            print("Música de fundo iniciada: \(filename)")
         } catch {
             print("Erro ao tentar tocar a música de fundo: \(error.localizedDescription)")
         }
@@ -55,7 +53,6 @@ class AudioManager {
         fadeTimer?.invalidate()
         
         guard let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
-            print("Erro: Arquivo de áudio não encontrado: \(filename)")
             return
         }
         
@@ -100,7 +97,6 @@ class AudioManager {
                     player.volume = initialVolume // Reseta o volume para a próxima vez que tocar
                     self.fadeTimer?.invalidate()
                     self.fadeTimer = nil
-                    print("Música de fundo parada com fade-out.")
                 }
             }
         }
@@ -108,14 +104,12 @@ class AudioManager {
     func pauseBossMusic() {
         if bossMusicPlayer?.isPlaying == true {
             bossMusicPlayer?.pause()
-            print("Música de fundo pausada.")
         }
     }
 
     func resumeBossMusic() {
         if let player = bossMusicPlayer, !player.isPlaying {
             player.play()
-            print("Música de fundo retomada.")
         }
     }
 
@@ -145,7 +139,6 @@ class AudioManager {
                     player.volume = initialVolume // Reseta o volume para a próxima vez que tocar
                     self.fadeTimer?.invalidate()
                     self.fadeTimer = nil
-                    print("Música de fundo parada com fade-out.")
                 }
             }
         }
@@ -153,14 +146,12 @@ class AudioManager {
     func pauseBackgroundMusic() {
         if backgroundMusicPlayer?.isPlaying == true {
             backgroundMusicPlayer?.pause()
-            print("Música de fundo pausada.")
         }
     }
 
     func resumeBackgroundMusic() {
         if let player = backgroundMusicPlayer, !player.isPlaying {
             player.play()
-            print("Música de fundo retomada.")
         }
     }
 
@@ -174,7 +165,6 @@ class AudioManager {
 
     func playSoundEffect(named name: String) {
         guard let url = Bundle.main.url(forResource: name, withExtension: nil) else {
-            print("Erro: Arquivo de efeito sonoro não encontrado: \(name)")
             return
         }
 
@@ -189,7 +179,6 @@ class AudioManager {
     
     func playRandomSoundEffect(from names: [String]) {
         guard let randomName = names.randomElement() else {
-            print("Erro: A lista de sons aleatórios está vazia.")
             return
         }
         playSoundEffect(named: randomName)

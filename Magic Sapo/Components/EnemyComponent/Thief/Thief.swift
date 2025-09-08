@@ -41,7 +41,6 @@ class Thief: Enemy {
     static func create(at position: CGPoint) -> SKSpriteNode? {
         
         guard let firstFrame = walkAnimation.first else {
-            print("Erro: Textura inicial do Ladrão não encontrada.")
             return nil
         }
 
@@ -81,7 +80,7 @@ class Thief: Enemy {
         let requiredGestures = Self.gestures.shuffled().prefix(gestureCount)
         
         if requiredGestures.isEmpty {
-            print("Erro: Ladrão não conseguiu selecionar gestos")
+//            print("Erro: Ladrão não conseguiu selecionar gestos")
             return nil
         }
         
@@ -107,7 +106,6 @@ class Thief: Enemy {
     static func createForOnboarding(at position: CGPoint, withGestures gestures: [String]) -> SKSpriteNode? {
         
         guard let firstFrame = walkAnimation.first else {
-            print("Erro: Textura inicial do Ladrão não encontrada.")
             return nil
         }
         

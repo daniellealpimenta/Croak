@@ -79,7 +79,6 @@ class GestureDetectionManager: NSObject {
               let input = try? AVCaptureDeviceInput(device: device),
               session.canAddInput(input)
         else {
-            print("Erro ao configurar a câmera frontal")
             return
         }
         
@@ -116,7 +115,6 @@ class GestureDetectionManager: NSObject {
         
         if duringOnboarding {
             // Posição: Canto SUPERIOR DIREITO
-            print("📹 Configurando câmera para o Onboarding (Canto Superior Direito).")
             frame = CGRect(
                 x: skView.bounds.width - cameraViewWidth - paddingHorizontal,
                 y: paddingTop,
@@ -125,7 +123,6 @@ class GestureDetectionManager: NSObject {
             )
         } else {
             // Posição: Canto INFERIOR ESQUERDO (Sua posição final desejada)
-            print("📹 Configurando câmera para o Jogo Normal (Canto Inferior Esquerdo).")
             frame = CGRect(
                 x: paddingHorizontal,
                 y: skView.bounds.height - cameraViewHeight - paddingBottom,
@@ -187,7 +184,6 @@ class GestureDetectionManager: NSObject {
         
         // 1. Garante que a cameraView já foi criada.
         guard let camView = self.cameraView else {
-            print("A cameraView ainda não foi inicializada e não pode ser expandida.")
             return
         }
         
@@ -213,7 +209,6 @@ class GestureDetectionManager: NSObject {
     func shrinkCameraPreviewToOriginal(in skView: SKView) {
         // 1. Garante que a view da câmera e o frame original existam.
         guard let camView = self.cameraView, let originalFrame = self.originalCameraFrame else {
-            print("A cameraView ou o frame original não foram inicializados.")
             return
         }
         
@@ -310,8 +305,6 @@ class GestureDetectionManager: NSObject {
             
             if let image = UIImage(named: imageName) {
                 self.handFeedbackOverlayImageView?.image = image
-            } else {
-                print("⚠️ Imagem de feedback '\(imageName)' não encontrada nos assets.")
             }
         }
     }

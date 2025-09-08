@@ -52,8 +52,6 @@ class MenuScene_iphone: SKScene {
                     label.text = NSLocalizedString("menu_tutorial", comment: "Tutorial/Buttons mode button text")
                 }
                 
-            } else {
-                print("AVISO: Não foi possível encontrar o nó com o nome '\(name)' na cena.")
             }
         }
         
@@ -73,8 +71,6 @@ class MenuScene_iphone: SKScene {
             
             addShadow(to: titleLabel, in: titleNode, offset: shadowOffset, color: shadowColor)
             
-        } else {
-            print("AVISO: Não foi possível encontrar o nó 'TitleLabel' dentro de 'Title'.")
         }
         
         let buttonNames = ["GestureMode", "ButtonMode"]
@@ -82,9 +78,6 @@ class MenuScene_iphone: SKScene {
             if let buttonNode = self.childNode(withName: "//\(name)") as? SKSpriteNode {
                 buttonNode.texture?.filteringMode = .nearest
                 buttonNode.texture?.usesMipmaps = false
-                print("Configurado '\(name)' com .nearest e sem mipmaps")
-            } else {
-                print("AVISO: Não foi possível encontrar o nó do botão com o nome '\(name)' na cena.")
             }
         }
     }

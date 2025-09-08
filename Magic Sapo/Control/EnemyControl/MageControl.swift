@@ -44,18 +44,15 @@ class MageControl {
     func startBossEncounter() {
             guard let scene = self.scene, let spawner = self.enemySpawner else { return }
             
-            print("Iniciando encontro com o chefe. Parando spawn de inimigos normais.")
             spawner.stopSpawningEnemies()
             
             let waitAction = SKAction.wait(forDuration: 0.5)
             let checkAction = SKAction.run { [weak self] in
                 // Se não houver mais inimigos normais, o chefe pode aparecer.
                 if !spawner.hasActiveEnemies {
-                    print("Campo limpo! O chefe vai aparecer.")
                     self?.scene?.removeAction(forKey: "waitForClearField")
                     self?.beginMageAppearance()
                 } else {
-                    print("Aguardando inimigos normais serem derrotados...")
                 }
             }
             
@@ -87,7 +84,6 @@ class MageControl {
         }
     
     private func stopMageMovement() {
-            print("Pausando movimento do Mago.")
             mageNode?.removeAction(forKey: "mageMovement")
             mageNode?.removeAction(forKey: "walkAnimation")
         }

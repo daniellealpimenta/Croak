@@ -136,12 +136,6 @@ class EnemyControl {
         
         // 3. Garante que a velocidade não se torne impossivelmente rápida.
         self.V = max(1.5, newV)
-        
-        print("-----------------------------------------")
-        print("🏆🏆🏆 CHEFE DERROTADO! 🏆🏆🏆")
-        print("Entrando no Estágio \(currentStage).")
-        print("Nova velocidade base V: \(self.V)")
-        print("-----------------------------------------")
     }
     
     // --- ALTERAÇÃO: Função antiga removida ---
@@ -163,7 +157,6 @@ class EnemyControl {
         var anyEnemyHit = false
         
         guard let scene = scene as? ScoreHavingScene else {
-            print("Erro: A cena não é uma GameScene e não possui uma killZoneRect.")
             return nil
         }
         

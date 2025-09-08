@@ -125,7 +125,6 @@ class GameOverScene: SKScene {
         }
         
         guard let key = highScoreKey else {
-            print("Invalid previous scene name, could not process high score.")
             return
         }
         
@@ -137,7 +136,6 @@ class GameOverScene: SKScene {
         if finalScore > currentHighScore {
             UserDefaults.standard.set(finalScore, forKey: key)
             scoreToDisplay = finalScore
-            print("New high score for \(previousSceneName ?? "mode"): \(finalScore)")
         }
         
         // Configure the high score number
@@ -173,7 +171,6 @@ class GameOverScene: SKScene {
             let transition = SKTransition.fade(withDuration: 1.0)
             view?.presentScene(newGameScene, transition: transition)
         } else {
-            print("Error: Previous scene name not found. Returning to Menu.")
             exitToMenu()
         }
     }
@@ -200,7 +197,6 @@ class GameOverScene: SKScene {
         let touchedNode = atPoint(location)
             
         if touchedNode.name == "ResetButton" {
-            print("Reset button was touched!")
             
             AudioManager.shared.playSoundEffect(named: "toque-reiniciar.mp3")
             
@@ -234,7 +230,6 @@ class GameOverScene: SKScene {
         }
             
         if touchedNode.name == "ExitButton" {
-            print("Main Menu button was touched!")
             
             AudioManager.shared.playSoundEffect(named: "toque-voltar.mp3")
             
