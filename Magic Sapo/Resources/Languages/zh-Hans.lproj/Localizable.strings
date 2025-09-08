@@ -1,0 +1,46 @@
+/*
+  Localizable.strings (Chinese, Simplified)
+  Magic Sapo
+
+  Created by Pedro Santos on 08/09/25.
+*/
+
+/* 简体中文翻译 */
+
+// MARK: GameOver
+
+/* 主菜单 (Main Menu) */
+"menu_play" = "手势";
+"menu_tutorial" = "按钮";
+"menu_gamemode_title" = "游戏模式：";
+
+/* 设置屏幕 (Settings Screen) */
+"settings_title" = "设置";
+"settings_camera_preview" = "相机预览：%@";
+"settings_validation_mode" = "验证模式：%@";
+
+/* 开/关状态 (On/Off States) */
+"state_on" = "开启";
+"state_off" = "关闭";
+
+/* 相机权限警报 (Camera Permission Alert) */
+"camera_permission_title" = "需要相机访问权限";
+"camera_permission_message" = "本游戏使用相机来检测您的手势。请在“设置”中启用访问权限以便游玩。";
+"go_to_settings_button" = "前往设置";
+"back_to_menu_button" = "返回菜单";
+
+// MARK: GameOver
+
+"gameover_highscore" = "最高分：";
+
+// MARK: Onboarding
+
+/* 教程对话 (Tutorial Dialogues) */
+"onboarding_step1_dialogue" = "守卫来了！他想拿走我们的魔法书。用你的手做出屏幕上的手势，对他施放咒语！";
+"onboarding_step2_dialogue" = "再来一次！要击败每个守卫，模仿他们头顶上图像的手势。";
+"onboarding_step3_dialogue" = "小心……现在来了一个盗贼。你需要做出全部2个手势才能击败他！";
+"onboarding_step4_dialogue" = "用你学到的知识击败另一个盗贼！";
+"onboarding_step5_dialogue" = "做得好！现在你已准备好真正开始了。注意敌人的手势！";
+
+/* 验证模式 (Validation Mode) */
+"validation_instruction" = "游戏时请将手保持在区域内！";

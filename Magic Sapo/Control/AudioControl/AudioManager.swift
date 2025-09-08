@@ -13,6 +13,7 @@ class AudioManager {
     static let shared = AudioManager()
     
     private var backgroundMusicPlayer: AVAudioPlayer?
+    private var bossMusicPlayer: AVAudioPlayer?
     private var fadeTimer: Timer?
     
     private var soundEffectPlayer: AVAudioPlayer?
@@ -46,6 +47,75 @@ class AudioManager {
             print("Música de fundo iniciada: \(filename)")
         } catch {
             print("Erro ao tentar tocar a música de fundo: \(error.localizedDescription)")
+        }
+    }
+    
+    func playBossMusic(_ filename: String = "boss-music.m4a") {
+        
+        fadeTimer?.invalidate()
+        
+        guard let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
+            print("Erro: Arquivo de áudio não encontrado: \(filename)")
+            return
+        }
+        
+        do {
+            if bossMusicPlayer?.isPlaying == true {
+                bossMusicPlayer?.stop()
+            }
+
+            bossMusicPlayer = try AVAudioPlayer(contentsOf: url)
+            bossMusicPlayer?.numberOfLoops = -1
+            bossMusicPlayer?.volume = (musicVolume - 0.2) 
+            bossMusicPlayer?.prepareToPlay()
+            bossMusicPlayer?.play()
+        } catch {
+            print("Erro ao tentar tocar a música de fundo: \(error.localizedDescription)")
+        }
+    }
+
+    func stopBossMusic(fadeOutDuration: TimeInterval = 1.2) {
+            guard let player = bossMusicPlayer, player.isPlaying else { return }
+
+            let fadeInterval: TimeInterval = 0.15 // A frequência com que o volume é atualizado
+            let initialVolume = player.volume
+            // Calcula quanto o volume deve diminuir a cada passo do timer
+            let volumeStep = initialVolume / Float(fadeOutDuration / fadeInterval)
+
+            // Invalida qualquer timer anterior para garantir que não haja sobreposição
+            fadeTimer?.invalidate()
+
+            fadeTimer = Timer.scheduledTimer(withTimeInterval: fadeInterval, repeats: true) { [weak self] timer in
+                guard let self = self, let player = self.bossMusicPlayer else {
+                    timer.invalidate()
+                    return
+                }
+
+                // Diminui o volume
+                player.volume -= volumeStep
+
+                // Se o volume chegar a zero (ou menos), para a música e o timer
+                if player.volume <= 0 {
+                    player.stop()
+                    player.volume = initialVolume // Reseta o volume para a próxima vez que tocar
+                    self.fadeTimer?.invalidate()
+                    self.fadeTimer = nil
+                    print("Música de fundo parada com fade-out.")
+                }
+            }
+        }
+    
+    func pauseBossMusic() {
+        if bossMusicPlayer?.isPlaying == true {
+            bossMusicPlayer?.pause()
+            print("Música de fundo pausada.")
+        }
+    }
+
+    func resumeBossMusic() {
+        if let player = bossMusicPlayer, !player.isPlaying {
+            player.play()
+            print("Música de fundo retomada.")
         }
     }
 

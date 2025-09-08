@@ -281,8 +281,8 @@ class GestureDetectionManager: NSObject {
         // Adiciona ao container
         parentView.addSubview(imageView)
         
-        let widthMultiplier: CGFloat = DeviceHelper.isIPad ? 0.4 : 0.8
-        let heightMultiplier: CGFloat = DeviceHelper.isIPad ? 0.6 : 1
+        let widthMultiplier: CGFloat = DeviceHelper.isIPad ? 0.4 : 0.65
+        let heightMultiplier: CGFloat = DeviceHelper.isIPad ? 0.6 : 0.85
         
         // Constraints para centralizar e dimensionar
         NSLayoutConstraint.activate([

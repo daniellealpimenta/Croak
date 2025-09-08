@@ -19,7 +19,7 @@ class Thief: Enemy {
     
     static let gestureCount: Int = 2
     
-    static var enemySize = DeviceHelper.isIPhone ? CGSize(width: 70, height: 70) : CGSize(width: 100, height: 100)
+    static var enemySize = DeviceHelper.isIPhone ? CGSize(width: 80, height: 80) : CGSize(width: 100, height: 100)
     static var gestureSize = DeviceHelper.isIPhone ? CGSize(width: 35, height: 35) : CGSize(width: 50, height: 50)
     
     private static func loadFrames(prefix: String, frameCount: Int) -> [SKTexture] {
@@ -151,6 +151,7 @@ class Thief: Enemy {
             let gestureSprite = SKSpriteNode(imageNamed: gestureName)
             gestureSprite.size = gestureSize
             gestureSprite.position = CGPoint(x: xOffset, y: yOffset)
+            gestureSprite.zPosition = Layer.effects.rawValue
             gestureSprite.name = gestureName
             
             thiefNode.addChild(gestureSprite)
