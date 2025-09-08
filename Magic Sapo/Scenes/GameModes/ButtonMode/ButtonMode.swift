@@ -292,34 +292,34 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     }
     
     private func checkToStartBossEncounter() {
-          let score = scoreComponent.scoreCount
-          
-          // Se as condições forem atendidas, muda para o estado de LIMPEZA.
-          let scoreSinceLastBoss = score - scoreAtLastBossDefeat
-                
-          // A condição agora é muito mais simples e robusta.
-          if gameState == .normalPlay && scoreSinceLastBoss >= 75 { // Use 5 para testar
-                print("--- PREPARANDO PARA O CHEFE! Limpando inimigos restantes... ---")
-                
-                // Não precisamos mais atualizar 'lastBossTriggerScore'.
-                
-                gameState = .clearingField
-                
-                mageControl = MageControl(scene: self, spawner: self.enemySpawner)
-                mageControl?.startBossEncounter()
-          }
+           let score = scoreComponent.scoreCount
+           
+           let scoreSinceLastBoss = score - scoreAtLastBossDefeat
+               
+           if gameState == .normalPlay && scoreSinceLastBoss >= 75 {
+                              
+               gameState = .clearingField
+               
+               AudioManager.shared.pauseBackgroundMusic()
+               AudioManager.shared.playBossMusic()
+               
+               mageControl = MageControl(scene: self, spawner: self.enemySpawner)
+               mageControl?.startBossEncounter()
+           }
     }
     
    
     func enterBossFightState() {
-            print("A cena entrou no estado de Batalha do Chefe.")
             self.gameState = .bossFight
         }
     
     func bossFightDidEnd() {
-        print("--- CHEFE DERROTADO! Retornando ao jogo normal. ---")
         self.scoreAtLastBossDefeat = self.scoreComponent.scoreCount
                 // Notifica o controlador de inimigos para avançar o estágio e aumentar a velocidade.
+        
+        AudioManager.shared.stopBossMusic()
+        AudioManager.shared.resumeBackgroundMusic()
+
         enemySpawner.enemyControl.advanceToNextStage()
         
         mageControl = nil
