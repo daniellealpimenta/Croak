@@ -20,18 +20,21 @@ class EnemyControl {
     private var V: CGFloat = 5.0
     private let Vi: CGFloat = 5.0
     
-    // Pontuacao para subir de estagio
-    // Para o maximo: limita em 15
-    private let scorePerStage: Int = 75
+    // --- ALTERAÇÃO: Removido ---
+    // A pontuação por estágio não é mais necessária, pois a morte do chefe controlará isso.
+    // private let scorePerStage: Int = 75
     
     // Padrao 0.02
     // Para o maximo testa com 0.5
     private let speedDecreasePerStage: CGFloat = 0.02
     
     // Sempre 0.5
+    // O fator de aceleração agora será aplicado por chefe derrotado.
     private let accelerationFactor: CGFloat = 0.5
     
-    private var lastKnownStage: Int = 0
+    // --- ALTERAÇÃO: Renomeado e simplificado ---
+    // Esta variável agora rastreia o estágio atual do jogo. Começa em 0.
+    private var currentStage: Int = 0
     
     /// Cria uma instância de um tipo de inimigo específico e a adiciona na cena.
     /// - Parameters:
@@ -39,56 +42,55 @@ class EnemyControl {
     ///   - scene: A cena onde o inimigo será adicionado.
     public func createEnemy<T: Enemy>(ofType enemyType: T.Type, in scene: SKScene) {
         
-         // Define as posições de início (fora da tela, no topo) e fim (fora da tela, embaixo).
-         let startPosition: CGPoint
-         let endPosition: CGPoint
-         
-         if UIDevice.current.userInterfaceIdiom == .pad {
-             // --- LÓGICA ESPECÍFICA PARA IPAD ---
-             let halfWidth = scene.size.width / 2
-             let halfHeight = scene.size.height / 2
-             
-             let startX = CGFloat.random(in: -halfWidth...halfWidth)
-             let startY = halfHeight + 50
-             startPosition = CGPoint(x: startX, y: startY)
-             
-             let endX: CGFloat = 0
-             let endY = -halfHeight + 200
-             endPosition = CGPoint(x: endX, y: endY)
-             
-         } else {
-             // --- SOLUÇÃO DEFINITIVA USANDO AS COORDENADAS DA VIEW ---
-             // Esta abordagem resolve o problema de inimigos nascendo nas laterais,
-             // independentemente da configuração de `scaleMode` da cena.
+        // Define as posições de início (fora da tela, no topo) e fim (fora da tela, embaixo).
+        let startPosition: CGPoint
+        let endPosition: CGPoint
+        
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            // --- LÓGICA ESPECÍFICA PARA IPAD ---
+            let halfWidth = scene.size.width / 2
+            let halfHeight = scene.size.height / 2
+            
+            let startX = CGFloat.random(in: -halfWidth...halfWidth)
+            let startY = halfHeight + 50
+            startPosition = CGPoint(x: startX, y: startY)
+            
+            let endX: CGFloat = 0
+            let endY = -halfHeight + 200
+            endPosition = CGPoint(x: endX, y: endY)
+            
+        } else {
+            // Esta abordagem resolve o problema de inimigos nascendo nas laterais,
+            // independentemente da configuração de `scaleMode` da cena.
 
-             // Primeiro, garantimos que a cena já tem uma view (a "janela" do jogo).
-             guard let view = scene.view else {
-                 // Se a view não existir, não fazemos nada para evitar crashes.
-                 return
-             }
+            // Primeiro, garantimos que a cena já tem uma view (a "janela" do jogo).
+            guard let view = scene.view else {
+                // Se a view não existir, não fazemos nada para evitar crashes.
+                return
+            }
 
-             // --- Posição Inicial: Topo da Tela Visível ---
+            // --- Posição Inicial: Topo da Tela Visível ---
 
-             // 1. Sorteamos um ponto X na LARGURA DA VIEW. A view é a garantia da área visível.
-             //    O sistema de coordenadas da view sempre começa com X=0 na esquerda.
-             let randomXInView = CGFloat.random(in: 0...view.bounds.width)
+            // 1. Sorteamos um ponto X na LARGURA DA VIEW. A view é a garantia da área visível.
+            //    O sistema de coordenadas da view sempre começa com X=0 na esquerda.
+            let randomXInView = CGFloat.random(in: 0...view.bounds.width)
 
-             // 2. Criamos um ponto no sistema de coordenadas da VIEW.
-             //    Y = -100 significa 100 pontos ACIMA do topo da área visível
-             //    (no sistema da view, o Y cresce para baixo, então valores negativos estão acima).
-             let topPointInView = CGPoint(x: randomXInView, y: -100)
+            // 2. Criamos um ponto no sistema de coordenadas da VIEW.
+            //    Y = -100 significa 100 pontos ACIMA do topo da área visível
+            //    (no sistema da view, o Y cresce para baixo, então valores negativos estão acima).
+            let topPointInView = CGPoint(x: randomXInView, y: -100)
 
-             // 3. CONVERTEMOS o ponto da view para o sistema de coordenadas da CENA.
-             //    Aqui está a mágica: o SpriteKit ajusta o ponto para a escala e posição
-             //    corretas dentro da sua cena.
-             startPosition = scene.convertPoint(fromView: topPointInView)
+            // 3. CONVERTEMOS o ponto da view para o sistema de coordenadas da CENA.
+            //    Aqui está a mágica: o SpriteKit ajusta o ponto para a escala e posição
+            //    corretas dentro da sua cena.
+            startPosition = scene.convertPoint(fromView: topPointInView)
 
-             // --- Posição Final: Centro Inferior da Tela Visível ---
+            // --- Posição Final: Centro Inferior da Tela Visível ---
 
-             // Fazemos o mesmo para o ponto final para garantir que ele vá para o centro inferior VISÍVEL.
-             let bottomCenterInView = CGPoint(x: view.bounds.midX, y: view.bounds.height + 100)
-             endPosition = scene.convertPoint(fromView: bottomCenterInView)
-         }
+            // Fazemos o mesmo para o ponto final para garantir que ele vá para o centro inferior VISÍVEL.
+            let bottomCenterInView = CGPoint(x: view.bounds.midX, y: view.bounds.height + 100)
+            endPosition = scene.convertPoint(fromView: bottomCenterInView)
+        }
 
         
         // Tenta criar a entidade do inimigo usando o método estático do seu tipo.
@@ -120,42 +122,30 @@ class EnemyControl {
         enemyEntity.run(sequence)
     }
     
-    // MARK: Formula de velocidade (as declaracoes da velocidade tao em cima)
+    // --- ALTERAÇÃO: Lógica de velocidade refeita ---
     
-    /// Atualiza a velocidade base (V) com base na pontuação do jogador.
-    /// - Parameter score: A pontuação atual do jogador.
-    public func updateSpeed(basedOn score: Int) {
+    /// Avança o jogo para o próximo estágio, geralmente chamado após derrotar um chefe.
+    /// Isso aumenta a dificuldade tornando os inimigos mais rápidos.
+    public func advanceToNextStage() {
+        // 1. Incrementa o contador de estágio.
+        currentStage += 1
         
-        // 1. Calcula em qual "estágio" de dificuldade o jogador está..
-        let stage = score / scorePerStage
+        // 2. Calcula a nova velocidade base com base no novo estágio.
+        // A velocidade diminui (o que torna o tempo de movimento menor e o jogo mais rápido).
+        let newV = Vi - (CGFloat(currentStage) * accelerationFactor)
         
-        if stage > lastKnownStage {
-            print("-----------------------------------------")
-            print("🏆🏆🏆 MUDANÇA DE ESTÁGIO! 🏆🏆🏆")
-            print("Score atingiu \(score). Entrando no Estágio \(stage).")
-            print("-----------------------------------------")
-            
-            // Atualiza nossa memória para o novo estágio.
-            lastKnownStage = stage
-        }
-        
-        // 2. Calcula a velocidade "base" para o estágio atual.
-        let VPerStage = Vi - (CGFloat(stage) * accelerationFactor)
-        
-        // 3. Calcula quantos pontos o jogador fez DENTRO do estágio atual.
-        let scoreInStage = score % scorePerStage
-    
-        // 4. Calcula a velocidade final.
-        // Começa com a base do estágio e diminui conforme o jogador pontua dentro desse estágio.
-        let newV = VPerStage - (CGFloat(scoreInStage) * speedDecreasePerStage)
-
-        // 5. Garante que a duração nunca seja menor que 1.5s para não quebrar o jogo.
+        // 3. Garante que a velocidade não se torne impossivelmente rápida.
         self.V = max(1.5, newV)
         
-        print("Score: \(score) | Stage: \(stage) | VperStage: \(VPerStage) | Final V: \(self.V)")
+        print("-----------------------------------------")
+        print("🏆🏆🏆 CHEFE DERROTADO! 🏆🏆🏆")
+        print("Entrando no Estágio \(currentStage).")
         print("Nova velocidade base V: \(self.V)")
+        print("-----------------------------------------")
     }
-
+    
+    // --- ALTERAÇÃO: Função antiga removida ---
+    // A função public func updateSpeed(basedOn score: Int) foi completamente removida.
     
     // MARK: - Lógica de Destruição
     
@@ -215,7 +205,7 @@ class EnemyControl {
                             let fadeOut = SKAction.fadeOut(withDuration: 0.5)
                             
                             let combinedDeathAnimation = SKAction.group([animateFrames, fadeOut])
-                                      
+                                        
                             killedEnemy.run(SKAction.sequence([combinedDeathAnimation, SKAction.removeFromParent()]))
                             
                             totalPoints += Guards.pointValue

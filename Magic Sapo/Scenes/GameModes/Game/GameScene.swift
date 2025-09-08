@@ -612,9 +612,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                     if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
                         scoreComponent.addScore(point: rewards.points)
                         coinsComponent.addCoins(coins: rewards.coins)
-                        
-                        enemySpawner.updateEnemySpeed(basedOn: scoreComponent.scoreCount)
-                        
+                                            
                     }
             }
             
@@ -647,6 +645,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     func bossFightDidEnd() {
         self.scoreAtLastBossDefeat = self.scoreComponent.scoreCount
+        
+        enemySpawner.enemyControl.advanceToNextStage()
         
         mageControl = nil
         gameState = .normalPlay
