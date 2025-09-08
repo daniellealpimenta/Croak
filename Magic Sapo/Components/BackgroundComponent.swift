@@ -51,8 +51,17 @@ class BackgroundComponent {
                 scaleFactor = max(parentScene.size.width / background.size.width, parentScene.size.height / background.size.height)
             case .unspecified:
                 scaleFactor = max(parentScene.size.width / background.size.width, parentScene.size.height / background.size.height)
+            case .tv:
+                fallthrough
+            case .carPlay:
+                fallthrough
+            case .mac:
+                fallthrough
+            case .vision:
+                fallthrough
             @unknown default:
                 scaleFactor = max(parentScene.size.width / background.size.width, parentScene.size.height / background.size.height)
+            
         }
         
         background.setScale(scaleFactor)
@@ -63,7 +72,6 @@ class BackgroundComponent {
         
 
         let backgroundFrames: [SKTexture] = [initialTexture]
-        // Ex: let backgroundFrames: [SKTexture] = [SKTexture(imageNamed: "\(backgroundBaseName)_Frame1"), SKTexture(imageNamed: "\(backgroundBaseName)_Frame2")]
         
         if backgroundFrames.count > 1 {
             backgroundFrames.forEach { $0.filteringMode = .nearest }
