@@ -525,37 +525,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
 
     @objc func resumeGame() {
-        // 1. Usa a VIEW como "fonte da verdade".
         guard self.view?.isPaused ?? false else { return }
-
-        // 2. Despausa a VIEW PRIMEIRO para "acordar" a renderização.
+        
         self.view?.isPaused = false
-
-        // 3. Remove a UI de pausa.
+        
         pauseOverlayComponent.hide()
 
-        // 4. Lógica específica da GameScene para reativar a câmera e os gestos.
         gestureManager.startDetection()
-        if let view = self.view {
-            self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
+
+        let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+        if isCameraPreviewEnabled {
+            if let view = self.view {
+                self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
+            }
         }
-        
-        // 5. Lógica condicional original para reiniciar a música e os inimigos.
+    
         if !isOnGestureValidationMode && !isOnboarding && gameState == .normalPlay {
             AudioManager.shared.resumeBackgroundMusic()
             if gameState == .normalPlay {
                 enemySpawner.startSpawningEnemies()
             }
-        }else if gameState == .bossFight {
+        } else if gameState == .bossFight {
             AudioManager.shared.resumeBossMusic()
         }
-        
     }
-    
-    // MARK: - Funções do onboarding
-    
-    
-    
+        
     // MARK: Funções padrão da cena
     
     func didBegin(_ contact: SKPhysicsContact) {
