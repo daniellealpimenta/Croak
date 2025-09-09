@@ -601,6 +601,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             self.coinsComponent.saveSessionCoins()
         
             AudioManager.shared.stopBackgroundMusic()
+            AudioManager.shared.stopBossMusic()
             
             let waitAction = SKAction.wait(forDuration: 0.1)
             let transitionAction = SKAction.run {
@@ -664,7 +665,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let scoreSinceLastBoss = score - scoreAtLastBossDefeat
         
         if gameState == .normalPlay && scoreSinceLastBoss >= 75  {
-                                
+                               
             gameState = .clearingField
             
             AudioManager.shared.pauseBackgroundMusic()
@@ -793,6 +794,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
      
     func didTapExitButton() {
+        AudioManager.shared.stopBackgroundMusic()
         AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         
         self.view?.isPaused = false

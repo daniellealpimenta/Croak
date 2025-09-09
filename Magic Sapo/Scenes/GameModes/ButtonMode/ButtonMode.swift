@@ -232,6 +232,7 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         
             // Para a música de fundo
             AudioManager.shared.stopBackgroundMusic()
+            AudioManager.shared.stopBossMusic()
             
             let waitAction = SKAction.wait(forDuration: 0.1)
             let transitionAction = SKAction.run {
@@ -374,6 +375,7 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     }
      
     func didTapExitButton() {
+        AudioManager.shared.stopBackgroundMusic()
         AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         
         self.view?.isPaused = false
