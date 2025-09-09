@@ -554,27 +554,30 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
     @objc func resumeGame() {
         guard self.view?.isPaused ?? false else { return }
-
         self.view?.isPaused = false
 
         pauseOverlayComponent.hide()
 
         gestureManager.startDetection()
-        if let view = self.view {
-            self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
+
+        let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+        if isCameraPreviewEnabled {
+            if let view = self.view {
+                self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
+            }
         }
-        
         if !isOnGestureValidationMode && !isOnboarding && gameState == .normalPlay {
             AudioManager.shared.resumeBackgroundMusic()
             if gameState == .normalPlay {
                 enemySpawner.startSpawningEnemies()
             }
-        }else if gameState == .bossFight {
+        } else if gameState == .bossFight {
             AudioManager.shared.resumeBossMusic()
         }
-        
-    }
+    }        
+    // MARK: Funções padrão da cena
     
+  
     func didBegin(_ contact: SKPhysicsContact) {
         guard !isPlayerDead else { return }
 
