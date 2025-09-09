@@ -111,9 +111,14 @@ class MageControl {
         if currentState == .showingGesture {
             handleMageHit(gesture: gesture)
         }
-        // O jogador só pode interagir com os guardas se estiver esperando por eles.
         else if currentState == .waitingForWave {
             handleGuardKill(gesture: gesture)
+        }else {
+            if let buttonScene = self.scene as? ButtonScene {
+                if buttonScene.scoreComponent.scoreCount > 0 {
+                    buttonScene.scoreComponent.decreaseScore(point: 1)
+                }
+            }
         }
     }
     
@@ -130,6 +135,12 @@ class MageControl {
             
             if guardNode.childNode(withName: gesture) != nil {
                 guardsToRemove.append(guardNode)
+            }else {
+                if let buttonScene = self.scene as? ButtonScene {
+                    if buttonScene.scoreComponent.scoreCount > 0 {
+                        buttonScene.scoreComponent.decreaseScore(point: 1)
+                    }
+                }
             }
         }
         
