@@ -6,14 +6,17 @@
 //
 
 import UIKit
-import SpriteKit
+import SpriteKit	
 import GameplayKit
 import AVFoundation
+import GameKit
 
 class GameViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        GameCenterHelper.shared.authenticatePlayer(presentingVC: self)
           
         if let view = self.view as! SKView? {
             
@@ -38,6 +41,10 @@ class GameViewController: UIViewController {
             view.showsFPS = false
             view.showsNodeCount = false
         }
+    }
+    
+    override var prefersHomeIndicatorAutoHidden: Bool {
+        return true
     }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
