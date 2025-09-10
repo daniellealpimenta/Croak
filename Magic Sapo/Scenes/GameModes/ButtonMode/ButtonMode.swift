@@ -12,6 +12,10 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     // MARK: - Componentes
     
     private var isPlayerDead = false
+    private var isManuallyPaused = false
+    
+    let worldNode = SKNode() // Para todos os elementos do jogo (sapo, inimigos)
+    let uiNode = SKNode()    // Para todos os elementos de UI (botões, score, overlays)
     
     var scoreComponent: ScoreComponent!
     var coinsComponent: CoinsComponent!
@@ -22,6 +26,7 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     private var gameState: GameState = .normalPlay
     private var mageControl: MageControl?
     private var scoreAtLastBossDefeat = 0
+    
     var pauseOverlayComponent: PauseOverlayComponent!
     
     var killZoneRect: CGRect {
@@ -40,10 +45,10 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     
     override func sceneDidLoad() {
         self.physicsWorld.contactDelegate = self
-      }
-    //    Flag para controlar a inicialização da cena.
-    private var sceneIsInitialized = false
+    }
     
+    // Flag para controlar a inicialização da cena.
+    private var sceneIsInitialized = false
     
     // MARK: - Ciclo de Vida da Cena
     
@@ -56,29 +61,29 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         AudioManager.shared.setSoundEffectVolume(to: 0.5)
         
         let stopMusicAction = SKAction.run {
-            AudioManager.shared.stopBackgroundMusic(fadeOutDuration: 1.0) // Duração do fade
+            AudioManager.shared.stopBackgroundMusic(fadeOutDuration: 1.0)
         }
 
-
-        let waitAction = SKAction.wait(forDuration: 0.5) // Seu timer de 1.5 segundos
+        let waitAction = SKAction.wait(forDuration: 0.5)
 
         let playMusicAction = SKAction.run {
             AudioManager.shared.playBackgroundMusic(filename: "croak-music.m4a")
         }
 
-
         let musicSequence = SKAction.sequence([stopMusicAction, waitAction, playMusicAction])
-        self.run(musicSequence) // 'self' aqui é a sua cena (GameScene, etc.)
+        self.run(musicSequence)
     }
     
     private func setupScene() {
         
-        NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppWillResignActive"), object: nil)
-
-        NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppDidBecomeActive"), object: nil)
-
+        NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive), name: NSNotification.Name("AppWillResignActive"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(wakeUpView), name: NSNotification.Name("AppDidBecomeActive"), object: nil)
         
         self.physicsWorld.contactDelegate = self
+        
+        // Adiciona os nós principais
+        addChild(worldNode)
+        addChild(uiNode)
         
         // --- Configuração dos Componentes ---
         backgroundComponent = BackgroundComponent(parent: self)
@@ -90,11 +95,19 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         pauseButtonComponent = PauseButtonComponent(parent: self)
         pauseButtonComponent.delegate = self
         
-        // <-- CORREÇÃO 3: Inicializar o novo componente
+        // Inicializar o componente de pause overlay
         pauseOverlayComponent = PauseOverlayComponent(parent: self)
         pauseOverlayComponent.delegate = self
         
-        enemySpawner = EnemySpawner(scene: self)
+        // Move elementos de UI para o uiNode
+        scoreComponent.scoreLabel.move(toParent: uiNode)
+        coinsComponent.coinsLabel.move(toParent: uiNode)
+        coinsComponent.labelShadow.move(toParent: uiNode)
+        coinsComponent.coinIcon.move(toParent: uiNode)
+        pauseButtonComponent.pauseButtonNode.move(toParent: uiNode)
+        
+        // CORREÇÃO: Inicializar o EnemySpawner corretamente
+        enemySpawner = EnemySpawner(parentNode: worldNode, scene: self)
         enemySpawner.startSpawningEnemies()
         
         let frog = Frog(parent: self)
@@ -109,9 +122,9 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
             frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 150))
         }
 
-        self.addChild(frogNode)
+        worldNode.addChild(frogNode)
         
-        // --- MUDANÇA: Tamanho e posição dos botões agora são adaptativos ---
+        // --- Tamanho e posição dos botões agora são adaptativos ---
         let buttonSize = DeviceHelper.isIPhone ? CGSize(width: 60, height: 60) : CGSize(width: 80, height: 80)
         let buttonYPosition = DeviceHelper.isIPhone ? (-self.size.height/2 + 80) : (-self.size.height/2 + 100)
         
@@ -128,84 +141,77 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         rockButton.name = "rockButton"
         rockButton.size = buttonSize
         rockButton.position = CGPoint(x: rockX, y: buttonYPosition)
-        self.addChild(rockButton)
+        uiNode.addChild(rockButton)
         
         let twoButton = SKSpriteNode(imageNamed: "Two")
         twoButton.name = "twoButton"
         twoButton.size = buttonSize
         twoButton.position = CGPoint(x: twoX, y: buttonYPosition)
-        self.addChild(twoButton)
+        uiNode.addChild(twoButton)
         
         let topButton = SKSpriteNode(imageNamed: "Top")
         topButton.name = "TopButton"
         topButton.size = buttonSize
         topButton.position = CGPoint(x: topX, y: openPBY)
-        self.addChild(topButton)
+        uiNode.addChild(topButton)
         
         let lButton = SKSpriteNode(imageNamed: "L")
         lButton.name = "lButton"
         lButton.size = buttonSize
         lButton.position = CGPoint(x: lX, y: buttonYPosition)
-        self.addChild(lButton)
+        uiNode.addChild(lButton)
         
         let hangLButton = SKSpriteNode(imageNamed: "HangLose")
         hangLButton.name = "hangLButton"
         hangLButton.size = buttonSize
         hangLButton.position = CGPoint(x: hangLX, y: buttonYPosition)
-        self.addChild(hangLButton)
+        uiNode.addChild(hangLButton)
         
         let openPButton = SKSpriteNode(imageNamed: "OpenPalm")
         openPButton.name = "openPButton"
         openPButton.size = buttonSize
         openPButton.position = CGPoint(x: openPX, y: openPBY)
-        self.addChild(openPButton)
+        uiNode.addChild(openPButton)
     }
     
-    // Em ButtonScene.swift, substitua as funções antigas por estas
-
-    // Em ButtonScene.swift
-
     @objc func pauseGame() {
-        // A partir de agora, a "fonte da verdade" sobre a pausa será a VIEW, não a CENA.
-        if self.view?.isPaused ?? false {
+        print("🔴 TENTATIVA DE PAUSAR O JOGO (`pauseGame`)")
+        if worldNode.isPaused {
+            print("    -> Jogo já estava pausado. Ação ignorada.")
             return
         }
         
+        print("    -> PAUSANDO O JOGO AGORA.")
+        isManuallyPaused = true
 
-        // 1. Mostra o overlay primeiro.
+        // Pausa o jogo
+        worldNode.isPaused = true
         pauseOverlayComponent.show()
-        
-        // 2. Para sistemas que não são controlados pela pausa da cena (como timers).
+
         enemySpawner.stopSpawningEnemies()
         AudioManager.shared.pauseBackgroundMusic()
-
-        // 3. A MÁGICA: Executa a pausa da VIEW no próximo quadro.
-        // Isso dá tempo para o `show()` ser renderizado na tela.
-        let wait = SKAction.wait(forDuration: 0) // Espera de 0 segundos = próximo quadro.
-        let pauseAction = SKAction.run { [weak self] in
-            self?.view?.isPaused = true
-        }
-        
-        // A cena ainda não está pausada, então ela pode rodar esta ação.
-        self.run(SKAction.sequence([wait, pauseAction]))
+        AudioManager.shared.pauseBossMusic()
     }
 
-
     @objc func resumeGame() {
-        // Se a VIEW não está pausada, não há o que resumir.
-        guard self.view?.isPaused ?? false else { return }
-        
+        print("🔴 TENTATIVA DE DESPAUSAR O JOGO (`resumeGame`)")
+        if !worldNode.isPaused {
+            print("    -> Jogo já estava despausado. Ação ignorada.")
+            return
+        }
 
-        // 1. DESPAUSA A VIEW PRIMEIRO. Isso "acorda" o motor de renderização.
-        self.view?.isPaused = false
+        print("    -> DESPAUSANDO O JOGO AGORA.")
+        isManuallyPaused = false
         
-        // 2. Agora que a tela não está mais congelada, removemos o menu.
+        worldNode.isPaused = false
         pauseOverlayComponent.hide()
-        
-        // 3. Reiniciamos a música e os inimigos.
-        AudioManager.shared.resumeBackgroundMusic()
+
+        // Reinicia a música e os inimigos dependendo do estado do jogo.
         if gameState == .normalPlay {
+            AudioManager.shared.resumeBackgroundMusic()
             enemySpawner.startSpawningEnemies()
+        } else if gameState == .bossFight {
+            AudioManager.shared.resumeBossMusic()
         }
     }
     
@@ -253,65 +259,56 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         }
     }
     
-    /// Método chamado pouco antes da cena ser removida da tela (ex: ao pausar o jogo).
-    /// É o lugar ideal para "limpar" a cena e parar processos contínuos.
+    /// Método chamado pouco antes da cena ser removida da tela
     override func willMove(from view: SKView) {
-        
-        // Para a criação de inimigos para evitar que o timer continue rodando
-        // em uma cena que não está mais visível, o que causaria um crash.
-        // MARK: Ta com bug quando desliga o Ipad (continua gerando inimigos)
-        enemySpawner.stopSpawningEnemies()
+        enemySpawner?.stopSpawningEnemies()
     }
     
     func playerDidMake(gesture: String) {
-          switch gameState {
-            case .bossFight:
-                // Durante a batalha, apenas o chefe responde.
-                mageControl?.handlePlayer(gesture: gesture)
-                
-            case .normalPlay, .clearingField:
-                // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
-                if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
-                    scoreComponent.addScore(point: rewards.points)
-                    coinsComponent.addCoins(coins: rewards.coins)
-                    
-                } else {
-                    if scoreComponent.scoreCount > 0 {
-                        scoreComponent.decreaseScore(point: 1)
-                    } else {
-                    }
+        switch gameState {
+        case .bossFight:
+            // Durante a batalha, apenas o chefe responde.
+            mageControl?.handlePlayer(gesture: gesture)
+            
+        case .normalPlay, .clearingField:
+            // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
+            if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
+                scoreComponent.addScore(point: rewards.points)
+                coinsComponent.addCoins(coins: rewards.coins)
+            } else {
+                if scoreComponent.scoreCount > 0 {
+                    scoreComponent.decreaseScore(point: 1)
                 }
             }
-            
-            // Após cada jogada, verifica se é hora de iniciar a luta do chefe
-      checkToStartBossEncounter()
+        }
+        
+        // Após cada jogada, verifica se é hora de iniciar a luta do chefe
+        checkToStartBossEncounter()
     }
     
     private func checkToStartBossEncounter() {
-           let score = scoreComponent.scoreCount
-           
-           let scoreSinceLastBoss = score - scoreAtLastBossDefeat
-               
-           if gameState == .normalPlay && scoreSinceLastBoss >= 75 {
-                              
-               gameState = .clearingField
-               
-               AudioManager.shared.pauseBackgroundMusic()
-               AudioManager.shared.playBossMusic()
-               
-               mageControl = MageControl(scene: self, spawner: self.enemySpawner)
-               mageControl?.startBossEncounter()
-           }
-    }
-    
-   
-    func enterBossFightState() {
-            self.gameState = .bossFight
+        let score = scoreComponent.scoreCount
+        
+        let scoreSinceLastBoss = score - scoreAtLastBossDefeat
+            
+        if gameState == .normalPlay && scoreSinceLastBoss >= 75 {
+                           
+            gameState = .clearingField
+            
+            AudioManager.shared.pauseBackgroundMusic()
+            AudioManager.shared.playBossMusic()
+            
+            mageControl = MageControl(scene: self, spawner: self.enemySpawner)
+            mageControl?.startBossEncounter()
         }
-    
+    }
+
+    func enterBossFightState() {
+        self.gameState = .bossFight
+    }
+
     func bossFightDidEnd() {
         self.scoreAtLastBossDefeat = self.scoreComponent.scoreCount
-                // Notifica o controlador de inimigos para avançar o estágio e aumentar a velocidade.
         
         AudioManager.shared.stopBossMusic()
         AudioManager.shared.resumeBackgroundMusic()
@@ -322,15 +319,14 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         gameState = .normalPlay
         enemySpawner.startSpawningEnemies()
     }
+    
     // MARK: - Entrada do Usuário
      
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
 
-        // --- CORREÇÃO AQUI ---
-        // Verificamos se a VIEW está pausada. Se estiver, o toque é para o menu.
-        if self.view?.isPaused ?? false {
+        if worldNode.isPaused {
             pauseOverlayComponent.handleTouch(at: location)
             return
         }
@@ -347,7 +343,6 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         if touchedNode.name == "hangLButton" { playerDidMake(gesture: "HangLose") }
         if touchedNode.name == "openPButton" { playerDidMake(gesture: "OpenPalm") }
         if touchedNode.name == "TopButton" { playerDidMake(gesture: "Top") }
-      
     }
     
     // MARK: - Delegates
@@ -386,6 +381,24 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
             menuScene.scaleMode = .aspectFill
             let transition = SKTransition.fade(withDuration: 1.0)
             view?.presentScene(menuScene, transition: transition)
+        }
+    }
+    
+    @objc private func appWillResignActive() {
+        print("🔴 APP VAI SER MINIMIZADO (`appWillResignActive`)")
+        self.pauseGame()
+    }
+
+    @objc private func wakeUpView() {
+        // A única função disso é garantir que a view não esteja com a pausa do sistema.
+        if self.view?.isPaused == true {
+            self.view?.isPaused = false
+        }
+    }
+    
+    override func update(_ currentTime: TimeInterval) {
+        if isManuallyPaused && !worldNode.isPaused {
+            worldNode.isPaused = true
         }
     }
     

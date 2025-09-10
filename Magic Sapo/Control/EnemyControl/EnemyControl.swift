@@ -40,7 +40,7 @@ class EnemyControl {
     /// - Parameters:
     ///   - enemyType: O tipo do inimigo a ser criado (ex: Guards.self), que deve conformar ao protocolo Enemy.
     ///   - scene: A cena onde o inimigo será adicionado.
-    public func createEnemy<T: Enemy>(ofType enemyType: T.Type, in scene: SKScene) {
+    public func createEnemy<T: Enemy>(ofType enemyType: T.Type, on parentNode: SKNode, in scene: SKScene) {
         
         // Define as posições de início (fora da tela, no topo) e fim (fora da tela, embaixo).
         let startPosition: CGPoint
@@ -95,12 +95,12 @@ class EnemyControl {
         
         // Tenta criar a entidade do inimigo usando o método estático do seu tipo.
         guard let enemyEntity = enemyType.create(at: startPosition) else {
-            return // Se a criação falhar, não faz mais nada.
+            return
         }
         
         // Adiciona o inimigo na cena.
         activeEnemies.append(enemyEntity)
-        scene.addChild(enemyEntity)
+        parentNode.addChild(enemyEntity)
         
         // A duração do movimento é calculada dinamicamente.
         // V é a velocidade base, e enemyType.speed é o multiplicador do inimigo.

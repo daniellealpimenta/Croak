@@ -23,9 +23,12 @@ class PauseOverlayComponent {
     
     // MARK: - Propriedades
     
-    private var overlayNode: SKNode?
+    var overlayNode: SKNode?
     private weak var parentScene: SKScene?
     weak var delegate: PauseOverlayDelegate?
+    
+    private let settingsButtonFactory = SettingsButtonComponent()
+    private let settingsOverlayFactory = SettingsOverlayComponent()
     
     // MARK: - Inicialização
     
@@ -42,6 +45,7 @@ class PauseOverlayComponent {
 
         // --- Container Principal ---
         let overlay = SKNode()
+        overlay.name = "pauseOverlay"
         overlay.zPosition = 100
         
         // --- Fundo Escurecido ---
@@ -57,6 +61,8 @@ class PauseOverlayComponent {
             let resumePosition: CGPoint
             let resetPosition: CGPoint
             let exitPosition: CGPoint
+            let settingsPosition: CGPoint
+            let settingsSize: CGSize
         }
         
         let config: LayoutConfig
@@ -69,7 +75,9 @@ class PauseOverlayComponent {
                 buttonSize: CGSize(width: 90, height: 90),
                 resumePosition: CGPoint(x: 80, y: 70),
                 resetPosition: CGPoint(x: -10, y: 70),
-                exitPosition: CGPoint(x: -100, y: 70)
+                exitPosition: CGPoint(x: -100, y: 70),
+                settingsPosition: CGPoint(x: 125, y: 300),
+                settingsSize: CGSize(width: 50, height: 50)
             )
         } else {
             config = LayoutConfig(
@@ -78,7 +86,9 @@ class PauseOverlayComponent {
                 buttonSize: CGSize(width: 150, height: 150),
                 resumePosition: CGPoint(x: 150, y: 95),
                 resetPosition: CGPoint(x: 0, y: 95),
-                exitPosition: CGPoint(x: -150, y: 95)
+                exitPosition: CGPoint(x: -150, y: 95),
+                settingsPosition: CGPoint(x: 400, y: 300),
+                settingsSize: CGSize(width: 75, height: 75)
             )
         }
         // --- Criação dos Nós com a Configuração Definida ---
@@ -109,7 +119,14 @@ class PauseOverlayComponent {
         exitButton.position = config.exitPosition
         exitButton.zPosition = 1
         pauseFence.addChild(exitButton)
-
+        
+        let settingsButton = settingsButtonFactory.makeButton()
+        settingsButton.name = "SettingsButton"
+        settingsButton.size = config.settingsSize
+        settingsButton.position = config.settingsPosition
+        settingsButton.zPosition = 2
+        overlay.addChild(settingsButton)
+        
         // Adiciona o overlay completo à cena e guarda a referência
         scene.addChild(overlay)
         self.overlayNode = overlay
@@ -127,8 +144,35 @@ class PauseOverlayComponent {
         guard let scene = parentScene else { return }
 
         // Mesmo com a view pausada, podemos pedir os nós diretamente.
-        let touchedNodes = scene.nodes(at: location)
+        if let settingsOverlay = scene.childNode(withName: "settingsOverlay") {
+            let touchedNodes = scene.nodes(at: location)
 
+            for node in touchedNodes {
+                switch node.name {
+                case "closeSettingsButton":
+                    settingsOverlay.run(SKAction.fadeOut(withDuration: 0.3)) {
+                        settingsOverlay.removeFromParent()
+                    }
+                    return
+                case "cameraToggleButton":
+                    let currentValue = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+                    UserDefaults.standard.set(!currentValue, forKey: "isCameraPreviewEnabled")
+                    settingsOverlayFactory.updateLabels(on: settingsOverlay)
+                    return
+                case "validationToggleButton":
+                    let currentValue = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
+                    UserDefaults.standard.set(!currentValue, forKey: "isValidationModeEnabled")
+                    settingsOverlayFactory.updateLabels(on: settingsOverlay)
+                    return
+                default:
+                    continue
+                }
+            }
+            
+            return
+        }
+        
+        let touchedNodes = scene.nodes(at: location)
         for node in touchedNodes {
             switch node.name {
             case "ReturnButton":
@@ -140,9 +184,17 @@ class PauseOverlayComponent {
             case "ExitButton":
                 delegate?.didTapExitButton()
                 return
+            case "SettingsButton":
+                if scene.childNode(withName: "settingsOverlay") == nil {
+                    let settingsOverlay = settingsOverlayFactory.makeOverlay(for: scene, inMenuScene: false)
+                    settingsOverlay.run(SKAction.fadeIn(withDuration: 0.3))
+                    scene.addChild(settingsOverlay)
+                }
+                return
             default:
                 continue
             }
         }
+
     }
 }

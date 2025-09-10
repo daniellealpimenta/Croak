@@ -19,6 +19,8 @@ class EnemySpawner {
     /// Instância do controlador que sabe COMO criar e destruir inimigos. O Spawner delega o trabalho para ele.
     let enemyControl: EnemyControl
     
+    private weak var parentNode: SKNode?
+    
     private var scoreAtLastThiefSpawn = 0
     
     /// Referência **fraca** (weak) à cena para evitar "ciclos de retenção" (memory leaks).
@@ -36,9 +38,10 @@ class EnemySpawner {
     
     // MARK: - Inicialização
     
-    init(scene: SKScene) {
+    init(parentNode: SKNode, scene: SKScene) {
+        self.parentNode = parentNode
         self.scene = scene
-        self.enemyControl = EnemyControl() // Cria sua própria instância do controlador.
+        self.enemyControl = EnemyControl()
     }
     
     // MARK: - Controle do Spawning
@@ -82,7 +85,8 @@ class EnemySpawner {
     @objc private func spawnEnemy() {
 
         guard let scoreScene = self.scene as? ScoreHavingScene,
-              let actualScene = self.scene else {
+              let actualScene = self.scene,
+              let parent = self.parentNode else {
             stopSpawningEnemies()
             return
         }
@@ -103,7 +107,7 @@ class EnemySpawner {
         }
         
         if let enemyType = enemyToSpawn {
-            self.enemyControl.createEnemy(ofType: enemyType, in: actualScene)
+            self.enemyControl.createEnemy(ofType: enemyType, on: parent, in: actualScene)
         }
     }
     
