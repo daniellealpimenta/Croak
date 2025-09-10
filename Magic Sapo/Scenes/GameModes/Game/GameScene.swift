@@ -9,11 +9,16 @@ import GameplayKit
 import AVFoundation
 
 class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, ScoreHavingScene, PauseButtonDelegate, PauseOverlayDelegate, BossFightScene, OnboardDelegate {
+    
     // comente abaixo se for testar tambem
     var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-    
     // MARK: VARIAVEL PARA TESTE
 //    var isOnboarding = true
+    
+    let worldNode = SKNode() // Para todos os elementos do jogo (sapo, inimigos)
+    let uiNode = SKNode()    // Para todos os elementos de UI (botões, score, overlays)
+    
+    private var isManuallyPaused = false
     
     private var onboardingState: OnboardingState = .inactive
     
@@ -39,11 +44,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     var scoreComponent: ScoreComponent!
     var coinsComponent: CoinsComponent!
     var backgroundComponent: BackgroundComponent!
-    var pauseButtonComponent: PauseButtonComponent!
+    
     var gestureManager: GestureDetectionManager!
     var onboardManager: OnboardManager!
     var enemySpawner: EnemySpawner!
 
+    var pauseButtonComponent: PauseButtonComponent!
     var pauseOverlayComponent: PauseOverlayComponent!
     
     private var cameraPreviewNode: SKEffectNode!
@@ -199,9 +205,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
     private func setupScene() {
 
-        NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppWillResignActive"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive), name: NSNotification.Name("AppWillResignActive"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(wakeUpView), name: NSNotification.Name("AppDidBecomeActive"), object: nil)
             
         self.physicsWorld.contactDelegate = self
+        
+        addChild(worldNode)
+        addChild(uiNode)
             
         backgroundComponent = BackgroundComponent(parent: self)
         backgroundComponent.setupAnimatedBackground()
@@ -211,6 +221,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             
         pauseButtonComponent = PauseButtonComponent(parent: self)
         pauseButtonComponent.delegate = self
+        
+        pauseOverlayComponent = PauseOverlayComponent(parent: self)
+        pauseOverlayComponent.delegate = self
+        
+        scoreComponent.scoreLabel.move(toParent: uiNode)
+        coinsComponent.coinsLabel.move(toParent: uiNode)
+        coinsComponent.labelShadow.move(toParent: uiNode)
+        coinsComponent.coinIcon.move(toParent: uiNode)
+        pauseButtonComponent.pauseButtonNode.move(toParent: uiNode)
+        pauseOverlayComponent.overlayNode?.move(toParent: uiNode)
             
         if isOnboarding {
             scoreComponent.scoreLabel.isHidden = true
@@ -220,10 +240,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             pauseButtonComponent.pauseButtonNode.isHidden = true
         }
             
-        pauseOverlayComponent = PauseOverlayComponent(parent: self)
-        pauseOverlayComponent.delegate = self
-            
-        enemySpawner = EnemySpawner(scene: self)
+        enemySpawner = EnemySpawner(parentNode: worldNode, scene: self)
             
         let frog = Frog(parent: self)
         let frogNode: SKNode
@@ -237,7 +254,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 150))
         }
 
-        self.addChild(frogNode)
+        worldNode.addChild(frogNode)
             
         setupGestureDetection()
 
@@ -495,66 +512,59 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     @objc func pauseGame() {
-        // 1. Usa a VIEW como "fonte da verdade" para o estado de pausa.
-        if self.view?.isPaused ?? false {
-            return
-        }
-
-
-        // 2. Mostra a UI de pausa.
         
-        if isOnboarding || isOnGestureValidationMode {
+        print("‼️ TENTATIVA DE PAUSAR O JOGO (`pauseGame`)")
+        if isOnboarding || isOnGestureValidationMode || worldNode.isPaused {
+            print("    -> Jogo já estava pausado ou em estado inválido. Ação ignorada.")
             return
         }
         
+        print("    -> PAUSANDO O JOGO AGORA.")
+        isManuallyPaused = true
+
+        // Pausa o jogo
+        worldNode.isPaused = true
         pauseOverlayComponent.show()
-
-        // 3. Para sistemas específicos da GameScene (câmera, gestos, timers).
         enemySpawner.stopSpawningEnemies()
         gestureManager?.stopDetection()
-        gestureManager?.removeCameraPreview() // Garante que a câmera saia ao pausar.
+        gestureManager?.removeCameraPreview()
         AudioManager.shared.pauseBackgroundMusic()
         AudioManager.shared.pauseBossMusic()
-
-        // 4. A MÁGICA: Agenda a pausa da VIEW para o próximo quadro, permitindo que a UI apareça.
-        let wait = SKAction.wait(forDuration: 0)
-        let pauseAction = SKAction.run { [weak self] in
-            self?.view?.isPaused = true
-        }
-        self.run(SKAction.sequence([wait, pauseAction]))
     }
 
     @objc func resumeGame() {
-        // 1. Usa a VIEW como "fonte da verdade".
-        guard self.view?.isPaused ?? false else { return }
+        print("‼️ TENTATIVA DE DESPAUSAR O JOGO (`resumeGame`)")
+        if !worldNode.isPaused {
+            print("    -> Jogo já estava despausado. Ação ignorada.")
+            return
+        }
 
-        // 2. Despausa a VIEW PRIMEIRO para "acordar" a renderização.
-        self.view?.isPaused = false
-
-        // 3. Remove a UI de pausa.
+        print("    -> DESPAUSANDO O JOGO AGORA.")
+        isManuallyPaused = false
+        
+        worldNode.isPaused = false
         pauseOverlayComponent.hide()
 
-        // 4. Lógica específica da GameScene para reativar a câmera e os gestos.
+        // Reativa os sistemas do jogo.
         gestureManager.startDetection()
         if let view = self.view {
-            self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
+            // Recria a preview da câmera se estiver habilitada.
+            let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+            if isCameraPreviewEnabled {
+                self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
+            }
         }
         
-        // 5. Lógica condicional original para reiniciar a música e os inimigos.
+        // Reinicia a música e os inimigos dependendo do estado do jogo.
         if !isOnGestureValidationMode && !isOnboarding && gameState == .normalPlay {
             AudioManager.shared.resumeBackgroundMusic()
             if gameState == .normalPlay {
                 enemySpawner.startSpawningEnemies()
             }
-        }else if gameState == .bossFight {
+        } else if gameState == .bossFight {
             AudioManager.shared.resumeBossMusic()
         }
-        
     }
-    
-    // MARK: - Funções do onboarding
-    
-    
     
     // MARK: Funções padrão da cena
     
@@ -573,38 +583,38 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
 
         // Verifica se a colisão foi entre o jogador e um inimigo
-        if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
-            
-            isPlayerDead = true
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
-                self.gestureManager?.stopDetection()
-                self.gestureManager?.removeCameraPreview()
-            }
-            
-            self.coinsComponent.saveSessionCoins()
-        
-            // Para a música de fundo
-            AudioManager.shared.stopBackgroundMusic()
-            AudioManager.shared.stopBossMusic()
-            
-            let waitAction = SKAction.wait(forDuration: 0.1)
-            let transitionAction = SKAction.run {
-                if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
-                    gameOverScene.scaleMode = .aspectFill
-                    gameOverScene.finalScore = self.scoreComponent.scoreCount
-                    
-                    // Informa para a próxima cena qual modo de jogo deve ser reiniciado.
-                    gameOverScene.previousSceneName = "GameScene"
-                    
-                    let transition = SKTransition.fade(withDuration: 1.0)
-                    self.view?.presentScene(gameOverScene, transition: transition)
-                }
-            }
-            
-            // Roda a sequência: espera um pouco e depois faz a transição.
-            self.run(SKAction.sequence([waitAction, transitionAction]))
-        }
+//        if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
+//            
+//            isPlayerDead = true
+//            
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+//                self.gestureManager?.stopDetection()
+//                self.gestureManager?.removeCameraPreview()
+//            }
+//            
+//            self.coinsComponent.saveSessionCoins()
+//        
+//            // Para a música de fundo
+//            AudioManager.shared.stopBackgroundMusic()
+//            AudioManager.shared.stopBossMusic()
+//            
+//            let waitAction = SKAction.wait(forDuration: 0.1)
+//            let transitionAction = SKAction.run {
+//                if let gameOverScene = SKScene(fileNamed: "GameOverScene") as? GameOverScene {
+//                    gameOverScene.scaleMode = .aspectFill
+//                    gameOverScene.finalScore = self.scoreComponent.scoreCount
+//                    
+//                    // Informa para a próxima cena qual modo de jogo deve ser reiniciado.
+//                    gameOverScene.previousSceneName = "GameScene"
+//                    
+//                    let transition = SKTransition.fade(withDuration: 1.0)
+//                    self.view?.presentScene(gameOverScene, transition: transition)
+//                }
+//            }
+//            
+//            // Roda a sequência: espera um pouco e depois faz a transição.
+//            self.run(SKAction.sequence([waitAction, transitionAction]))
+//        }
     }
     
     override func willMove(from view: SKView) {
@@ -687,7 +697,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
 
     func makeGestureInValidation(gesture: String) {
-        if !isPaused {
+        if !worldNode.isPaused {
             if gesture == "OpenPalm" {
                 if !isProcessingCorrectGesture {
                     gestureManager?.updateHandFeedback(status: .correct)
@@ -713,9 +723,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
 
-        // --- CORREÇÃO AQUI ---
-        // Verifica se a VIEW está pausada para encaminhar o toque ao menu.
-        if self.view?.isPaused ?? false {
+        if worldNode.isPaused {
             pauseOverlayComponent.handleTouch(at: location)
             return
         }
@@ -735,7 +743,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     func PlayerDidCorrectGesture() {
         onboardingState = .inactive
         
-        self.isPaused = false
+        worldNode.isPaused = false
     }
     
     func OnboardDidComplete() {
@@ -748,16 +756,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         onboardingState = .inactive
         
-        self.isPaused = false
+        worldNode.isPaused = false
     }
     
     func cameraWillExpand() {
-        self.isPaused = true
-        enemySpawner.stopSpawningEnemies()
+        self.pauseGame()
     }
     
     func cameraDidShrink() {
-        self.isPaused = false
+        worldNode.isPaused = false
         
         if isOnboarding {
             onboardingState = .inactive
@@ -804,7 +811,33 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
     }
     
+    @objc private func appWillResignActive() {
+        print("🔴 APP VAI SER MINIMIZADO (`appWillResignActive`)")
+        self.pauseGame()
+    }
+
+    @objc private func wakeUpView() {
+        // A única função disso é garantir que a view não esteja com a pausa do sistema.
+        if self.view?.isPaused == true {
+            self.view?.isPaused = false
+        }
+    }
+    
+    
+    override func update(_ currentTime: TimeInterval) {
+        if isManuallyPaused && !worldNode.isPaused {
+            worldNode.isPaused = true
+        }
+    }
+    
     deinit {
         NotificationCenter.default.removeObserver(self)
+    }
+}
+
+extension SKNode {
+    func move(toParent newParent: SKNode) {
+        self.removeFromParent()
+        newParent.addChild(self)
     }
 }

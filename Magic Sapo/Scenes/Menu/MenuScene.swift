@@ -11,13 +11,10 @@ class MenuScene: SKScene {
     
     // MARK: - Nós da Cena
     
-    // Nós que serão usados para o menu de configurações
-    private var settingsButton: SKSpriteNode?
-    private var settingsOverlay: SKNode?
-    private var cameraToggleButton: SKLabelNode?
-    private var validationToggleButton: SKLabelNode?
-    
     var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    
+    private let settingsButtonFactory = SettingsButtonComponent()
+    private let settingsOverlayFactory = SettingsOverlayComponent()
     
     // MARK: - Ciclo de Vida da Cena
     
@@ -32,10 +29,10 @@ class MenuScene: SKScene {
         // --- NOVAS FUNÇÕES ---
         // Cria o botão de configurações e o overlay (que começa escondido)
         if !isOnboarding {
-            setupSettingsButton()
+            let menuButton = settingsButtonFactory.makeButton()
+            menuButton.position = CGPoint(x: frame.maxX - 70, y: frame.maxY - 100)
+            addChild(menuButton)
         }
-        
-        createSettingsOverlay()
     }
     
     // MARK: - Configuração da UI
@@ -85,115 +82,6 @@ class MenuScene: SKScene {
             }
         }
     }
-    
-    // Cria o Botão de Configurações
-    func setupSettingsButton() {
-        settingsButton = SKSpriteNode(imageNamed: "botaoSettings")
-        settingsButton?.name = "settingsButton"
-        
-        let topPadding: CGFloat = 100
-        let trailingPadding: CGFloat = 70
-        
-        // Usa o frame da cena para garantir o posicionamento correto em diferentes tamanhos de tela
-        settingsButton?.position = CGPoint(
-            x: self.frame.maxX - trailingPadding,
-            y: self.frame.maxY - topPadding
-        )
-        
-        settingsButton?.size = CGSize(width: 70, height: 70)
-        settingsButton?.zPosition = 10
-        
-        if let button = settingsButton {
-            self.addChild(button)
-        }
-    }
-    
-    // Cria o Overlay de Configurações
-    func createSettingsOverlay() {
-        settingsOverlay = SKNode()
-        settingsOverlay?.name = "settingsOverlay"
-        settingsOverlay?.zPosition = 100 // zPosition alto para ficar na frente de tudo
-        
-        let background = SKShapeNode(rectOf: self.size)
-        background.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
-        background.fillColor = SKColor.black
-        background.alpha = 0.7
-        settingsOverlay?.addChild(background)
-        
-        let panelSize = CGSize(width: self.frame.width * 0.8, height: self.frame.height * 0.7)
-        let panel = SKShapeNode(rectOf: panelSize, cornerRadius: 15)
-        panel.fillColor = SKColor(red: 0.2, green: 0.2, blue: 0.25, alpha: 1.0)
-        panel.strokeColor = .white
-        panel.lineWidth = 2
-        panel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
-        settingsOverlay?.addChild(panel)
-        
-        let titleLabel = SKLabelNode(text: NSLocalizedString("settings_title", comment: "Settings panel title"))
-        titleLabel.fontName = "Ari-W9500Bold"
-        titleLabel.fontSize = 40
-        titleLabel.fontColor = .white
-        titleLabel.position = CGPoint(x: 0, y: (panelSize.height / 2) - 60)
-        panel.addChild(titleLabel)
-        
-        let closeButton = SKSpriteNode(imageNamed: "botaoClose")
-        closeButton.name = "closeSettingsButton"
-        closeButton.size = CGSize(width: 50, height: 50)
-        closeButton.position = CGPoint(x: (panelSize.width / 2) - 40, y: (panelSize.height / 2) - 35)
-        panel.addChild(closeButton)
-        
-        cameraToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
-        cameraToggleButton?.name = "cameraToggleButton"
-        cameraToggleButton?.fontSize = 28
-        cameraToggleButton?.fontColor = .white
-        cameraToggleButton?.position = CGPoint(x: 0, y: titleLabel.position.y - 80)
-        panel.addChild(cameraToggleButton!)
-        
-        validationToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
-        validationToggleButton?.name = "validationToggleButton"
-        validationToggleButton?.fontSize = 28
-        validationToggleButton?.fontColor = .white
-        validationToggleButton?.position = CGPoint(x: 0, y: cameraToggleButton!.position.y - 60)
-        panel.addChild(validationToggleButton!)
-        
-        settingsOverlay?.isHidden = true
-        
-        if let overlay = settingsOverlay {
-            self.addChild(overlay)
-        }
-    }
-    
-    // MARK: - Funções de Controle do Overlay
-    
-    func updateValidationToggleButtonText() {
-        let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
-        
-        let stateString = isValidationEnabled ? NSLocalizedString("state_on", comment: "") : NSLocalizedString("state_off", comment: "")
-        let baseString = NSLocalizedString("settings_validation_mode", comment: "e.g., Validation Mode: On")
-        validationToggleButton?.text = String(format: baseString, stateString)
-    }
-    
-    func updateCameraToggleButtonText() {
-        let isCameraEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
-
-        let stateString = isCameraEnabled ? NSLocalizedString("state_on", comment: "") : NSLocalizedString("state_off", comment: "")
-        let baseString = NSLocalizedString("settings_camera_preview", comment: "e.g., Camera Preview: On")
-        cameraToggleButton?.text = String(format: baseString, stateString)
-    }
-    
-    func showSettingsOverlay() {
-        updateValidationToggleButtonText()
-        updateCameraToggleButtonText()
-        
-        settingsOverlay?.isHidden = false
-        settingsOverlay?.alpha = 0
-        settingsOverlay?.run(SKAction.fadeIn(withDuration: 0.3))
-    }
-    
-    func hideSettingsOverlay() {
-        settingsOverlay?.run(SKAction.fadeOut(withDuration: 0.3), completion: { [weak self] in
-            self?.settingsOverlay?.isHidden = true
-        })
-    }
 
     // MARK: - Entrada do Usuário
     
@@ -201,35 +89,41 @@ class MenuScene: SKScene {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         
-        if settingsOverlay?.isHidden == false {
+        if let settingsOverlay = self.childNode(withName: "settingsOverlay") {
             let touchedNode = atPoint(location)
             
             switch touchedNode.name {
             case "closeSettingsButton":
-                hideSettingsOverlay()
+                // Para "esconder", removemos o nó da cena com uma animação.
+                settingsOverlay.run(SKAction.fadeOut(withDuration: 0.3)) {
+                    settingsOverlay.removeFromParent()
+                }
                 
             case "cameraToggleButton":
                 let currentStatus = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
                 UserDefaults.standard.set(!currentStatus, forKey: "isCameraPreviewEnabled")
-                updateCameraToggleButtonText()
+                // Chamamos a função de atualização da fábrica, passando o nó do overlay.
+                settingsOverlayFactory.updateLabels(on: settingsOverlay)
                 
             case "validationToggleButton":
                 let currentStatus = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
                 UserDefaults.standard.set(!currentStatus, forKey: "isValidationModeEnabled")
-                updateValidationToggleButtonText()
+                settingsOverlayFactory.updateLabels(on: settingsOverlay)
                 
             default:
+                // Se tocou em qualquer outro lugar enquanto o overlay está aberto, não fazemos nada.
                 break
             }
-            return
+            return // Impede que o toque continue para os botões do menu principal.
         }
-        
+
         let touchedNode = atPoint(location)
         guard let nodeName = touchedNode.name else { return }
 
         switch nodeName {
         case "settingsButton":
-            showSettingsOverlay()
+            let overlay = settingsOverlayFactory.makeOverlay(for: self, inMenuScene: true)
+            addChild(overlay)
 
         case "GestureMode", "JogarLabel":
             let buttonToAnimate = (nodeName == "JogarLabel") ? touchedNode.parent : touchedNode

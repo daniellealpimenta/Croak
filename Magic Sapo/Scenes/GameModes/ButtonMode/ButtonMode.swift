@@ -22,6 +22,7 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     private var gameState: GameState = .normalPlay
     private var mageControl: MageControl?
     private var scoreAtLastBossDefeat = 0
+    
     var pauseOverlayComponent: PauseOverlayComponent!
     
     var killZoneRect: CGRect {
@@ -94,7 +95,7 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
         pauseOverlayComponent = PauseOverlayComponent(parent: self)
         pauseOverlayComponent.delegate = self
         
-        enemySpawner = EnemySpawner(scene: self)
+//        enemySpawner = EnemySpawner(scene: self)
         enemySpawner.startSpawningEnemies()
         
         let frog = Frog(parent: self)
