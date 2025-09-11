@@ -150,9 +150,7 @@ class PauseOverlayComponent {
             for node in touchedNodes {
                 switch node.name {
                 case "closeSettingsButton":
-                    settingsOverlay.run(SKAction.fadeOut(withDuration: 0.3)) {
                         settingsOverlay.removeFromParent()
-                    }
                     return
                 case "cameraToggleButton":
                     let currentValue = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
@@ -197,7 +195,6 @@ class PauseOverlayComponent {
             case "SettingsButton":
                 if scene.childNode(withName: "settingsOverlay") == nil {
                     let settingsOverlay = settingsOverlayFactory.makeOverlay(for: scene, inMenuScene: false)
-                    settingsOverlay.run(SKAction.fadeIn(withDuration: 0.3))
                     scene.addChild(settingsOverlay)
                 }
                 return

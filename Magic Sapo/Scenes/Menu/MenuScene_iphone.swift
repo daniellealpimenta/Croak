@@ -112,9 +112,7 @@ class MenuScene_iphone: SKScene {
             for node in touchedNodes {
                 switch node.name {
                 case "closeSettingsButton":
-                    settingsOverlay.run(SKAction.fadeOut(withDuration: 0.3)) {
                         settingsOverlay.removeFromParent()
-                    }
                     return
                 case "cameraToggleButton":
                     let currentValue = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
@@ -152,7 +150,6 @@ class MenuScene_iphone: SKScene {
             // Usa o componente para mostrar o overlay de settings
             if self.childNode(withName: "settingsOverlay") == nil {
                 let settingsOverlay = settingsOverlayFactory.makeOverlay(for: self, inMenuScene: true)
-                settingsOverlay.run(SKAction.fadeIn(withDuration: 0.3))
                 self.addChild(settingsOverlay)
             }
 

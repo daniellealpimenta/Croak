@@ -36,7 +36,7 @@ class SettingsOverlayComponent {
         background.name = "settingsBackgroundBlocker"
         background.isUserInteractionEnabled = false
         background.position = .zero
-        background.alpha = 0.7
+        background.alpha = 0.8
         settingsOverlay.addChild(background)
         
         if DeviceHelper.isIPhone {
@@ -45,8 +45,8 @@ class SettingsOverlayComponent {
 
             if let texSize = panel.texture?.size() {
                 let aspect = texSize.height / texSize.width
-                panel.size = CGSize(width: inMenuScene ? scene.frame.width * 1.2 : scene.frame.width * 0.5,
-                                    height: inMenuScene ? scene.frame.width * 1.2 * aspect : scene.frame.width * 0.5 * aspect)
+                panel.size = CGSize(width: inMenuScene ? scene.frame.width * 1.3 : scene.frame.width * 0.54,
+                                    height: inMenuScene ? scene.frame.width * 1.3 * aspect : scene.frame.width * 0.54 * aspect)
             }
             panel.position = .zero
             panel.zPosition = 0
@@ -56,47 +56,47 @@ class SettingsOverlayComponent {
             closeButton.name = "closeSettingsButton"
             closeButton.size = inMenuScene ? CGSize(width: 85, height: 85) : CGSize(width: 50, height: 50)
             closeButton.position = CGPoint(
-                x: inMenuScene ? panel.position.x + (panel.size.width / 4) : panel.position.x + (panel.size.width / 4),
-                y: inMenuScene ? panel.position.y + (panel.size.height / 1.59) : panel.position.y + (panel.size.height / 1.7)
+                x: inMenuScene ? panel.position.x + (panel.size.width / 4.36) : panel.position.x + (panel.size.width / 4.37),
+                y: inMenuScene ? panel.position.y + (panel.size.height / 1.72) : panel.position.y + (panel.size.height / 1.85)
             )
             closeButton.zPosition = 1
             settingsOverlay.addChild(closeButton)
             
             // Preview Camera
-            let cameraYPosition = panel.position.y + (panel.size.height / 5.5)
+            let cameraYPosition = panel.position.y + (panel.size.height / 7.6)
             
             let cameraLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
             cameraLabel.text = NSLocalizedString("settings_camera_preview", comment: "")
-            cameraLabel.fontSize = 28
+            cameraLabel.fontSize = inMenuScene ? 28 : 15
             cameraLabel.fontColor = colorBrown
             cameraLabel.horizontalAlignmentMode = .left
-            cameraLabel.position = CGPoint(x: -(panel.size.width / 6.5), y: cameraYPosition)
+            cameraLabel.position = CGPoint(x: -(panel.size.width / 5), y: cameraYPosition)
             cameraLabel.zPosition = 1
             panel.addChild(cameraLabel)
 
             let cameraToggleButton = SKSpriteNode(imageNamed: "botaoCameraOff")
             cameraToggleButton.name = "cameraToggleButton"
-            cameraToggleButton.size = CGSize(width: 65, height: 65) // Ajuste o tamanho
-            cameraToggleButton.position = CGPoint(x: (panel.size.width / 4.5), y: cameraYPosition + 12)
+            cameraToggleButton.size = inMenuScene ? CGSize(width: 75, height: 75) : CGSize(width: 44, height: 44)
+            cameraToggleButton.position = inMenuScene ? CGPoint(x: (panel.size.width / 6.8), y: cameraYPosition + 10) : CGPoint(x: (panel.size.width / 6.8), y: cameraYPosition + 6)
             cameraToggleButton.zPosition = 1
             panel.addChild(cameraToggleButton)
             
             // Validação
-            let validationYPosition = cameraLabel.position.y - (panel.size.height / 9.5)
+            let validationYPosition = cameraLabel.position.y - (panel.size.height / 9.1)
             
             let validationLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
             validationLabel.text = NSLocalizedString("settings_validation_mode", comment: "")
-            validationLabel.fontSize = 28
+            validationLabel.fontSize = inMenuScene ? 28 : 15
             validationLabel.fontColor = colorBrown
             validationLabel.horizontalAlignmentMode = .left
-            validationLabel.position = CGPoint(x: -(panel.size.width / 6.5), y: validationYPosition)
+            validationLabel.position = CGPoint(x: -(panel.size.width / 5), y: validationYPosition)
             validationLabel.zPosition = 1
             panel.addChild(validationLabel)
             
             let validationToggleButton = SKSpriteNode(imageNamed: "botaoValidationOff")
             validationToggleButton.name = "validationToggleButton"
-            validationToggleButton.size = CGSize(width: 65, height: 65) // Ajuste o tamanho
-            validationToggleButton.position = CGPoint(x: (panel.size.width / 4.5), y: validationYPosition + 12)
+            validationToggleButton.size = inMenuScene ? CGSize(width: 75, height: 75) : CGSize(width: 44, height: 44)
+            validationToggleButton.position = inMenuScene ? CGPoint(x: (panel.size.width / 6.8), y: validationYPosition + 10) : CGPoint(x: (panel.size.width / 6.8), y: validationYPosition + 6)
             validationToggleButton.zPosition = 1
             panel.addChild(validationToggleButton)
             
@@ -105,36 +105,36 @@ class SettingsOverlayComponent {
             
             let musicLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
             musicLabel.text = NSLocalizedString("settings_music", comment: "")
-            musicLabel.fontSize = 28
+            musicLabel.fontSize = inMenuScene ? 28 : 15
             musicLabel.fontColor = colorBrown
             musicLabel.horizontalAlignmentMode = .left
-            musicLabel.position = CGPoint(x: -(panel.size.width / 6.5), y: musicYPosition)
+            musicLabel.position = CGPoint(x: -(panel.size.width / 5), y: musicYPosition)
             musicLabel.zPosition = 1
             panel.addChild(musicLabel)
             
             let musicToggleButton = SKSpriteNode(imageNamed: "botaoSomOff")
             musicToggleButton.name = "musicToggleButton"
-            musicToggleButton.size = CGSize(width: 65, height: 65) // Ajuste o tamanho
-            musicToggleButton.position = CGPoint(x: (panel.size.width / 4.5), y: musicYPosition + 12)
+            musicToggleButton.size = inMenuScene ? CGSize(width: 75, height: 75) : CGSize(width: 44, height: 44)
+            musicToggleButton.position = inMenuScene ? CGPoint(x: (panel.size.width / 6.8), y: musicYPosition + 10) : CGPoint(x: (panel.size.width / 6.8), y: musicYPosition + 6)
             musicToggleButton.zPosition = 1
             panel.addChild(musicToggleButton)
             
             // Efeito Sonoro
-            let sfxYPosition = musicLabel.position.y - (panel.size.height / 9)
+            let sfxYPosition = musicLabel.position.y - (panel.size.height / 9.1)
             
             let sfxLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
             sfxLabel.text = NSLocalizedString("settings_sfx", comment: "")
-            sfxLabel.fontSize = 28
+            sfxLabel.fontSize = inMenuScene ? 28 : 15
             sfxLabel.fontColor = colorBrown
             sfxLabel.horizontalAlignmentMode = .left
-            sfxLabel.position = CGPoint(x: -(panel.size.width / 6.5), y: sfxYPosition)
+            sfxLabel.position = CGPoint(x: -(panel.size.width / 5), y: sfxYPosition)
             sfxLabel.zPosition = 1
             panel.addChild(sfxLabel)
             
             let sfxToggleButton = SKSpriteNode(imageNamed: "botaoSomOff")
             sfxToggleButton.name = "sfxToggleButton"
-            sfxToggleButton.size = CGSize(width: 65, height: 65) // Ajuste o tamanho
-            sfxToggleButton.position = CGPoint(x: (panel.size.width / 4.5), y: sfxYPosition + 12)
+            sfxToggleButton.size = inMenuScene ? CGSize(width: 75, height: 75) : CGSize(width: 44, height: 44)
+            sfxToggleButton.position = inMenuScene ? CGPoint(x: (panel.size.width / 6.8), y: sfxYPosition + 10) : CGPoint(x: (panel.size.width / 6.8), y: sfxYPosition + 6)
             sfxToggleButton.zPosition = 1
             panel.addChild(sfxToggleButton)
             
