@@ -27,6 +27,7 @@ class MenuScene_iphone: SKScene {
         setupLabels()
         AudioManager.shared.applyAudioSettings() // Garante que a música comece com o estado correto
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
+        AudioManager.shared.setSoundEffectVolume(to: 0.5)
 
         if !isOnboarding {
             setupSettingsButton()
@@ -90,9 +91,8 @@ class MenuScene_iphone: SKScene {
             switch nodeAtPoint.name {
             case "closeSettingsButton":
                 AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
-                settingsOverlay.run(SKAction.fadeOut(withDuration: 0.3)) {
-                    settingsOverlay.removeFromParent()
-                }
+                settingsOverlay.removeFromParent()
+                
                 return
 
             case "cameraToggleButton":
@@ -141,11 +141,12 @@ class MenuScene_iphone: SKScene {
                 AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 let settingsOverlay = settingsOverlayFactory.makeOverlay(for: self, inMenuScene: true)
                 settingsOverlay.alpha = 0
-                settingsOverlay.run(SKAction.fadeIn(withDuration: 0.3))
                 self.addChild(settingsOverlay)
             }
 
+
         case "GestureMode", "JogarLabel":
+            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
             let buttonToAnimate = (nodeName == "JogarLabel") ? touchedNode.parent : touchedNode
             if let button = buttonToAnimate {
                 AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
@@ -155,6 +156,7 @@ class MenuScene_iphone: SKScene {
             }
 
         case "ButtonMode", "TutorialLabel":
+            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
             let buttonToAnimate = (nodeName == "TutorialLabel") ? touchedNode.parent : touchedNode
             if let button = buttonToAnimate {
                 AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
