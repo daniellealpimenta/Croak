@@ -75,6 +75,39 @@ final class GameCenterHelper: NSObject, GKGameCenterControllerDelegate {
         gameCenterVC.gameCenterDelegate = self
         presentingVC.present(gameCenterVC, animated: true)
     }
+    
+    func fetchLeaderboardEntries(completion: @escaping (Result<[GKLeaderboard.Entry], Error>) -> Void) {
+        let leaderboardID = "ranking_global"
+
+        guard isEnabled else {
+            let error = NSError(domain: "GameCenterError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Game Center not enabled."])
+            completion(.failure(error))
+            return
+        }
+
+        Task {
+            do {
+                let leaderboards = try await GKLeaderboard.loadLeaderboards(IDs: [leaderboardID])
+                
+                guard let leaderboard = leaderboards.first(where: { $0.baseLeaderboardID == leaderboardID }) else {
+                    let error = NSError(domain: "GameCenterError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Leaderboard not found."])
+                    completion(.failure(error))
+                    return
+                }
+
+                // A variável 'entries' aqui é a tupla de 3 partes.
+                let entries = try await leaderboard.loadEntries(for: .global, timeScope: .allTime, range: NSRange(location: 1, length: 100))
+                
+                // --- CORREÇÃO FINAL AQUI ---
+                // Acessamos o SEGUNDO item da tupla (a lista de pontuações) com o índice .1
+                completion(.success(entries.1))
+                
+            } catch {
+                print("Erro ao buscar o placar do Game Center: \(error.localizedDescription)")
+                completion(.failure(error))
+            }
+        }
+    }
 
     // Este método é chamado quando qualquer tela do Game Center (login, placar) é fechada.
     func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController) {

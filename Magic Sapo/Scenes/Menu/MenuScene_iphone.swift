@@ -12,6 +12,7 @@ class MenuScene_iphone: SKScene {
     // MARK: - Nós da Cena
     
     private var settingsButton: SKSpriteNode?
+    private var rankingButton: SKSpriteNode?
     private var settingsOverlay: SKNode?
     private var cameraToggleButton: SKLabelNode?
     private var validationToggleButton: SKLabelNode?
@@ -31,6 +32,7 @@ class MenuScene_iphone: SKScene {
 
         if !isOnboarding {
             setupSettingsButton()
+            setupRankingButton()
         }
         
         createSettingsOverlay()
@@ -106,6 +108,25 @@ class MenuScene_iphone: SKScene {
             self.addChild(button)
         }
     }
+    
+    func setupRankingButton() {
+            rankingButton = SKSpriteNode(imageNamed: "ranking_button")
+            rankingButton?.name = "ranking_button"
+            
+            let topPadding: CGFloat = 100
+            let trailingPadding: CGFloat = 600
+            rankingButton?.position = CGPoint(
+                x: self.frame.maxX - trailingPadding,
+                y: self.frame.maxY - topPadding
+            )
+            
+            rankingButton?.size = CGSize(width: 90, height: 90)
+            rankingButton?.zPosition = 10
+            
+            if let button = rankingButton {
+                self.addChild(button)
+            }
+        }
     
     func createSettingsOverlay() {
         settingsOverlay = SKNode()
@@ -239,6 +260,13 @@ class MenuScene_iphone: SKScene {
         switch nodeName {
         case "settingsButton":
             showSettingsOverlay()
+            
+        case "ranking_button":
+            if let button = touchedNode as? SKSpriteNode {
+                button.runButtonAnimation {
+                    self.transitionToScene(named: "RankingSceneIphone", isGestureMode: false)
+                }
+            }
 
         case "GestureMode", "JogarLabel":
             let buttonToAnimate = (nodeName == "JogarLabel") ? touchedNode.parent : touchedNode
@@ -276,6 +304,13 @@ class MenuScene_iphone: SKScene {
                 buttonScene.scaleMode = self.scaleMode
                 let transition = SKTransition.fade(withDuration: 1.0)
                 view?.presentScene(buttonScene, transition: transition)
+            }
+        }
+        else if sceneName == "RankingSceneIphone" {
+            if let rankingScene = SKScene(fileNamed: "RankingSceneIphone") {
+                rankingScene.scaleMode = self.scaleMode
+                let transition = SKTransition.fade(withDuration: 1.0)
+                view?.presentScene(rankingScene, transition: transition)
             }
         }
     }
