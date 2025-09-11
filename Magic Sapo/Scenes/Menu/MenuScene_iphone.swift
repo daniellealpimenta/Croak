@@ -21,8 +21,11 @@ class MenuScene_iphone: SKScene {
     // MARK: - Ciclo de Vida da Cena
     
     override func didMove(to view: SKView) {
+        
         UserDefaults.standard.register(defaults: ["isValidationModeEnabled": true])
         UserDefaults.standard.register(defaults: ["isCameraPreviewEnabled": true])
+        UserDefaults.standard.register(defaults: ["isMusicEnabled": true])
+        UserDefaults.standard.register(defaults: ["isSfxEnabled": true])
         
         setupLabels()
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
@@ -121,6 +124,16 @@ class MenuScene_iphone: SKScene {
                 case "validationToggleButton":
                     let currentValue = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
                     UserDefaults.standard.set(!currentValue, forKey: "isValidationModeEnabled")
+                    settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
+                    return
+                case "musicToggleButton":
+                    let currentValue = UserDefaults.standard.bool(forKey: "isMusicEnabled")
+                    UserDefaults.standard.set(!currentValue, forKey: "isMusicEnabled")
+                    settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
+                    return
+                case "sfxToggleButton":
+                    let currentValue = UserDefaults.standard.bool(forKey: "isSfxEnabled")
+                    UserDefaults.standard.set(!currentValue, forKey: "isSfxEnabled")
                     settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
                     return
                 default:

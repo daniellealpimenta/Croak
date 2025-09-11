@@ -62,47 +62,81 @@ class SettingsOverlayComponent {
             closeButton.zPosition = 1
             settingsOverlay.addChild(closeButton)
             
-            // --- MODIFICADO: Configuração de Câmera ---
+            // Preview Camera
             let cameraYPosition = panel.position.y + (panel.size.height / 5.5)
             
-            // 1. Label Estático (Esquerda)
             let cameraLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
-            cameraLabel.text = NSLocalizedString("settings_camera_preview", comment: "") // Ex: "Preview da Câmera"
-            cameraLabel.fontSize = inMenuScene ? 26 : 16
+            cameraLabel.text = NSLocalizedString("settings_camera_preview", comment: "")
+            cameraLabel.fontSize = 28
             cameraLabel.fontColor = colorBrown
             cameraLabel.horizontalAlignmentMode = .left
-            cameraLabel.position = CGPoint(x: -panel.size.width * 0.4, y: cameraYPosition)
+            cameraLabel.position = CGPoint(x: -(panel.size.width / 6.5), y: cameraYPosition)
             cameraLabel.zPosition = 1
             panel.addChild(cameraLabel)
 
-            // 2. Botão de Toggle (Direita)
-            let cameraToggleButton = SKSpriteNode(imageNamed: "botaoCameraOff") // Imagem padrão
-            cameraToggleButton.name = "cameraToggleButton" // Nome para identificar o toque
-            cameraToggleButton.size = inMenuScene ? CGSize(width: 60, height: 40) : CGSize(width: 45, height: 30) // Ajuste o tamanho
-            cameraToggleButton.position = CGPoint(x: panel.size.width * 0.35, y: cameraYPosition + 5) // Ajuste fino da posição Y
+            let cameraToggleButton = SKSpriteNode(imageNamed: "botaoCameraOff")
+            cameraToggleButton.name = "cameraToggleButton"
+            cameraToggleButton.size = CGSize(width: 65, height: 65) // Ajuste o tamanho
+            cameraToggleButton.position = CGPoint(x: (panel.size.width / 4.5), y: cameraYPosition + 12)
             cameraToggleButton.zPosition = 1
             panel.addChild(cameraToggleButton)
             
-            // --- MODIFICADO: Configuração de Validação ---
-            let validationYPosition = cameraYPosition - (panel.size.height / 9)
+            // Validação
+            let validationYPosition = cameraLabel.position.y - (panel.size.height / 9.5)
             
-            // 1. Label Estático (Esquerda)
             let validationLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
-            validationLabel.text = NSLocalizedString("settings_validation_mode", comment: "") // Ex: "Modo de Validação"
-            validationLabel.fontSize = inMenuScene ? 26 : 16
+            validationLabel.text = NSLocalizedString("settings_validation_mode", comment: "")
+            validationLabel.fontSize = 28
             validationLabel.fontColor = colorBrown
             validationLabel.horizontalAlignmentMode = .left
-            validationLabel.position = CGPoint(x: -panel.size.width * 0.4, y: validationYPosition)
+            validationLabel.position = CGPoint(x: -(panel.size.width / 6.5), y: validationYPosition)
             validationLabel.zPosition = 1
             panel.addChild(validationLabel)
             
-            // 2. Botão de Toggle (Direita)
-            let validationToggleButton = SKSpriteNode(imageNamed: "botaoValidationOff") // Imagem padrão
-            validationToggleButton.name = "validationToggleButton" // Nome para identificar o toque
-            validationToggleButton.size = inMenuScene ? CGSize(width: 60, height: 40) : CGSize(width: 45, height: 30) // Ajuste o tamanho
-            validationToggleButton.position = CGPoint(x: panel.size.width * 0.35, y: validationYPosition + 5) // Ajuste fino da posição Y
+            let validationToggleButton = SKSpriteNode(imageNamed: "botaoValidationOff")
+            validationToggleButton.name = "validationToggleButton"
+            validationToggleButton.size = CGSize(width: 65, height: 65) // Ajuste o tamanho
+            validationToggleButton.position = CGPoint(x: (panel.size.width / 4.5), y: validationYPosition + 12)
             validationToggleButton.zPosition = 1
             panel.addChild(validationToggleButton)
+            
+            // Música
+            let musicYPosition = validationLabel.position.y - (panel.size.height / 9.1)
+            
+            let musicLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
+            musicLabel.text = NSLocalizedString("settings_music", comment: "")
+            musicLabel.fontSize = 28
+            musicLabel.fontColor = colorBrown
+            musicLabel.horizontalAlignmentMode = .left
+            musicLabel.position = CGPoint(x: -(panel.size.width / 6.5), y: musicYPosition)
+            musicLabel.zPosition = 1
+            panel.addChild(musicLabel)
+            
+            let musicToggleButton = SKSpriteNode(imageNamed: "botaoSomOff")
+            musicToggleButton.name = "musicToggleButton"
+            musicToggleButton.size = CGSize(width: 65, height: 65) // Ajuste o tamanho
+            musicToggleButton.position = CGPoint(x: (panel.size.width / 4.5), y: musicYPosition + 12)
+            musicToggleButton.zPosition = 1
+            panel.addChild(musicToggleButton)
+            
+            // Efeito Sonoro
+            let sfxYPosition = musicLabel.position.y - (panel.size.height / 9)
+            
+            let sfxLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
+            sfxLabel.text = NSLocalizedString("settings_sfx", comment: "")
+            sfxLabel.fontSize = 28
+            sfxLabel.fontColor = colorBrown
+            sfxLabel.horizontalAlignmentMode = .left
+            sfxLabel.position = CGPoint(x: -(panel.size.width / 6.5), y: sfxYPosition)
+            sfxLabel.zPosition = 1
+            panel.addChild(sfxLabel)
+            
+            let sfxToggleButton = SKSpriteNode(imageNamed: "botaoSomOff")
+            sfxToggleButton.name = "sfxToggleButton"
+            sfxToggleButton.size = CGSize(width: 65, height: 65) // Ajuste o tamanho
+            sfxToggleButton.position = CGPoint(x: (panel.size.width / 4.5), y: sfxYPosition + 12)
+            sfxToggleButton.zPosition = 1
+            panel.addChild(sfxToggleButton)
             
         } else { // Layout para iPad
             

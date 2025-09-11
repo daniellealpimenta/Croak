@@ -164,6 +164,16 @@ class PauseOverlayComponent {
                     UserDefaults.standard.set(!currentValue, forKey: "isValidationModeEnabled")
                     settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
                     return
+                case "musicToggleButton":
+                    let currentValue = UserDefaults.standard.bool(forKey: "isMusicEnabled")
+                    UserDefaults.standard.set(!currentValue, forKey: "isMusicEnabled")
+                    settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
+                    return
+                case "sfxToggleButton":
+                    let currentValue = UserDefaults.standard.bool(forKey: "isSfxEnabled")
+                    UserDefaults.standard.set(!currentValue, forKey: "isSfxEnabled")
+                    settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
+                    return
                 default:
                     continue
                 }
