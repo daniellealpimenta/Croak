@@ -9,13 +9,23 @@ import GameplayKit
 import AVFoundation
 
 class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, ScoreHavingScene, PauseButtonDelegate, PauseOverlayDelegate, BossFightScene, OnboardDelegate {
+    
     // comente abaixo se for testar tambem
     var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     
+    private var gestureFeedbackNode: SKSpriteNode?
+
+    
     // MARK: VARIAVEL PARA TESTE
-//    var isOnboarding = true
+//  var isOnboarding = true
+    
+    let worldNode = SKNode() // Para todos os elementos do jogo (sapo, inimigos)
+    let uiNode = SKNode()    // Para todos os elementos de UI (botões, score, overlays)
+    
+    private var isManuallyPaused = false
     
     private var onboardingState: OnboardingState = .inactive
+    
     
     enum OnboardingState {
         case inactive
@@ -39,16 +49,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     var scoreComponent: ScoreComponent!
     var coinsComponent: CoinsComponent!
     var backgroundComponent: BackgroundComponent!
-    var pauseButtonComponent: PauseButtonComponent!
+    
     var gestureManager: GestureDetectionManager!
     var onboardManager: OnboardManager!
     var enemySpawner: EnemySpawner!
 
+    var pauseButtonComponent: PauseButtonComponent!
     var pauseOverlayComponent: PauseOverlayComponent!
     
     private var cameraPreviewNode: SKEffectNode!
     private var gestureDebugLabel: SKLabelNode?
     private var gestureDebugImageNode: SKSpriteNode?
+    
+    // ALTERAÇÃO: Mantemos a referência do sapo para posicionar o livro
+    private var frogNode: SKNode?
     
     private var gameState: GameState = .normalPlay
     private var mageControl: MageControl?
@@ -96,82 +110,51 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let musicSequence = SKAction.sequence([stopMusicAction, waitAction, playMusicAction])
         self.run(musicSequence)
         
-//        drawDebugKillZone()
     }
-    
-//    private func drawDebugKillZone() {
-//        let zoneRect = self.killZoneRect
-//        
-//        let killZoneNode = SKSpriteNode(
-//            color: UIColor.red.withAlphaComponent(0.3),
-//            size: zoneRect.size
-//        )
-//        
-//        killZoneNode.position = CGPoint(x: zoneRect.midX, y: zoneRect.midY)
-//        killZoneNode.zPosition = 10
-//        
-//        self.addChild(killZoneNode)
-//
-//    }
     
     private func checkCameraPermission() {
         let cameraAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
         
         switch cameraAuthorizationStatus {
         case .authorized:
-            // Permissão já concedida, pode configurar a cena.
             self.initializeScene()
-            
         case .notDetermined:
-            // Permissão ainda não solicitada, vamos pedir.
             AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
                 DispatchQueue.main.async {
                     if granted {
-                        // O usuário concedeu a permissão.
                         self?.initializeScene()
                     } else {
-                        // O usuário negou a permissão.
                         self?.handlePermissionDenied()
                     }
                 }
             }
-            
         case .denied, .restricted:
-            // O usuário já negou a permissão ou ela está restrita.
             handlePermissionDenied()
-            
         @unknown default:
-            // Lida com qualquer outro caso futuro.
             handlePermissionDenied()
         }
     }
     
     private func handlePermissionDenied() {
         let alertController = UIAlertController(
-            title: "Acesso à Câmera Necessário",
-            message: "Este jogo utiliza a câmera para detectar seus gestos. Por favor, habilite o acesso nas Configurações para poder jogar.",
+            title: NSLocalizedString("camera_permission_title", comment: ""),
+            message: NSLocalizedString("camera_permission_message", comment: ""),
             preferredStyle: .alert
         )
 
-        // Botão para levar o usuário aos Ajustes do app
-        let settingsAction = UIAlertAction(title: "Ir para Ajustes", style: .default) { _ in
-            // Abre a URL de configurações do aplicativo
+        let settingsAction = UIAlertAction(title: NSLocalizedString("go_to_settings_button", comment: ""), style: .default) { _ in
             guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
-
             if UIApplication.shared.canOpenURL(settingsUrl) {
-                UIApplication.shared.open(settingsUrl, completionHandler: { (success) in
-                })
+                UIApplication.shared.open(settingsUrl)
             }
         }
         alertController.addAction(settingsAction)
 
-        // Botão para voltar ao menu, agora com o estilo .cancel
-        let cancelAction = UIAlertAction(title: "Voltar ao Menu", style: .cancel) { [weak self] _ in
+        let cancelAction = UIAlertAction(title: NSLocalizedString("back_to_menu_button", comment: ""), style: .cancel) { [weak self] _ in
             self?.transitionToMenu()
         }
         alertController.addAction(cancelAction)
 
-        // Apresenta o alerta na thread principal
         DispatchQueue.main.async {
             if let viewController = self.view?.window?.rootViewController {
                 viewController.present(alertController, animated: true)
@@ -180,7 +163,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     private func transitionToMenu() {
-        if let menuScene = SKScene(fileNamed: "MenuScene") {
+        let sceneName = DeviceHelper.isIPhone ? "MenuScene_iphone" : "MenuScene"
+        if let menuScene = SKScene(fileNamed: sceneName) {
             menuScene.scaleMode = .aspectFill
             let transition = SKTransition.fade(withDuration: 0.5)
             self.view?.presentScene(menuScene, transition: transition)
@@ -188,30 +172,40 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     private func initializeScene() {
-        // Evita que a cena seja inicializada múltiplas vezes.
         guard !sceneIsInitialized else { return }
-        
         setupScene()
         sceneIsInitialized = true
     }
     
-    // GameScene.swift
-
     private func setupScene() {
 
-        NotificationCenter.default.addObserver(self, selector: #selector(pauseGame), name: NSNotification.Name("AppWillResignActive"), object: nil)
-            
+        NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive), name: NSNotification.Name("AppWillResignActive"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(wakeUpView), name: NSNotification.Name("AppDidBecomeActive"), object: nil)
+              
         self.physicsWorld.contactDelegate = self
-            
+        
+        addChild(worldNode)
+        addChild(uiNode)
+              
         backgroundComponent = BackgroundComponent(parent: self)
         backgroundComponent.setupAnimatedBackground()
-            
+                    
         scoreComponent = ScoreComponent(parent: self)
         coinsComponent = CoinsComponent(parent: self)
-            
+                    
         pauseButtonComponent = PauseButtonComponent(parent: self)
         pauseButtonComponent.delegate = self
-            
+        
+        pauseOverlayComponent = PauseOverlayComponent(parent: self)
+        pauseOverlayComponent.delegate = self
+        
+        scoreComponent.scoreLabel.move(toParent: uiNode)
+        coinsComponent.coinsLabel.move(toParent: uiNode)
+        coinsComponent.labelShadow.move(toParent: uiNode)
+        coinsComponent.coinIcon.move(toParent: uiNode)
+        pauseButtonComponent.pauseButtonNode.move(toParent: uiNode)
+        pauseOverlayComponent.overlayNode?.move(toParent: uiNode)
+              
         if isOnboarding {
             scoreComponent.scoreLabel.isHidden = true
             coinsComponent.coinsLabel.isHidden = true
@@ -219,31 +213,34 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             coinsComponent.coinIcon.isHidden = true
             pauseButtonComponent.pauseButtonNode.isHidden = true
         }
-            
-        pauseOverlayComponent = PauseOverlayComponent(parent: self)
-        pauseOverlayComponent.delegate = self
-            
-        enemySpawner = EnemySpawner(scene: self)
-            
+              
+        enemySpawner = EnemySpawner(parentNode: worldNode, scene: self)
+              
         let frog = Frog(parent: self)
-        let frogNode: SKNode
+        let createdFrogNode: SKNode
 
         switch DeviceHelper.current {
-        case .iPad:
-            frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 150))
-        case .iPhone:
-            frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 100))
-        case .unknown:
-            frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 150))
+            case .iPad:
+                createdFrogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 150))
+            case .iPhone:
+                createdFrogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 100))
+            case .unknown:
+                createdFrogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 150))
         }
 
-        self.addChild(frogNode)
-            
+        // ---------- INÍCIO DA CORREÇÃO ----------
+        self.frogNode = createdFrogNode
+        if let frogNode = self.frogNode {
+            worldNode.addChild(frogNode)
+        }
+        // ---------- FIM DA CORREÇÃO ----------
+        
+        setupMagicBook()
+        
+        setupGestureFeedbackNode()
+                    
         setupGestureDetection()
 
-        // Esta seção agora funciona para TODOS os dispositivos, não apenas para o iPad.
-
-        // 1. Verifique se a pré-visualização da câmera está habilitada nas configurações.
         let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
         if isCameraPreviewEnabled {
             if let view = self.view {
@@ -251,47 +248,74 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             }
         }
 
-        // 2. Verifique se o jogo deve começar no modo de validação de gestos.
         if startInGestureMode {
             let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
-            
+              
             if isValidationEnabled {
                 setupValidationInstructionLabel()
                 setupCountdownLabel()
                 enterGestureValidationMode()
             } else {
-                // Chama cameraDidShrink() para iniciar o onboarding ou o jogo principal.
                 cameraDidShrink()
             }
         } else {
-
-            // para que o onboarding ou o jogo comecem. Este é o caminho normal.
             cameraDidShrink()
         }
-                    
+                                
         if let view = self.view {
             onboardManager = OnboardManager(view: view, spawner: self.enemySpawner, gestureManager: self.gestureManager)
             onboardManager.delegate = self
         }
-            
     }
     
+    private func setupMagicBook() {
+        
+        guard let frogNode = self.frogNode else {
+            print("AVISO: Nó do sapo não encontrado. Não foi possível adicionar o livro.")
+            return
+        }
+        
+        let bookNode = MagicBook.createBookNode()
+        
+        let offset = DeviceHelper.isIPad ? CGVector(dx: 60, dy: 30) : CGVector(dx: 45, dy: 45)
+        
+        bookNode.zPosition = frogNode.zPosition - 1
+        
+        bookNode.position = CGPoint(
+            x: frogNode.position.x + offset.dx,
+            y: frogNode.position.y + offset.dy
+        )
+        
+        
+        let moveDown = SKAction.moveBy(x: 0, y: -10, duration: 2.0)
+        
+        moveDown.timingMode = .easeInEaseOut
+        
+        let moveUp = moveDown.reversed()
+        
+        let floatSequence = SKAction.sequence([moveDown, moveUp])
+        
+        let floatAnimation = SKAction.repeatForever(floatSequence)
+        
+        bookNode.run(floatAnimation)
+                    
+        // --- MELHORIA: Adicionar ao worldNode ---
+        worldNode.addChild(bookNode)
+    }
+
+    
     private func setupCountdownLabel() {
-        // Garante que a view principal do jogo exista
         guard let view = self.view else { return }
 
-        // Cria uma UILabel, o equivalente a SKLabelNode no UIKit
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 100)
         label.textColor = .white
         label.textAlignment = .center
-        label.isHidden = true // Começa invisível
+        label.isHidden = true
 
-        // Adiciona a label na view principal, por cima de tudo
         view.addSubview(label)
         self.countdownLabel = label
 
-        // Configura as "constraints" para garantir que a label fique sempre centralizada
         label.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
@@ -329,13 +353,50 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     // MARK: - Funções do modo validação
     
+    private func setupGestureFeedbackNode() {
+        guard let frogNode = self.frogNode else {
+            print("AVISO: Nó do sapo não encontrado. Não foi possível adicionar o nó de feedback de gesto.")
+            return
+        }
+        
+        let feedbackNodeSize = DeviceHelper.isIPad ? CGSize(width: 50, height: 50) : CGSize(width: 40, height: 40)
+        
+        let feedbackNode = SKSpriteNode(color: .clear, size: feedbackNodeSize)
+        
+        let bookOffset = DeviceHelper.isIPad ? CGVector(dx: 70, dy: 30) : CGVector(dx: 55, dy: 40)
+        let gestureOffset = CGVector(dx: bookOffset.dx, dy: bookOffset.dy + 40)
+
+        feedbackNode.position = CGPoint(
+            x: frogNode.position.x + gestureOffset.dx,
+            y: frogNode.position.y + gestureOffset.dy
+        )
+        
+        feedbackNode.zPosition = frogNode.zPosition - 1
+        
+        feedbackNode.isHidden = true
+        
+
+        let moveDown = SKAction.moveBy(x: 0, y: -10, duration: 2.0)
+        moveDown.timingMode = .easeInEaseOut
+
+        let moveUp = moveDown.reversed()
+
+        let floatSequence = SKAction.sequence([moveDown, moveUp])
+
+        let floatAnimation = SKAction.repeatForever(floatSequence)
+
+        feedbackNode.run(floatAnimation)
+        
+        self.gestureFeedbackNode = feedbackNode
+        // --- MELHORIA: Adicionar ao worldNode ---
+        worldNode.addChild(feedbackNode)
+    }
+    
     func enterGestureValidationMode() {
         guard let view = self.view else { return }
         
         pauseButtonComponent.pauseButtonNode.isHidden = true
         
-        // 1. Expande a câmera para tela cheia.
-        // --- CORREÇÃO 1: Corrigido o nome da chave para "isCameraPreviewEnabled" ---
         let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
         
         if !isCameraPreviewEnabled {
@@ -350,8 +411,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         countdownLabel?.isHidden = false
         instructionLabel?.isHidden = false
         
-        // --- CORREÇÃO 2: Trazer os labels para a FRENTE da view ---
-        // Isso garante que eles fiquem por cima da preview da câmera que foi criada.
         if let countdown = countdownLabel {
             view.bringSubviewToFront(countdown)
         }
@@ -361,7 +420,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     private func startOrContinueValidationCountdown() {
-        // Se já tem timer rodando, não faz nada
         if gestureValidationTimer != nil { return }
         
         gestureValidationTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
@@ -396,7 +454,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             pauseButtonComponent.pauseButtonNode.isHidden = false
         }
         
-        // --- CORREÇÃO: Corrigido o nome da chave para "isCameraPreviewEnabled" ---
         let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
         if !isCameraPreviewEnabled {
             gestureManager?.removeCameraPreview()
@@ -411,9 +468,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         gestureManager.startDetection()
     }
     
-    // VERSÃO ADAPTATIVA do setup de debug UI
     private func setupGestureDebugUI() {
-        // --- Configuração do Label (código existente) ---
         gestureDebugLabel = SKLabelNode(fontNamed: "Arial-Bold")
         if let labelNode = gestureDebugLabel {
             labelNode.fontSize = DeviceHelper.isIPhone ? 16 : 20
@@ -424,26 +479,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             addChild(labelNode)
         }
         
-        gestureDebugImageNode = SKSpriteNode() // Inicializa o nó vazio
+        gestureDebugImageNode = SKSpriteNode()
         if let imageNode = gestureDebugImageNode {
             imageNode.size = DeviceHelper.isIPad ? CGSize(width: 80, height: 80) : CGSize(width: 50, height: 50)
             imageNode.position = DeviceHelper.isIPhone ?  CGPoint(x: 85, y: -200) : CGPoint(x: 80, y: -170)
             imageNode.isHidden = true
             addChild(imageNode)
         }
-        
-        let bookNode = SKSpriteNode(imageNamed: "livro")
-        bookNode.size = DeviceHelper.isIPad ? CGSize(width: 150, height: 150) : CGSize(width: 100, height: 100)
-        bookNode.position = CGPoint(x: 80, y: -250)
-        bookNode.isHidden = false
-        addChild(bookNode)
-        
     }
     
     func gestureDetected(_ gesture: String, confidence: Double) {
         
         gestureDebugLabel?.text = "Gesto: \(gesture) (\(Int(confidence * 100))%)"
-        
         gestureDebugImageNode?.isHidden = false
         var textureName: String?
         
@@ -460,13 +507,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             textureName = "L_s"
         case "HangLose":
             textureName = "HangLose_s"
-
         default:
             textureName = nil
         }
         
         if let name = textureName {
             gestureDebugImageNode?.texture = SKTexture(imageNamed: name)
+            
+            if let feedbackNode = self.gestureFeedbackNode {
+                feedbackNode.texture = SKTexture(imageNamed: name)
+                feedbackNode.isHidden = false
+                                
+                let fadeIn = SKAction.fadeIn(withDuration: 0.1)
+                let wait = SKAction.wait(forDuration: 0.5)
+                let fadeOut = SKAction.fadeOut(withDuration: 0.2)
+                let sequence = SKAction.sequence([fadeIn, wait, fadeOut])
+                
+                feedbackNode.run(sequence)
+            }
+            
         } else {
             gestureDebugImageNode?.isHidden = true
         }
@@ -482,7 +541,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     func gestureDetectionLost() {
         gestureDebugLabel?.text = "Gesto: Nenhum"
-        gestureDebugImageNode?.isHidden = true // NOVO: Oculta a imagem quando o gesto é perdido
         
         if isOnGestureValidationMode {
             gestureManager?.updateHandFeedback(status: .neutral)
@@ -495,51 +553,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     @objc func pauseGame() {
-        // 1. Usa a VIEW como "fonte da verdade" para o estado de pausa.
-        if self.view?.isPaused ?? false {
-            return
-        }
-
-
-        // 2. Mostra a UI de pausa.
         
-        if isOnboarding || isOnGestureValidationMode {
+        if isOnboarding || isOnGestureValidationMode || worldNode.isPaused {
             return
         }
         
+        isManuallyPaused = true
+
+        // Pausa o jogo
+        worldNode.isPaused = true
         pauseOverlayComponent.show()
 
-        // 3. Para sistemas específicos da GameScene (câmera, gestos, timers).
         enemySpawner.stopSpawningEnemies()
         gestureManager?.stopDetection()
-        gestureManager?.removeCameraPreview() // Garante que a câmera saia ao pausar.
+        gestureManager?.removeCameraPreview()
         AudioManager.shared.pauseBackgroundMusic()
         AudioManager.shared.pauseBossMusic()
-
-        // 4. A MÁGICA: Agenda a pausa da VIEW para o próximo quadro, permitindo que a UI apareça.
-        let wait = SKAction.wait(forDuration: 0)
-        let pauseAction = SKAction.run { [weak self] in
-            self?.view?.isPaused = true
-        }
-        self.run(SKAction.sequence([wait, pauseAction]))
     }
 
     @objc func resumeGame() {
-        guard self.view?.isPaused ?? false else { return }
+        if !worldNode.isPaused {
+            return
+        }
+
+        isManuallyPaused = false
         
-        self.view?.isPaused = false
-        
+        worldNode.isPaused = false
         pauseOverlayComponent.hide()
 
+        // Reativa os sistemas do jogo.
         gestureManager.startDetection()
-
-        let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
-        if isCameraPreviewEnabled {
-            if let view = self.view {
+        if let view = self.view {
+            // Recria a preview da câmera se estiver habilitada.
+            let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+            if isCameraPreviewEnabled {
                 self.gestureManager.setupCameraPreview(in: view, duringOnboarding: isOnboarding)
             }
         }
-    
+        
+        // Reinicia a música e os inimigos dependendo do estado do jogo.
         if !isOnGestureValidationMode && !isOnboarding && gameState == .normalPlay {
             AudioManager.shared.resumeBackgroundMusic()
             if gameState == .normalPlay {
@@ -549,9 +601,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             AudioManager.shared.resumeBossMusic()
         }
     }
-        
     // MARK: Funções padrão da cena
     
+ 
     func didBegin(_ contact: SKPhysicsContact) {
         guard !isPlayerDead else { return }
 
@@ -566,7 +618,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             secondBody = contact.bodyA
         }
 
-        // Verifica se a colisão foi entre o jogador e um inimigo
         if (firstBody.categoryBitMask == PhysicsCategory.frog && secondBody.categoryBitMask == PhysicsCategory.enemy) {
             
             isPlayerDead = true
@@ -578,8 +629,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             
             self.coinsComponent.saveSessionCoins()
         
-            // Para a música de fundo
             AudioManager.shared.stopBackgroundMusic()
+            AudioManager.shared.stopBossMusic()
             
             let waitAction = SKAction.wait(forDuration: 0.1)
             let transitionAction = SKAction.run {
@@ -587,7 +638,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                     gameOverScene.scaleMode = .aspectFill
                     gameOverScene.finalScore = self.scoreComponent.scoreCount
                     
-                    // Informa para a próxima cena qual modo de jogo deve ser reiniciado.
                     gameOverScene.previousSceneName = "GameScene"
                     
                     let transition = SKTransition.fade(withDuration: 1.0)
@@ -595,7 +645,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                 }
             }
             
-            // Roda a sequência: espera um pouco e depois faz a transição.
             self.run(SKAction.sequence([waitAction, transitionAction]))
         }
     }
@@ -606,17 +655,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         gestureManager?.removeCameraPreview()
     }
     
-
     // MARK: - Lógica do Jogo
     
-    // Processa a ação do jogador após fazer um gesto.
     func playerDidMake(gesture: String) {
         if isOnboarding {
             if onboardingState == .waitingForPlayerAction {
-                // Pega o inimigo atual na tela
                 guard let currentEnemy = enemySpawner.enemyControl.activeEnemies.first else { return }
                 
-                // Verifica se o gesto feito corresponde a algum dos nós de gesto filhos do inimigo
                 let hasMatchingGesture = currentEnemy.children.contains { node in
                     return node.name == gesture
                 }
@@ -629,19 +674,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         } else {
             switch gameState {
                 case .bossFight:
-                    // Durante a batalha, apenas o chefe responde.
                     mageControl?.handlePlayer(gesture: gesture)
                     
                 case .normalPlay, .clearingField:
-                    // No jogo normal E na limpeza de campo, a lógica para matar inimigos normais funciona.
                     if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
                         scoreComponent.addScore(point: rewards.points)
                         coinsComponent.addCoins(coins: rewards.coins)
-                                            
+                                                
                     }
             }
             
-            // A verificação do chefe agora só inicia a fase de limpeza.
             checkToStartBossEncounter()
         }
     }
@@ -652,7 +694,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let scoreSinceLastBoss = score - scoreAtLastBossDefeat
         
         if gameState == .normalPlay && scoreSinceLastBoss >= 75  {
-                        
+                                
             gameState = .clearingField
             
             AudioManager.shared.pauseBackgroundMusic()
@@ -680,7 +722,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
 
     func makeGestureInValidation(gesture: String) {
-        if !isPaused {
+        if !worldNode.isPaused {
             if gesture == "OpenPalm" {
                 if !isProcessingCorrectGesture {
                     gestureManager?.updateHandFeedback(status: .correct)
@@ -701,14 +743,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     // MARK: - Entrada do Usuário
-         
+        
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
 
-        // --- CORREÇÃO AQUI ---
-        // Verifica se a VIEW está pausada para encaminhar o toque ao menu.
-        if self.view?.isPaused ?? false {
+        if worldNode.isPaused {
             pauseOverlayComponent.handleTouch(at: location)
             return
         }
@@ -728,7 +768,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     func PlayerDidCorrectGesture() {
         onboardingState = .inactive
         
-        self.isPaused = false
+        worldNode.isPaused = false
     }
     
     func OnboardDidComplete() {
@@ -741,20 +781,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         
         onboardingState = .inactive
         
-        self.isPaused = false
+        worldNode.isPaused = false
     }
     
     func cameraWillExpand() {
-        self.isPaused = true
-        enemySpawner.stopSpawningEnemies()
+        self.pauseGame()
     }
     
     func cameraDidShrink() {
-        self.isPaused = false
+        worldNode.isPaused = false
         
         if isOnboarding {
             onboardingState = .inactive
-            onboardManager.startOnboarding() // Inicia onboarding em vez de spawning normal
+            onboardManager.startOnboarding()
         } else {
             enemySpawner.startSpawningEnemies()
         }
@@ -783,6 +822,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
      
     func didTapExitButton() {
+        AudioManager.shared.stopBackgroundMusic()
         AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
         
         self.view?.isPaused = false
@@ -796,7 +836,33 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         }
     }
     
+    @objc private func appWillResignActive() {
+        self.pauseGame()
+    }
+
+    @objc private func wakeUpView() {
+        // A única função disso é garantir que a view não esteja com a pausa do sistema.
+        if self.view?.isPaused == true {
+            self.view?.isPaused = false
+        }
+    }
+    
+    
+    override func update(_ currentTime: TimeInterval) {
+        if isManuallyPaused && !worldNode.isPaused {
+            worldNode.isPaused = true
+        }
+    }
+    
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
 }
+
+extension SKNode {
+    func move(toParent newParent: SKNode) {
+        self.removeFromParent()
+        newParent.addChild(self)
+    }
+}
+

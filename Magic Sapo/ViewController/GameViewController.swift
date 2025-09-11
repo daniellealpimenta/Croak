@@ -6,38 +6,43 @@
 //
 
 import UIKit
-import SpriteKit
+import SpriteKit	
 import GameplayKit
 import AVFoundation
+import GameKit
 
 class GameViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-          
+                
         if let view = self.view as! SKView? {
             
-            // 1. Determina o nome do arquivo da cena com base no dispositivo
-            let sceneName = DeviceHelper.isIPhone ? "MenuScene_iphone" : "MenuScene"
-              
-            // 2. Tenta carregar a SKScene a partir do nome do arquivo definido acima
-            if let scene = SKScene(fileNamed: sceneName) {
-                  
-                // A configuração adaptativa do scale mode continua a mesma
-                if DeviceHelper.isIPhone {
-                    scene.scaleMode = .aspectFill  // Melhor para iPhone
-                } else {
-                    scene.scaleMode = .aspectFill   // Melhor para iPad
-                }
-                  
-                // Apresenta a cena correta
-                view.presentScene(scene)
-            }
+            let loadingScene = LoadingScene(size: view.bounds.size)
+            loadingScene.scaleMode = .aspectFill
+            
+            loadingScene.gameViewController = self
+            
+            view.presentScene(loadingScene)
             
             view.ignoresSiblingOrder = true
             view.showsFPS = false
             view.showsNodeCount = false
         }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+       super.viewWillAppear(animated)
+       UIApplication.shared.isIdleTimerDisabled = true
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+       super.viewWillDisappear(animated)
+       UIApplication.shared.isIdleTimerDisabled = false
+    }
+    
+    override var prefersHomeIndicatorAutoHidden: Bool {
+        return true
     }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {

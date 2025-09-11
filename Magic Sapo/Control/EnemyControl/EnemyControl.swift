@@ -17,8 +17,19 @@ class EnemyControl {
     var activeEnemies: [SKNode] = []
     
     // Velocidade, velocidade inicial,
-    private var V: CGFloat = 5.0
-    private let Vi: CGFloat = 5.0
+    private var V: CGFloat
+    
+    // Nova versão com lógica para cada dispositivo
+    private var Vi: CGFloat {
+        if DeviceHelper.isIPad  {
+            return 4.7
+        } else if DeviceHelper.isIPhone {
+            return 5.3
+        }
+        else {
+            return 4.7
+        }
+    }
     
     // --- ALTERAÇÃO: Removido ---
     // A pontuação por estágio não é mais necessária, pois a morte do chefe controlará isso.
@@ -30,7 +41,20 @@ class EnemyControl {
     
     // Sempre 0.5
     // O fator de aceleração agora será aplicado por chefe derrotado.
-    private let accelerationFactor: CGFloat = 0.5
+    // private let accelerationFactor: CGFloat = 0.5
+    
+    private var accelerationFactor: CGFloat = 0.5
+    
+    init() {
+        if DeviceHelper.isIPad {
+            self.V = 4.7
+        } else if DeviceHelper.isIPhone{
+            self.V = 5.3
+        }
+        else {
+            self.V = 4.7
+        }
+    }
     
     // --- ALTERAÇÃO: Renomeado e simplificado ---
     // Esta variável agora rastreia o estágio atual do jogo. Começa em 0.
@@ -40,7 +64,7 @@ class EnemyControl {
     /// - Parameters:
     ///   - enemyType: O tipo do inimigo a ser criado (ex: Guards.self), que deve conformar ao protocolo Enemy.
     ///   - scene: A cena onde o inimigo será adicionado.
-    public func createEnemy<T: Enemy>(ofType enemyType: T.Type, in scene: SKScene) {
+    public func createEnemy<T: Enemy>(ofType enemyType: T.Type, on parentNode: SKNode, in scene: SKScene) {
         
         // Define as posições de início (fora da tela, no topo) e fim (fora da tela, embaixo).
         let startPosition: CGPoint
@@ -95,12 +119,12 @@ class EnemyControl {
         
         // Tenta criar a entidade do inimigo usando o método estático do seu tipo.
         guard let enemyEntity = enemyType.create(at: startPosition) else {
-            return // Se a criação falhar, não faz mais nada.
+            return
         }
         
         // Adiciona o inimigo na cena.
         activeEnemies.append(enemyEntity)
-        scene.addChild(enemyEntity)
+        parentNode.addChild(enemyEntity)
         
         // A duração do movimento é calculada dinamicamente.
         // V é a velocidade base, e enemyType.speed é o multiplicador do inimigo.

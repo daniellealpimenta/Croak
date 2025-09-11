@@ -136,6 +136,7 @@ class GameOverScene: SKScene {
         if finalScore > currentHighScore {
             UserDefaults.standard.set(finalScore, forKey: key)
             scoreToDisplay = finalScore
+            GameCenterHelper.shared.submitScore(finalScore, to: "ranking_global")
         }
         
         // Configure the high score number

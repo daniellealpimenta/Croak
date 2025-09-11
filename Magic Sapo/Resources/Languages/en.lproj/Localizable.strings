@@ -17,8 +17,10 @@
 
 /* Settings Screen */
 "settings_title" = "Settings";
-"settings_camera_preview" = "Camera Preview: %@";
-"settings_validation_mode" = "Validation Mode: %@";
+"settings_camera_preview" = "Camera Preview";
+"settings_validation_mode" = "Show Validation";
+"settings_music" = "Music";
+"settings_sfx" = "Sound effects";
 
 /* On/Off States */
 "state_on" = "On";
