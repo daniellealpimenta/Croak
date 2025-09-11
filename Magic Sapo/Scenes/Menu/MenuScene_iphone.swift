@@ -28,6 +28,7 @@ class MenuScene_iphone: SKScene {
         setupLabels()
         // REMOVIDO: setupGameModeLabel() // Não precisamos mais desta função
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
+        AudioManager.shared.setSoundEffectVolume(to: 0.5)
 
         if !isOnboarding {
             setupSettingsButton()
@@ -215,14 +216,17 @@ class MenuScene_iphone: SKScene {
             
             switch touchedNode.name {
             case "closeSettingsButton":
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 hideSettingsOverlay()
                 
             case "cameraToggleButton":
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 let currentStatus = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
                 UserDefaults.standard.set(!currentStatus, forKey: "isCameraPreviewEnabled")
                 updateCameraToggleButtonText()
                 
             case "validationToggleButton":
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 let currentStatus = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
                 UserDefaults.standard.set(!currentStatus, forKey: "isValidationModeEnabled")
                 updateValidationToggleButtonText()
@@ -238,9 +242,11 @@ class MenuScene_iphone: SKScene {
 
         switch nodeName {
         case "settingsButton":
+            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
             showSettingsOverlay()
 
         case "GestureMode", "JogarLabel":
+            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
             let buttonToAnimate = (nodeName == "JogarLabel") ? touchedNode.parent : touchedNode
             if let button = buttonToAnimate {
                 button.runButtonAnimation {
@@ -249,6 +255,7 @@ class MenuScene_iphone: SKScene {
             }
 
         case "ButtonMode", "TutorialLabel":
+            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
             let buttonToAnimate = (nodeName == "TutorialLabel") ? touchedNode.parent : touchedNode
             if let button = buttonToAnimate {
                 button.runButtonAnimation {
