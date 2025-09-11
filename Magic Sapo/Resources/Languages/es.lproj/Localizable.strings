@@ -17,8 +17,10 @@
 
 /* Pantalla de Configuración */
 "settings_title" = "Configuración";
-"settings_camera_preview" = "Vista Previa de Cámara: %@";
-"settings_validation_mode" = "Modo de Validación: %@";
+"settings_camera_preview" = "Vista Previa de Cámara";
+"settings_validation_mode" = "Mostrar Validación";
+"settings_music" = "Música";
+"settings_sfx" = "Efectos sonoros";
 
 /* Estados Activado/Desactivado */
 "state_on" = "Activado";

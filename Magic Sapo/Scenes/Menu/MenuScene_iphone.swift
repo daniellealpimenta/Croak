@@ -116,12 +116,12 @@ class MenuScene_iphone: SKScene {
                 case "cameraToggleButton":
                     let currentValue = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
                     UserDefaults.standard.set(!currentValue, forKey: "isCameraPreviewEnabled")
-                    settingsOverlayFactory.updateLabels(on: settingsOverlay)
+                    settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
                     return
                 case "validationToggleButton":
                     let currentValue = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
                     UserDefaults.standard.set(!currentValue, forKey: "isValidationModeEnabled")
-                    settingsOverlayFactory.updateLabels(on: settingsOverlay)
+                    settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
                     return
                 default:
                     continue

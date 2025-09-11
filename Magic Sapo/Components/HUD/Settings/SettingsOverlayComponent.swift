@@ -24,20 +24,18 @@ class SettingsOverlayComponent {
         let colorBrown = UIColor(red: 0.2901960784313726, green: 0.1450980392156863, blue: 0.06666666666666667, alpha: 1.0)
         
         if !inMenuScene {
-            // 1. Encontra o centro da TELA.
             let viewCenter = CGPoint(x: view.bounds.midX, y: view.bounds.midY)
             settingsOverlay.position = scene.convertPoint(fromView: viewCenter)
             
-            // 3. Aplica uma escala inversa para anular o zoom da cena.
             let scaleX = scene.xScale != 0 ? 1.0 / scene.xScale : 1.0
-            settingsOverlay.setScale(scaleX) // Usamos setScale para ser mais seguro
+            settingsOverlay.setScale(scaleX)
         }
 
         // --- Fundo (usa o tamanho da TELA) ---
         let background = SKSpriteNode(color: .black, size: scene.size)
         background.name = "settingsBackgroundBlocker"
         background.isUserInteractionEnabled = false
-        background.position = .zero // Posição (0,0) relativa ao nó 'settingsOverlay'
+        background.position = .zero
         background.alpha = 0.7
         settingsOverlay.addChild(background)
         
@@ -45,7 +43,6 @@ class SettingsOverlayComponent {
             
             let panel = SKSpriteNode(imageNamed: "madeiraIphone")
 
-            // largura alvo (75% da tela) mantendo proporção da textura
             if let texSize = panel.texture?.size() {
                 let aspect = texSize.height / texSize.width
                 panel.size = CGSize(width: inMenuScene ? scene.frame.width * 1.2 : scene.frame.width * 0.5,
@@ -65,27 +62,52 @@ class SettingsOverlayComponent {
             closeButton.zPosition = 1
             settingsOverlay.addChild(closeButton)
             
-            let cameraToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
-            cameraToggleButton.name = "cameraToggleButton"
-            cameraToggleButton.fontSize = inMenuScene ? 26 : 16
+            // --- MODIFICADO: Configuração de Câmera ---
+            let cameraYPosition = panel.position.y + (panel.size.height / 5.5)
+            
+            // 1. Label Estático (Esquerda)
+            let cameraLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
+            cameraLabel.text = NSLocalizedString("settings_camera_preview", comment: "") // Ex: "Preview da Câmera"
+            cameraLabel.fontSize = inMenuScene ? 26 : 16
+            cameraLabel.fontColor = colorBrown
+            cameraLabel.horizontalAlignmentMode = .left
+            cameraLabel.position = CGPoint(x: -panel.size.width * 0.4, y: cameraYPosition)
+            cameraLabel.zPosition = 1
+            panel.addChild(cameraLabel)
+
+            // 2. Botão de Toggle (Direita)
+            let cameraToggleButton = SKSpriteNode(imageNamed: "botaoCameraOff") // Imagem padrão
+            cameraToggleButton.name = "cameraToggleButton" // Nome para identificar o toque
+            cameraToggleButton.size = inMenuScene ? CGSize(width: 60, height: 40) : CGSize(width: 45, height: 30) // Ajuste o tamanho
+            cameraToggleButton.position = CGPoint(x: panel.size.width * 0.35, y: cameraYPosition + 5) // Ajuste fino da posição Y
             cameraToggleButton.zPosition = 1
-            cameraToggleButton.fontColor = colorBrown
-            cameraToggleButton.position = CGPoint(x: 0, y: panel.position.y + (panel.size.height / 5.5))
             panel.addChild(cameraToggleButton)
             
-            let validationToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
-            validationToggleButton.name = "validationToggleButton"
-            validationToggleButton.fontSize = inMenuScene ? 26 : 16
+            // --- MODIFICADO: Configuração de Validação ---
+            let validationYPosition = cameraYPosition - (panel.size.height / 9)
+            
+            // 1. Label Estático (Esquerda)
+            let validationLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
+            validationLabel.text = NSLocalizedString("settings_validation_mode", comment: "") // Ex: "Modo de Validação"
+            validationLabel.fontSize = inMenuScene ? 26 : 16
+            validationLabel.fontColor = colorBrown
+            validationLabel.horizontalAlignmentMode = .left
+            validationLabel.position = CGPoint(x: -panel.size.width * 0.4, y: validationYPosition)
+            validationLabel.zPosition = 1
+            panel.addChild(validationLabel)
+            
+            // 2. Botão de Toggle (Direita)
+            let validationToggleButton = SKSpriteNode(imageNamed: "botaoValidationOff") // Imagem padrão
+            validationToggleButton.name = "validationToggleButton" // Nome para identificar o toque
+            validationToggleButton.size = inMenuScene ? CGSize(width: 60, height: 40) : CGSize(width: 45, height: 30) // Ajuste o tamanho
+            validationToggleButton.position = CGPoint(x: panel.size.width * 0.35, y: validationYPosition + 5) // Ajuste fino da posição Y
             validationToggleButton.zPosition = 1
-            validationToggleButton.fontColor = colorBrown
-            validationToggleButton.position = CGPoint(x: 0, y: cameraToggleButton.position.y - (panel.size.height / 9))
             panel.addChild(validationToggleButton)
             
-        } else {
+        } else { // Layout para iPad
             
             let panel = SKSpriteNode(imageNamed: "madeiraIpad")
 
-            // largura alvo (75% da tela) mantendo proporção da textura
             if let texSize = panel.texture?.size() {
                 let aspect = texSize.height / texSize.width
                 panel.size = CGSize(width: view.frame.width * 0.75,
@@ -104,43 +126,117 @@ class SettingsOverlayComponent {
             )
             settingsOverlay.addChild(closeButton)
             
-            let cameraToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
+            // Preview Camera
+            let cameraYPosition = panel.position.y + (panel.size.height / 7.2)
+            
+            let cameraLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
+            cameraLabel.text = NSLocalizedString("settings_camera_preview", comment: "")
+            cameraLabel.fontSize = 28
+            cameraLabel.fontColor = colorBrown
+            cameraLabel.horizontalAlignmentMode = .left
+            cameraLabel.position = CGPoint(x: -(panel.size.width / 4), y: cameraYPosition)
+            cameraLabel.zPosition = 1
+            panel.addChild(cameraLabel)
+
+            let cameraToggleButton = SKSpriteNode(imageNamed: "botaoCameraOff")
             cameraToggleButton.name = "cameraToggleButton"
-            cameraToggleButton.fontSize = 23
+            cameraToggleButton.size = CGSize(width: 65, height: 65) // Ajuste o tamanho
+            cameraToggleButton.position = CGPoint(x: (panel.size.width / 4.5), y: cameraYPosition + 12)
             cameraToggleButton.zPosition = 1
-            cameraToggleButton.fontColor = colorBrown
-            cameraToggleButton.position = CGPoint(x: 0, y: panel.position.y + (panel.size.height / 7.5))
             panel.addChild(cameraToggleButton)
             
-            let validationToggleButton = SKLabelNode(fontNamed: "Ari-W9500")
+            // Validação
+            let validationYPosition = cameraLabel.position.y - (panel.size.height / 11)
+            
+            let validationLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
+            validationLabel.text = NSLocalizedString("settings_validation_mode", comment: "")
+            validationLabel.fontSize = 28
+            validationLabel.fontColor = colorBrown
+            validationLabel.horizontalAlignmentMode = .left
+            validationLabel.position = CGPoint(x: -(panel.size.width / 4), y: validationYPosition)
+            validationLabel.zPosition = 1
+            panel.addChild(validationLabel)
+            
+            let validationToggleButton = SKSpriteNode(imageNamed: "botaoValidationOff")
             validationToggleButton.name = "validationToggleButton"
-            validationToggleButton.fontSize = 23
+            validationToggleButton.size = CGSize(width: 65, height: 65) // Ajuste o tamanho
+            validationToggleButton.position = CGPoint(x: (panel.size.width / 4.5), y: validationYPosition + 12)
             validationToggleButton.zPosition = 1
-            validationToggleButton.fontColor = colorBrown
-            validationToggleButton.position = CGPoint(x: 0, y: cameraToggleButton.position.y - (panel.size.height / 15))
             panel.addChild(validationToggleButton)
             
+            // Música
+            let musicYPosition = validationLabel.position.y - (panel.size.height / 10.5)
+            
+            let musicLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
+            musicLabel.text = NSLocalizedString("settings_music", comment: "")
+            musicLabel.fontSize = 28
+            musicLabel.fontColor = colorBrown
+            musicLabel.horizontalAlignmentMode = .left
+            musicLabel.position = CGPoint(x: -(panel.size.width / 4), y: musicYPosition)
+            musicLabel.zPosition = 1
+            panel.addChild(musicLabel)
+            
+            let musicToggleButton = SKSpriteNode(imageNamed: "botaoSomOff")
+            musicToggleButton.name = "musicToggleButton"
+            musicToggleButton.size = CGSize(width: 65, height: 65) // Ajuste o tamanho
+            musicToggleButton.position = CGPoint(x: (panel.size.width / 4.5), y: musicYPosition + 12)
+            musicToggleButton.zPosition = 1
+            panel.addChild(musicToggleButton)
+            
+            // Efeito Sonoro
+            let sfxYPosition = musicLabel.position.y - (panel.size.height / 10.6)
+            
+            let sfxLabel = SKLabelNode(fontNamed: "Ari-W9500Bold")
+            sfxLabel.text = NSLocalizedString("settings_sfx", comment: "")
+            sfxLabel.fontSize = 28
+            sfxLabel.fontColor = colorBrown
+            sfxLabel.horizontalAlignmentMode = .left
+            sfxLabel.position = CGPoint(x: -(panel.size.width / 4), y: sfxYPosition)
+            sfxLabel.zPosition = 1
+            panel.addChild(sfxLabel)
+            
+            let sfxToggleButton = SKSpriteNode(imageNamed: "botaoSomOff")
+            sfxToggleButton.name = "sfxToggleButton"
+            sfxToggleButton.size = CGSize(width: 65, height: 65) // Ajuste o tamanho
+            sfxToggleButton.position = CGPoint(x: (panel.size.width / 4.5), y: sfxYPosition + 12)
+            sfxToggleButton.zPosition = 1
+            panel.addChild(sfxToggleButton)
         }
         
-        updateLabels(on: settingsOverlay)
+        // NOVO: A função agora é chamada de `updateToggleButtons` para maior clareza
+        updateToggleButtons(on: settingsOverlay)
         
         return settingsOverlay
     }
+
     
-    func updateLabels(on overlay: SKNode) {
-        // Encontra os nós de label pelo nome dentro do overlay especificado
-        if let validationToggle = overlay.childNode(withName: "//validationToggleButton") as? SKLabelNode {
+    func updateToggleButtons(on overlay: SKNode) {
+        // --- Atualiza o botão de Validação ---
+        if let validationToggle = overlay.childNode(withName: "//validationToggleButton") as? SKSpriteNode {
             let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
-            let stateString = isValidationEnabled ? NSLocalizedString("state_on", comment: "") : NSLocalizedString("state_off", comment: "")
-            let baseString = NSLocalizedString("settings_validation_mode", comment: "e.g., Validation Mode: On")
-            validationToggle.text = String(format: baseString, stateString)
+            let textureName = isValidationEnabled ? "botaoValidationOn" : "botaoValidationOff"
+            validationToggle.texture = SKTexture(imageNamed: textureName)
         }
         
-        if let cameraToggle = overlay.childNode(withName: "//cameraToggleButton") as? SKLabelNode {
+        // --- Atualiza o botão de Câmera ---
+        if let cameraToggle = overlay.childNode(withName: "//cameraToggleButton") as? SKSpriteNode {
             let isCameraEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
-            let stateString = isCameraEnabled ? NSLocalizedString("state_on", comment: "") : NSLocalizedString("state_off", comment: "")
-            let baseString = NSLocalizedString("settings_camera_preview", comment: "e.g., Camera Preview: On")
-            cameraToggle.text = String(format: baseString, stateString)
+            let textureName = isCameraEnabled ? "botaoCameraOn" : "botaoCameraOff"
+            cameraToggle.texture = SKTexture(imageNamed: textureName)
+        }
+        
+        // --- Atualiza o botão de Musica ---
+        if let musicToggle = overlay.childNode(withName: "//musicToggleButton") as? SKSpriteNode {
+            let isMusicEnabled = UserDefaults.standard.bool(forKey: "isMusicEnabled")
+            let textureName = isMusicEnabled ? "botaoSomOn" : "botaoSomOff"
+            musicToggle.texture = SKTexture(imageNamed: textureName)
+        }
+        
+        // --- Atualiza o botão de Efeito sonoro ---
+        if let sfxToggle = overlay.childNode(withName: "//sfxToggleButton") as? SKSpriteNode {
+            let isSfxEnabled = UserDefaults.standard.bool(forKey: "isSfxEnabled")
+            let textureName = isSfxEnabled ? "botaoSomOn" : "botaoSomOff"
+            sfxToggle.texture = SKTexture(imageNamed: textureName)
         }
     }
 

@@ -16,8 +16,10 @@
 
 /* 设置屏幕 (Settings Screen) */
 "settings_title" = "设置";
-"settings_camera_preview" = "相机预览：%@";
-"settings_validation_mode" = "验证模式：%@";
+"settings_camera_preview" = "相机预览";
+"settings_validation_mode" = "显示验证";
+"settings_music" = "音乐";
+"settings_sfx" = "音效";
 
 /* 开/关状态 (On/Off States) */
 "state_on" = "开启";

@@ -19,8 +19,10 @@
 
 /* Tela de Configurações */
 "settings_title" = "Configurações";
-"settings_camera_preview" = "Câmera Preview: %@";
-"settings_validation_mode" = "Modo de Validação: %@";
+"settings_camera_preview" = "Preview da câmera";
+"settings_validation_mode" = "Mostrar validação";
+"settings_music" = "Música";
+"settings_sfx" = "Efeitos sonoros";
 
 /* Estados Ligado/Desligado */
 "state_on" = "Ligada";
