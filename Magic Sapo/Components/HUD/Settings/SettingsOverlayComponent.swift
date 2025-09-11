@@ -144,8 +144,8 @@ class SettingsOverlayComponent {
 
             if let texSize = panel.texture?.size() {
                 let aspect = texSize.height / texSize.width
-                panel.size = CGSize(width: view.frame.width * 0.75,
-                                    height: view.frame.width * 0.75 * aspect)
+                panel.size = CGSize(width: view.frame.width * 0.7,
+                                    height: view.frame.width * 0.7 * aspect)
             }
             panel.position = .zero
             panel.zPosition = 0
@@ -154,10 +154,7 @@ class SettingsOverlayComponent {
             let closeButton = SKSpriteNode(imageNamed: "botaoClose")
             closeButton.name = "closeSettingsButton"
             closeButton.size = CGSize(width: 70, height: 70)
-            closeButton.position = CGPoint(
-                x: panel.position.x + (panel.size.width / 2.02),
-                y: inMenuScene ? panel.position.y + (panel.size.height / 3.15) : panel.position.y + (panel.size.height / 2.97)
-            )
+            closeButton.position = CGPoint(x: 440, y: 300)
             settingsOverlay.addChild(closeButton)
             
             // Preview Camera
