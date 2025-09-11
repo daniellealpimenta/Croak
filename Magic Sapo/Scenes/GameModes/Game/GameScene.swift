@@ -12,7 +12,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     // comente abaixo se for testar tambem
     var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-
     
     private var gestureFeedbackNode: SKSpriteNode?
 

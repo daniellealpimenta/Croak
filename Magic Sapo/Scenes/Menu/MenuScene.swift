@@ -28,9 +28,9 @@ class MenuScene: SKScene {
         setupLabels()
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
 
-//        if !isOnboarding {
+        if !isOnboarding {
             setupSettingsButton()
-//        }
+        }
     }
     
     // MARK: - Configuração da UI

@@ -88,7 +88,7 @@ class PauseOverlayComponent {
                 resetPosition: CGPoint(x: 0, y: 95),
                 exitPosition: CGPoint(x: -150, y: 95),
                 settingsPosition: CGPoint(x: 440, y: 300),
-                settingsSize: CGSize(width: 75, height: 75)
+                settingsSize: CGSize(width: 70, height: 70)
             )
         }
         // --- Criação dos Nós com a Configuração Definida ---

@@ -34,23 +34,14 @@ class SettingsOverlayComponent {
         }
 
         // --- Fundo (usa o tamanho da TELA) ---
-        let background = SKShapeNode(rectOf: scene.bounds.size)
+        let background = SKSpriteNode(color: .black, size: scene.size)
         background.name = "settingsBackgroundBlocker"
         background.isUserInteractionEnabled = false
         background.position = .zero // Posição (0,0) relativa ao nó 'settingsOverlay'
-        background.fillColor = SKColor.black
         background.alpha = 0.7
         settingsOverlay.addChild(background)
         
         if DeviceHelper.isIPhone {
-            
-//            let panelSize = inMenuScene ? CGSize(width: scene.frame.width * 0.7, height: scene.frame.height * 0.5) : CGSize(width: view.frame.width * 0.8, height: view.frame.height * 0.45)
-//            let panel = SKShapeNode(rectOf: panelSize, cornerRadius: 15)
-//            panel.fillColor = SKColor(red: 0.2, green: 0.2, blue: 0.25, alpha: 1.0)
-//            panel.strokeColor = .white
-//            panel.lineWidth = 2
-//            panel.position = .zero
-//            settingsOverlay.addChild(panel)
             
             let panel = SKSpriteNode(imageNamed: "madeiraIphone")
 
@@ -66,10 +57,10 @@ class SettingsOverlayComponent {
             
             let closeButton = SKSpriteNode(imageNamed: "botaoClose")
             closeButton.name = "closeSettingsButton"
-            closeButton.size = inMenuScene ? CGSize(width: 80, height: 80) : CGSize(width: 50, height: 50)
+            closeButton.size = inMenuScene ? CGSize(width: 85, height: 85) : CGSize(width: 50, height: 50)
             closeButton.position = CGPoint(
-                x: inMenuScene ? panel.position.x + (panel.size.width / 3.95) : panel.position.x + (panel.size.width / 4),
-                y: inMenuScene ? panel.position.y + (panel.size.height / 1.6) : panel.position.y + (panel.size.height / 1.7)
+                x: inMenuScene ? panel.position.x + (panel.size.width / 4) : panel.position.x + (panel.size.width / 4),
+                y: inMenuScene ? panel.position.y + (panel.size.height / 1.59) : panel.position.y + (panel.size.height / 1.7)
             )
             closeButton.zPosition = 1
             settingsOverlay.addChild(closeButton)
@@ -108,8 +99,8 @@ class SettingsOverlayComponent {
             closeButton.name = "closeSettingsButton"
             closeButton.size = CGSize(width: 70, height: 70)
             closeButton.position = CGPoint(
-                x: panel.position.x + (panel.size.width / 2),
-                y: inMenuScene ? panel.position.y + (panel.size.height / 3.15) : panel.position.y + (panel.size.height / 2.95)
+                x: panel.position.x + (panel.size.width / 2.02),
+                y: inMenuScene ? panel.position.y + (panel.size.height / 3.15) : panel.position.y + (panel.size.height / 2.97)
             )
             settingsOverlay.addChild(closeButton)
             
