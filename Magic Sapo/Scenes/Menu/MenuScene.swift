@@ -25,6 +25,7 @@ class MenuScene: SKScene {
         // --- CONFIGURAÇÃO EXISTENTE ---
         setupLabels()
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
+        AudioManager.shared.setSoundEffectVolume(to: 0.5)
 
         // --- NOVAS FUNÇÕES ---
         // Cria o botão de configurações e o overlay (que começa escondido)
@@ -94,18 +95,21 @@ class MenuScene: SKScene {
             
             switch touchedNode.name {
             case "closeSettingsButton":
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 // Para "esconder", removemos o nó da cena com uma animação.
                 settingsOverlay.run(SKAction.fadeOut(withDuration: 0.3)) {
                     settingsOverlay.removeFromParent()
                 }
                 
             case "cameraToggleButton":
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 let currentStatus = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
                 UserDefaults.standard.set(!currentStatus, forKey: "isCameraPreviewEnabled")
                 // Chamamos a função de atualização da fábrica, passando o nó do overlay.
                 settingsOverlayFactory.updateLabels(on: settingsOverlay)
                 
             case "validationToggleButton":
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 let currentStatus = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
                 UserDefaults.standard.set(!currentStatus, forKey: "isValidationModeEnabled")
                 settingsOverlayFactory.updateLabels(on: settingsOverlay)
@@ -122,10 +126,12 @@ class MenuScene: SKScene {
 
         switch nodeName {
         case "settingsButton":
+            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
             let overlay = settingsOverlayFactory.makeOverlay(for: self, inMenuScene: true)
             addChild(overlay)
 
         case "GestureMode", "JogarLabel":
+            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
             let buttonToAnimate = (nodeName == "JogarLabel") ? touchedNode.parent : touchedNode
             
             if let button = buttonToAnimate {
@@ -135,6 +141,7 @@ class MenuScene: SKScene {
             }
 
         case "ButtonMode", "TutorialLabel":
+            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
             let buttonToAnimate = (nodeName == "TutorialLabel") ? touchedNode.parent : touchedNode
             
             if let button = buttonToAnimate {
