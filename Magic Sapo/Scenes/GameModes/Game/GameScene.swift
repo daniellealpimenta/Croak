@@ -18,7 +18,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
     
     // MARK: VARIAVEL PARA TESTE
-//    var isOnboarding = true
+//  var isOnboarding = true
     
     let worldNode = SKNode() // Para todos os elementos do jogo (sapo, inimigos)
     let uiNode = SKNode()    // Para todos os elementos de UI (botões, score, overlays)
@@ -182,18 +182,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
         NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive), name: NSNotification.Name("AppWillResignActive"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(wakeUpView), name: NSNotification.Name("AppDidBecomeActive"), object: nil)
-            
+              
         self.physicsWorld.contactDelegate = self
         
         addChild(worldNode)
         addChild(uiNode)
-            
+              
         backgroundComponent = BackgroundComponent(parent: self)
         backgroundComponent.setupAnimatedBackground()
-                
+                    
         scoreComponent = ScoreComponent(parent: self)
         coinsComponent = CoinsComponent(parent: self)
-                
+                    
         pauseButtonComponent = PauseButtonComponent(parent: self)
         pauseButtonComponent.delegate = self
         
@@ -206,7 +206,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         coinsComponent.coinIcon.move(toParent: uiNode)
         pauseButtonComponent.pauseButtonNode.move(toParent: uiNode)
         pauseOverlayComponent.overlayNode?.move(toParent: uiNode)
-            
+              
         if isOnboarding {
             scoreComponent.scoreLabel.isHidden = true
             coinsComponent.coinsLabel.isHidden = true
@@ -214,28 +214,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
             coinsComponent.coinIcon.isHidden = true
             pauseButtonComponent.pauseButtonNode.isHidden = true
         }
-            
+              
         enemySpawner = EnemySpawner(parentNode: worldNode, scene: self)
-            
+              
         let frog = Frog(parent: self)
-        let frogNode: SKNode
+        let createdFrogNode: SKNode
 
         switch DeviceHelper.current {
             case .iPad:
-                frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 150))
+                createdFrogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 150))
             case .iPhone:
-                frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 100))
+                createdFrogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 100))
             case .unknown:
-                frogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 150))
+                createdFrogNode = frog.createNode(at: CGPoint(x: 0, y: -self.size.height/2 + 150))
         }
 
-
-        worldNode.addChild(frogNode)
+        // ---------- INÍCIO DA CORREÇÃO ----------
+        self.frogNode = createdFrogNode
+        if let frogNode = self.frogNode {
+            worldNode.addChild(frogNode)
+        }
+        // ---------- FIM DA CORREÇÃO ----------
         
         setupMagicBook()
         
         setupGestureFeedbackNode()
-                
+                    
         setupGestureDetection()
 
         let isCameraPreviewEnabled = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
@@ -247,7 +251,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
 
         if startInGestureMode {
             let isValidationEnabled = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
-            
+              
             if isValidationEnabled {
                 setupValidationInstructionLabel()
                 setupCountdownLabel()
@@ -258,7 +262,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         } else {
             cameraDidShrink()
         }
-                        
+                                
         if let view = self.view {
             onboardManager = OnboardManager(view: view, spawner: self.enemySpawner, gestureManager: self.gestureManager)
             onboardManager.delegate = self
@@ -295,8 +299,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let floatAnimation = SKAction.repeatForever(floatSequence)
         
         bookNode.run(floatAnimation)
-                
-        self.addChild(bookNode)
+                    
+        // --- MELHORIA: Adicionar ao worldNode ---
+        worldNode.addChild(bookNode)
     }
 
     
@@ -384,7 +389,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         feedbackNode.run(floatAnimation)
         
         self.gestureFeedbackNode = feedbackNode
-        self.addChild(feedbackNode)
+        // --- MELHORIA: Adicionar ao worldNode ---
+        worldNode.addChild(feedbackNode)
     }
     
     func enterGestureValidationMode() {
@@ -549,13 +555,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     
     @objc func pauseGame() {
         
-        print("‼️ TENTATIVA DE PAUSAR O JOGO (`pauseGame`)")
         if isOnboarding || isOnGestureValidationMode || worldNode.isPaused {
-            print("    -> Jogo já estava pausado ou em estado inválido. Ação ignorada.")
             return
         }
         
-        print("    -> PAUSANDO O JOGO AGORA.")
         isManuallyPaused = true
 
         // Pausa o jogo
@@ -570,13 +573,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
 
     @objc func resumeGame() {
-        print("‼️ TENTATIVA DE DESPAUSAR O JOGO (`resumeGame`)")
         if !worldNode.isPaused {
-            print("    -> Jogo já estava despausado. Ação ignorada.")
             return
         }
 
-        print("    -> DESPAUSANDO O JOGO AGORA.")
         isManuallyPaused = false
         
         worldNode.isPaused = false
@@ -604,7 +604,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     // MARK: Funções padrão da cena
     
-  
+ 
     func didBegin(_ contact: SKPhysicsContact) {
         guard !isPlayerDead else { return }
 
@@ -681,7 +681,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
                     if let rewards = enemySpawner.killEnemy(withGesture: gesture) {
                         scoreComponent.addScore(point: rewards.points)
                         coinsComponent.addCoins(coins: rewards.coins)
-                                            
+                                                
                     }
             }
             
@@ -695,7 +695,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
         let scoreSinceLastBoss = score - scoreAtLastBossDefeat
         
         if gameState == .normalPlay && scoreSinceLastBoss >= 75  {
-                               
+                                
             gameState = .clearingField
             
             AudioManager.shared.pauseBackgroundMusic()
@@ -838,7 +838,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GestureDetectionDelegate, Sc
     }
     
     @objc private func appWillResignActive() {
-        print("🔴 APP VAI SER MINIMIZADO (`appWillResignActive`)")
         self.pauseGame()
     }
 
@@ -867,3 +866,4 @@ extension SKNode {
         newParent.addChild(self)
     }
 }
+

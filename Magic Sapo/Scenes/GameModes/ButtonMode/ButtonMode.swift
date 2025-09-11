@@ -175,13 +175,10 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     }
     
     @objc func pauseGame() {
-        print("🔴 TENTATIVA DE PAUSAR O JOGO (`pauseGame`)")
         if worldNode.isPaused {
-            print("    -> Jogo já estava pausado. Ação ignorada.")
             return
         }
         
-        print("    -> PAUSANDO O JOGO AGORA.")
         isManuallyPaused = true
 
         // Pausa o jogo
@@ -194,13 +191,10 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     }
 
     @objc func resumeGame() {
-        print("🔴 TENTATIVA DE DESPAUSAR O JOGO (`resumeGame`)")
         if !worldNode.isPaused {
-            print("    -> Jogo já estava despausado. Ação ignorada.")
             return
         }
 
-        print("    -> DESPAUSANDO O JOGO AGORA.")
         isManuallyPaused = false
         
         worldNode.isPaused = false
@@ -385,7 +379,6 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
     }
     
     @objc private func appWillResignActive() {
-        print("🔴 APP VAI SER MINIMIZADO (`appWillResignActive`)")
         self.pauseGame()
     }
 
