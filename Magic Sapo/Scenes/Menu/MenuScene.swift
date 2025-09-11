@@ -9,79 +9,75 @@ import SpriteKit
 
 class MenuScene: SKScene {
     
-    // MARK: - Nós da Cena
-    
-    var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    // MARK: - Componentes
     
     private let settingsButtonFactory = SettingsButtonComponent()
     private let settingsOverlayFactory = SettingsOverlayComponent()
+    private var settingsButton: SKSpriteNode?
+    var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     
     // MARK: - Ciclo de Vida da Cena
     
     override func didMove(to view: SKView) {
-        // Registra um valor padrão para o modo de validação na primeira vez que o app abrir
         UserDefaults.standard.register(defaults: ["isValidationModeEnabled": true])
         UserDefaults.standard.register(defaults: ["isCameraPreviewEnabled": true])
-        // --- CONFIGURAÇÃO EXISTENTE ---
+        UserDefaults.standard.register(defaults: ["isMusicEnabled": true])
+        UserDefaults.standard.register(defaults: ["isSfxEnabled": true])
+        
         setupLabels()
+        AudioManager.shared.applyAudioSettings() // Garante que a música comece com o estado correto
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
         AudioManager.shared.setSoundEffectVolume(to: 0.5)
 
-        // --- NOVAS FUNÇÕES ---
-        // Cria o botão de configurações e o overlay (que começa escondido)
         if !isOnboarding {
-            let menuButton = settingsButtonFactory.makeButton()
-            menuButton.position = CGPoint(x: frame.maxX - 70, y: frame.maxY - 100)
-            addChild(menuButton)
+            setupSettingsButton()
         }
     }
     
     // MARK: - Configuração da UI
     
-    // Função para configurar os labels e botões
     func setupLabels() {
-        // Aplica a tradução aos botões "Jogar" e "Botões"
         let labelNames = ["JogarLabel", "TutorialLabel"]
         for name in labelNames {
             if let label = self.childNode(withName: "//\(name)") as? SKLabelNode {
                 label.fontName = "Ari-W9500Bold"
                 label.fontSize = 35
-                
                 if name == "JogarLabel" {
                     label.text = NSLocalizedString("menu_play", comment: "Play button text")
                 } else if name == "TutorialLabel" {
                     label.text = NSLocalizedString("menu_tutorial", comment: "Tutorial/Buttons mode button text")
                 }
-                
             }
         }
         
-        // --- CÓDIGO CORRIGIDO ---
-        // Adiciona a configuração de fonte e sombra para o TitleLabel
         if let titleNode = self.childNode(withName: "//Title"), let titleLabel = titleNode.childNode(withName: "TitleLabel") as? SKLabelNode {
-            
-            // ✅ CORREÇÃO AQUI: Define o texto do TitleLabel como "Modo de Jogo:"
             titleLabel.text = NSLocalizedString("menu_gamemode_title", comment: "Game mode title")
-            
             titleLabel.fontName = "Ari-W9500Bold"
             titleLabel.fontSize = 36
             titleLabel.zPosition = 5
-            
-            let shadowOffset = CGPoint(x: 5, y: -5) // Sombra ajustada para iPad
+            let shadowOffset = CGPoint(x: 5, y: -5)
             let shadowColor = SKColor(red: 0.3, green: 0.15, blue: 0.05, alpha: 1.0)
-            
             addShadow(to: titleLabel, in: titleNode, offset: shadowOffset, color: shadowColor)
-            
         }
         
         let buttonNames = ["GestureMode", "ButtonMode"]
         for name in buttonNames {
             if let buttonNode = self.childNode(withName: "//\(name)") as? SKSpriteNode {
-                // Aplica o modo de filtragem para um visual pixelado
                 buttonNode.texture?.filteringMode = .nearest
                 buttonNode.texture?.usesMipmaps = false
             }
         }
+    }
+    
+    func setupSettingsButton() {
+        settingsButton = settingsButtonFactory.makeButton()
+        settingsButton?.name = "SettingsButton"
+        let topPadding: CGFloat = 100
+        let trailingPadding: CGFloat = 70
+        settingsButton?.position = CGPoint(x: self.frame.maxX - trailingPadding, y: self.frame.maxY - topPadding)
+        settingsButton?.size = CGSize(width: 70, height: 70)
+        settingsButton?.zPosition = 10
+        if let button = settingsButton { self.addChild(button) }
     }
 
     // MARK: - Entrada do Usuário
@@ -90,51 +86,71 @@ class MenuScene: SKScene {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         
+        // Verifica se há um settings overlay ativo
         if let settingsOverlay = self.childNode(withName: "settingsOverlay") {
-            let touchedNode = atPoint(location)
-            
-            switch touchedNode.name {
+            let nodeAtPoint = settingsOverlay.atPoint(touch.location(in: settingsOverlay))
+            switch nodeAtPoint.name {
             case "closeSettingsButton":
                 AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
-                // Para "esconder", removemos o nó da cena com uma animação.
                 settingsOverlay.run(SKAction.fadeOut(withDuration: 0.3)) {
                     settingsOverlay.removeFromParent()
                 }
-                
+                return
+
             case "cameraToggleButton":
                 AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
-                let currentStatus = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
-                UserDefaults.standard.set(!currentStatus, forKey: "isCameraPreviewEnabled")
-                // Chamamos a função de atualização da fábrica, passando o nó do overlay.
-                settingsOverlayFactory.updateLabels(on: settingsOverlay)
-                
+                let currentValue = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+                UserDefaults.standard.set(!currentValue, forKey: "isCameraPreviewEnabled")
+                settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
+                return
+
             case "validationToggleButton":
                 AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
-                let currentStatus = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
-                UserDefaults.standard.set(!currentStatus, forKey: "isValidationModeEnabled")
-                settingsOverlayFactory.updateLabels(on: settingsOverlay)
+                let currentValue = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
+                UserDefaults.standard.set(!currentValue, forKey: "isValidationModeEnabled")
+                settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
+                return
+            
+            // --- LÓGICA CORRIGIDA ---
+            case "musicToggleButton":
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+                let isEnabled = UserDefaults.standard.bool(forKey: "isMusicEnabled")
+                UserDefaults.standard.set(!isEnabled, forKey: "isMusicEnabled")
+                AudioManager.shared.setMusicMuted(isMuted: isEnabled)
+                settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
+                return
+
+            case "sfxToggleButton":
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+                let isEnabled = UserDefaults.standard.bool(forKey: "isSfxEnabled")
+                UserDefaults.standard.set(!isEnabled, forKey: "isSfxEnabled")
+                AudioManager.shared.setSfxMuted(isMuted: isEnabled)
+                settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
+                return
                 
             default:
-                // Se tocou em qualquer outro lugar enquanto o overlay está aberto, não fazemos nada.
-                break
+                // Se tocou no fundo do overlay, não faz nada
+                return
             }
-            return // Impede que o toque continue para os botões do menu principal.
         }
-
+        
         let touchedNode = atPoint(location)
         guard let nodeName = touchedNode.name else { return }
 
         switch nodeName {
-        case "settingsButton":
-            AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
-            let overlay = settingsOverlayFactory.makeOverlay(for: self, inMenuScene: true)
-            addChild(overlay)
+        case "SettingsButton":
+            if self.childNode(withName: "settingsOverlay") == nil {
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+                let settingsOverlay = settingsOverlayFactory.makeOverlay(for: self, inMenuScene: true)
+                settingsOverlay.alpha = 0
+                self.addChild(settingsOverlay)
+            }
 
         case "GestureMode", "JogarLabel":
             AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
             let buttonToAnimate = (nodeName == "JogarLabel") ? touchedNode.parent : touchedNode
-            
             if let button = buttonToAnimate {
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 button.runButtonAnimation {
                     self.transitionToScene(named: "GameScene", isGestureMode: true)
                 }
@@ -143,8 +159,8 @@ class MenuScene: SKScene {
         case "ButtonMode", "TutorialLabel":
             AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
             let buttonToAnimate = (nodeName == "TutorialLabel") ? touchedNode.parent : touchedNode
-            
             if let button = buttonToAnimate {
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 button.runButtonAnimation {
                     self.transitionToScene(named: "ButtonMode", isGestureMode: false)
                 }
@@ -154,7 +170,6 @@ class MenuScene: SKScene {
             break
         }
     }
-    
     // MARK: - Navegação
     
     func transitionToScene(named sceneName: String, isGestureMode: Bool) {
