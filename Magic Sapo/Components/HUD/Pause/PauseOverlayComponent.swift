@@ -8,17 +8,12 @@
 import SpriteKit
 import UIKit
 
-// 1. Protocolo de Delegate
-// A cena que usar este componente precisará implementar estas funções
-// para responder aos toques nos botões.
 protocol PauseOverlayDelegate: AnyObject {
     func didTapResumeButton()
     func didTapResetButton()
     func didTapExitButton()
 }
 
-/// Um componente reutilizável que gerencia a criação, exibição e
-/// interação do overlay de pausa do jogo.
 class PauseOverlayComponent {
     
     // MARK: - Propriedades
@@ -143,65 +138,79 @@ class PauseOverlayComponent {
     func handleTouch(at location: CGPoint) {
         guard let scene = parentScene else { return }
 
-        // Mesmo com a view pausada, podemos pedir os nós diretamente.
+        // Primeiro, verifica se o overlay de configurações está aberto
         if let settingsOverlay = scene.childNode(withName: "settingsOverlay") {
+            // Pega todos os nós na localização do toque
             let touchedNodes = scene.nodes(at: location)
 
+            // Itera sobre os nós tocados para encontrar os botões de configuração
             for node in touchedNodes {
                 switch node.name {
                 case "closeSettingsButton":
-                        settingsOverlay.removeFromParent()
-                    return
+                    AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+                    settingsOverlay.removeFromParent()
+                    return // Sai da função após lidar com o toque
+
                 case "cameraToggleButton":
+                    AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                     let currentValue = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
                     UserDefaults.standard.set(!currentValue, forKey: "isCameraPreviewEnabled")
                     settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
                     return
+
                 case "validationToggleButton":
+                    AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                     let currentValue = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
                     UserDefaults.standard.set(!currentValue, forKey: "isValidationModeEnabled")
                     settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
                     return
+
                 case "musicToggleButton":
-                    let currentValue = UserDefaults.standard.bool(forKey: "isMusicEnabled")
-                    UserDefaults.standard.set(!currentValue, forKey: "isMusicEnabled")
+                    AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+                    let isEnabled = UserDefaults.standard.bool(forKey: "isMusicEnabled")
+                    UserDefaults.standard.set(!isEnabled, forKey: "isMusicEnabled")
+                    AudioManager.shared.setMusicMuted(isMuted: isEnabled)
                     settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
                     return
+
                 case "sfxToggleButton":
-                    let currentValue = UserDefaults.standard.bool(forKey: "isSfxEnabled")
-                    UserDefaults.standard.set(!currentValue, forKey: "isSfxEnabled")
+                    AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+                    let isEnabled = UserDefaults.standard.bool(forKey: "isSfxEnabled")
+                    UserDefaults.standard.set(!isEnabled, forKey: "isSfxEnabled")
+                    AudioManager.shared.setSfxMuted(isMuted: isEnabled)
                     settingsOverlayFactory.updateToggleButtons(on: settingsOverlay)
                     return
+                    
                 default:
+                    // Continua o loop se o nó tocado não for um botão de interesse
                     continue
                 }
             }
-            
-            return
-        }
-        
-        let touchedNodes = scene.nodes(at: location)
-        for node in touchedNodes {
-            switch node.name {
-            case "ReturnButton":
-                delegate?.didTapResumeButton()
-                return
-            case "ResetButton":
-                delegate?.didTapResetButton()
-                return
-            case "ExitButton":
-                delegate?.didTapExitButton()
-                return
-            case "SettingsButton":
-                if scene.childNode(withName: "settingsOverlay") == nil {
-                    let settingsOverlay = settingsOverlayFactory.makeOverlay(for: scene, inMenuScene: false)
-                    scene.addChild(settingsOverlay)
-                }
-                return
-            default:
-                continue
+            // Se o toque foi no overlay de settings mas não em um botão, impede que o toque "vaze" para o jogo
+            if settingsOverlay.contains(location) {
+                 return
             }
         }
-
+        
+        // Se o overlay de settings não estiver aberto, processa os botões de pausa
+        let touchedNode = scene.atPoint(location)
+        switch touchedNode.name {
+        case "ReturnButton":
+            delegate?.didTapResumeButton()
+        case "ResetButton":
+            delegate?.didTapResetButton()
+        case "ExitButton":
+            delegate?.didTapExitButton()
+        case "SettingsButton":
+            if scene.childNode(withName: "settingsOverlay") == nil {
+                AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
+                let settingsOverlay = settingsOverlayFactory.makeOverlay(for: scene, inMenuScene: false)
+                settingsOverlay.alpha = 0
+                settingsOverlay.run(SKAction.fadeIn(withDuration: 0.3))
+                scene.addChild(settingsOverlay)
+            }
+        default:
+            break
+        }
     }
 }

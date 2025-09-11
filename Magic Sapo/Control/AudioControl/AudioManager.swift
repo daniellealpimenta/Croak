@@ -17,13 +17,43 @@ class AudioManager {
     private var fadeTimer: Timer?
     
     private var soundEffectPlayer: AVAudioPlayer?
-    var soundEffectVolume: Float = 1.0
-    var musicVolume: Float = 0.5
+    
+    private var currentMusicVolume: Float = 0.5
+    private var currentSfxVolume: Float = 1.0
+
 
     
     static let woodenTap = ["toque-madeira0.m4a", "toque-madeira1.m4a", "toque-madeira2.m4a", "toque-madeira3.m4a"]
     
-    private init() {}
+    private init() {
+        applyAudioSettings()
+    }
+    
+    func applyAudioSettings() {
+        let isMusicEnabled = UserDefaults.standard.bool(forKey: "isMusicEnabled")
+        setMusicMuted(isMuted: !isMusicEnabled)
+        
+        let isSfxEnabled = UserDefaults.standard.bool(forKey: "isSfxEnabled")
+        setSfxMuted(isMuted: !isSfxEnabled)
+    }
+    
+    func setMusicMuted(isMuted: Bool) {
+        if isMuted {
+            backgroundMusicPlayer?.volume = 0.0
+            bossMusicPlayer?.volume = 0.0
+        } else {
+            backgroundMusicPlayer?.volume = currentMusicVolume
+            bossMusicPlayer?.volume = (currentMusicVolume - 0.2) > 0 ? (currentMusicVolume - 0.2) : 0
+        }
+    }
+    
+    func setSfxMuted(isMuted: Bool) {
+            if isMuted {
+                soundEffectVolume = 0.0
+            }else {
+                soundEffectVolume = currentSfxVolume
+            }
+        }
 
     func playBackgroundMusic(filename: String) {
         
@@ -40,7 +70,10 @@ class AudioManager {
 
             backgroundMusicPlayer = try AVAudioPlayer(contentsOf: url)
             backgroundMusicPlayer?.numberOfLoops = -1
-            backgroundMusicPlayer?.volume = musicVolume
+            
+            let isMusicEnabled = UserDefaults.standard.bool(forKey: "isMusicEnabled")
+            backgroundMusicPlayer?.volume = isMusicEnabled ? currentMusicVolume : 0.0
+            
             backgroundMusicPlayer?.prepareToPlay()
             backgroundMusicPlayer?.play()
         } catch {
@@ -62,10 +95,15 @@ class AudioManager {
             }
 
             bossMusicPlayer = try AVAudioPlayer(contentsOf: url)
-            bossMusicPlayer?.numberOfLoops = -1
-            bossMusicPlayer?.volume = (musicVolume - 0.2) 
-            bossMusicPlayer?.prepareToPlay()
-            bossMusicPlayer?.play()
+                bossMusicPlayer?.numberOfLoops = -1
+                
+                // Aplica o volume correto ao tocar
+                let isMusicEnabled = UserDefaults.standard.bool(forKey: "isMusicEnabled")
+                let bossVolume = (currentMusicVolume - 0.2) > 0 ? (currentMusicVolume - 0.2) : 0
+                bossMusicPlayer?.volume = isMusicEnabled ? bossVolume : 0.0
+                
+                bossMusicPlayer?.prepareToPlay()
+                bossMusicPlayer?.play()
         } catch {
             print("Erro ao tentar tocar a música de fundo: \(error.localizedDescription)")
         }
@@ -156,15 +194,16 @@ class AudioManager {
     }
 
     func setSoundEffectVolume(to volume: Float) {
-        self.soundEffectVolume = max(0.0, min(1.0, volume))
+        self.currentSfxVolume = max(0.0, min(1.0, volume))
     }
     
     func setMusicVolume(to volume: Float) {
-        self.musicVolume = max(0.0, min(1.0, volume))
+        self.currentMusicVolume = max(0.0, min(1.0, volume))
     }
 
     func playSoundEffect(named name: String) {
-        guard let url = Bundle.main.url(forResource: name, withExtension: nil) else {
+        // A lógica de mutar já está contida no 'soundEffectVolume'
+        guard soundEffectVolume > 0, let url = Bundle.main.url(forResource: name, withExtension: nil) else {
             return
         }
 
@@ -182,5 +221,14 @@ class AudioManager {
             return
         }
         playSoundEffect(named: randomName)
+    }
+    var soundEffectVolume: Float = 1.0
+    var musicVolume: Float { // Propriedade computada para refletir o estado atual
+        get {
+            return UserDefaults.standard.bool(forKey: "isMusicEnabled") ? currentMusicVolume : 0.0
+        }
+        set {
+            currentMusicVolume = newValue
+        }
     }
 }
