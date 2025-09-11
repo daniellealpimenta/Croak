@@ -331,15 +331,50 @@ class ButtonScene: SKScene, SKPhysicsContactDelegate, ScoreHavingScene, PauseBut
             return
         }
         
-        if touchedNode.name == "rockButton" { playerDidMake(gesture: "Rock") }
-        if touchedNode.name == "twoButton" { playerDidMake(gesture: "Two") }
-        if touchedNode.name == "lButton" { playerDidMake(gesture: "L") }
-        if touchedNode.name == "hangLButton" { playerDidMake(gesture: "HangLose") }
-        if touchedNode.name == "openPButton" { playerDidMake(gesture: "OpenPalm") }
-        if touchedNode.name == "TopButton" { playerDidMake(gesture: "Top") }
+        // MODIFICAÇÃO AQUI:
+        if touchedNode.name == "rockButton" {
+            animateButtonClick(node: touchedNode)
+            playerDidMake(gesture: "Rock")
+        }
+        if touchedNode.name == "twoButton" {
+            animateButtonClick(node: touchedNode)
+            playerDidMake(gesture: "Two")
+        }
+        if touchedNode.name == "lButton" {
+            animateButtonClick(node: touchedNode)
+            playerDidMake(gesture: "L")
+        }
+        if touchedNode.name == "hangLButton" {
+            animateButtonClick(node: touchedNode)
+            playerDidMake(gesture: "HangLose")
+        }
+        if touchedNode.name == "openPButton" {
+            animateButtonClick(node: touchedNode)
+            playerDidMake(gesture: "OpenPalm")
+        }
+        if touchedNode.name == "TopButton" {
+            animateButtonClick(node: touchedNode) 
+            playerDidMake(gesture: "Top")
+        }
     }
     
     // MARK: - Delegates
+    
+    /// Anima um nó para simular um clique, aumentando e diminuindo sua escala.
+    /// - Parameter node: O nó do botão que será animado.
+    private func animateButtonClick(node: SKNode) {
+        // Ação para aumentar o tamanho do botão (ex: 20% maior)
+        let scaleUpAction = SKAction.scale(to: 1.2, duration: 0.05)
+        
+        // Ação para voltar ao tamanho original
+        let scaleDownAction = SKAction.scale(to: 1.0, duration: 0.05)
+        
+        // Cria uma sequência: primeiro aumenta, depois diminui.
+        let sequence = SKAction.sequence([scaleUpAction, scaleDownAction])
+        
+        // Executa a animação no nó do botão
+        node.run(sequence)
+    }
     
     func didTapPauseButton() {
         AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
