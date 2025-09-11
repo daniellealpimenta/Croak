@@ -72,9 +72,7 @@ class MenuScene: SKScene {
     func setupSettingsButton() {
         settingsButton = settingsButtonFactory.makeButton()
         settingsButton?.name = "SettingsButton"
-        let topPadding: CGFloat = 100
-        let trailingPadding: CGFloat = 70
-        settingsButton?.position = CGPoint(x: self.frame.maxX - trailingPadding, y: self.frame.maxY - topPadding)
+        settingsButton?.position = CGPoint(x: 440, y: 300)
         settingsButton?.size = CGSize(width: 70, height: 70)
         settingsButton?.zPosition = 10
         if let button = settingsButton { self.addChild(button) }
