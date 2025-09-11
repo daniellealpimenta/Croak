@@ -9,12 +9,14 @@ import SpriteKit
 
 class MenuScene: SKScene {
     
-    // MARK: - Nós da Cena
-    
-    var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    // MARK: - Componentes
     
     private let settingsButtonFactory = SettingsButtonComponent()
     private let settingsOverlayFactory = SettingsOverlayComponent()
+    
+    private var settingsButton: SKSpriteNode?
+    
+    var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     
     // MARK: - Ciclo de Vida da Cena
     
@@ -22,17 +24,13 @@ class MenuScene: SKScene {
         // Registra um valor padrão para o modo de validação na primeira vez que o app abrir
         UserDefaults.standard.register(defaults: ["isValidationModeEnabled": true])
         UserDefaults.standard.register(defaults: ["isCameraPreviewEnabled": true])
-        // --- CONFIGURAÇÃO EXISTENTE ---
+        
         setupLabels()
         AudioManager.shared.playBackgroundMusic(filename: "croak-menu-music.m4a")
 
-        // --- NOVAS FUNÇÕES ---
-        // Cria o botão de configurações e o overlay (que começa escondido)
-        if !isOnboarding {
-            let menuButton = settingsButtonFactory.makeButton()
-            menuButton.position = CGPoint(x: frame.maxX - 70, y: frame.maxY - 100)
-            addChild(menuButton)
-        }
+//        if !isOnboarding {
+            setupSettingsButton()
+//        }
     }
     
     // MARK: - Configuração da UI
@@ -51,17 +49,13 @@ class MenuScene: SKScene {
                 } else if name == "TutorialLabel" {
                     label.text = NSLocalizedString("menu_tutorial", comment: "Tutorial/Buttons mode button text")
                 }
-                
             }
         }
         
-        // --- CÓDIGO CORRIGIDO ---
         // Adiciona a configuração de fonte e sombra para o TitleLabel
         if let titleNode = self.childNode(withName: "//Title"), let titleLabel = titleNode.childNode(withName: "TitleLabel") as? SKLabelNode {
             
-            // ✅ CORREÇÃO AQUI: Define o texto do TitleLabel como "Modo de Jogo:"
             titleLabel.text = NSLocalizedString("menu_gamemode_title", comment: "Game mode title")
-            
             titleLabel.fontName = "Ari-W9500Bold"
             titleLabel.fontSize = 36
             titleLabel.zPosition = 5
@@ -70,7 +64,6 @@ class MenuScene: SKScene {
             let shadowColor = SKColor(red: 0.3, green: 0.15, blue: 0.05, alpha: 1.0)
             
             addShadow(to: titleLabel, in: titleNode, offset: shadowOffset, color: shadowColor)
-            
         }
         
         let buttonNames = ["GestureMode", "ButtonMode"]
@@ -82,6 +75,28 @@ class MenuScene: SKScene {
             }
         }
     }
+    
+    // Usa o componente para criar o botão de configurações
+    func setupSettingsButton() {
+        settingsButton = settingsButtonFactory.makeButton()
+        settingsButton?.name = "SettingsButton"
+        
+        let topPadding: CGFloat = 100
+        let trailingPadding: CGFloat = 70
+        
+        // Usa o frame da cena para garantir o posicionamento correto em diferentes tamanhos de tela
+        settingsButton?.position = CGPoint(
+            x: self.frame.maxX - trailingPadding,
+            y: self.frame.maxY - topPadding
+        )
+        
+        settingsButton?.size = CGSize(width: 70, height: 70)
+        settingsButton?.zPosition = 10
+        
+        if let button = settingsButton {
+            self.addChild(button)
+        }
+    }
 
     // MARK: - Entrada do Usuário
     
@@ -89,41 +104,46 @@ class MenuScene: SKScene {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         
+        // Verifica se há um settings overlay ativo
         if let settingsOverlay = self.childNode(withName: "settingsOverlay") {
-            let touchedNode = atPoint(location)
-            
-            switch touchedNode.name {
-            case "closeSettingsButton":
-                // Para "esconder", removemos o nó da cena com uma animação.
-                settingsOverlay.run(SKAction.fadeOut(withDuration: 0.3)) {
-                    settingsOverlay.removeFromParent()
-                }
-                
-            case "cameraToggleButton":
-                let currentStatus = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
-                UserDefaults.standard.set(!currentStatus, forKey: "isCameraPreviewEnabled")
-                // Chamamos a função de atualização da fábrica, passando o nó do overlay.
-                settingsOverlayFactory.updateLabels(on: settingsOverlay)
-                
-            case "validationToggleButton":
-                let currentStatus = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
-                UserDefaults.standard.set(!currentStatus, forKey: "isValidationModeEnabled")
-                settingsOverlayFactory.updateLabels(on: settingsOverlay)
-                
-            default:
-                // Se tocou em qualquer outro lugar enquanto o overlay está aberto, não fazemos nada.
-                break
-            }
-            return // Impede que o toque continue para os botões do menu principal.
-        }
+            let touchedNodes = self.nodes(at: location)
 
+            for node in touchedNodes {
+                switch node.name {
+                case "closeSettingsButton":
+                    settingsOverlay.run(SKAction.fadeOut(withDuration: 0.3)) {
+                        settingsOverlay.removeFromParent()
+                    }
+                    return
+                case "cameraToggleButton":
+                    let currentValue = UserDefaults.standard.bool(forKey: "isCameraPreviewEnabled")
+                    UserDefaults.standard.set(!currentValue, forKey: "isCameraPreviewEnabled")
+                    settingsOverlayFactory.updateLabels(on: settingsOverlay)
+                    return
+                case "validationToggleButton":
+                    let currentValue = UserDefaults.standard.bool(forKey: "isValidationModeEnabled")
+                    UserDefaults.standard.set(!currentValue, forKey: "isValidationModeEnabled")
+                    settingsOverlayFactory.updateLabels(on: settingsOverlay)
+                    return
+                default:
+                    continue
+                }
+            }
+            
+            return
+        }
+        
         let touchedNode = atPoint(location)
         guard let nodeName = touchedNode.name else { return }
 
         switch nodeName {
-        case "settingsButton":
-            let overlay = settingsOverlayFactory.makeOverlay(for: self, inMenuScene: true)
-            addChild(overlay)
+        case "SettingsButton":
+            // Usa o componente para mostrar o overlay de settings
+            if self.childNode(withName: "settingsOverlay") == nil {
+                let settingsOverlay = settingsOverlayFactory.makeOverlay(for: self, inMenuScene: true)
+                settingsOverlay.run(SKAction.fadeIn(withDuration: 0.3))
+                self.addChild(settingsOverlay)
+            }
 
         case "GestureMode", "JogarLabel":
             let buttonToAnimate = (nodeName == "JogarLabel") ? touchedNode.parent : touchedNode
