@@ -92,9 +92,8 @@ class MenuScene: SKScene {
             switch nodeAtPoint.name {
             case "closeSettingsButton":
                 AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
-                settingsOverlay.run(SKAction.fadeOut(withDuration: 0.3)) {
-                    settingsOverlay.removeFromParent()
-                }
+                settingsOverlay.removeFromParent()
+                
                 return
 
             case "cameraToggleButton":
@@ -142,7 +141,6 @@ class MenuScene: SKScene {
             if self.childNode(withName: "settingsOverlay") == nil {
                 AudioManager.shared.playRandomSoundEffect(from: AudioManager.woodenTap)
                 let settingsOverlay = settingsOverlayFactory.makeOverlay(for: self, inMenuScene: true)
-                settingsOverlay.alpha = 0
                 self.addChild(settingsOverlay)
             }
 
