@@ -7,7 +7,7 @@
 
 import GameKit
 
-final class GameCenterHelper {
+final class GameCenterHelper: NSObject, GKGameCenterControllerDelegate {
     
     static let shared = GameCenterHelper()
     
@@ -19,22 +19,31 @@ final class GameCenterHelper {
         return localPlayer.isAuthenticated
     }
     
-    private init() {}
+    private var authenticationCompletion: (() -> Void)?
     
- 
-    func authenticatePlayer(presentingVC: UIViewController) {
+    private override init() {}
+    
+    func authenticatePlayer(presentingVC: UIViewController, completion: @escaping () -> Void) {
+        self.authenticationCompletion = completion
+        
         localPlayer.authenticateHandler = { gcAuthVC, error in
-            if let viewController = gcAuthVC {
-                presentingVC.present(viewController, animated: true)
+            if let viewControllerToPresent = gcAuthVC {
+                if let gameCenterAuthVC = viewControllerToPresent as? GKGameCenterViewController {
+                    gameCenterAuthVC.gameCenterDelegate = self
+                }
+                
+                presentingVC.present(viewControllerToPresent, animated: true, completion: nil)
                 return
+            }
+            
+            DispatchQueue.main.async {
+                self.authenticationCompletion?()
+                self.authenticationCompletion = nil
             }
             
             if let error = error {
                 print("Error authenticating player: \(error.localizedDescription)")
-                return
-            }
-            
-            if self.localPlayer.isAuthenticated {
+            } else if self.localPlayer.isAuthenticated {
                 print("Player authenticated successfully!")
             } else {
                 print("Player not authenticated.")
@@ -42,8 +51,6 @@ final class GameCenterHelper {
         }
     }
     
-    // 2. ENVIAR PONTUAÇÃO
-    // Chame isso quando o jogo terminar ou quando o jogador atingir uma nova pontuação máxima.
     func submitScore(_ score: Int, to leaderboardID: String) {
         guard isEnabled else {
             print("Game Center not enabled. Cannot submit score.")
@@ -53,14 +60,10 @@ final class GameCenterHelper {
         GKLeaderboard.submitScore(score, context: 0, player: localPlayer, leaderboardIDs: [leaderboardID]) { error in
             if let error = error {
                 print("Error submitting score: \(error.localizedDescription)")
-            } else {
-                print("Score of \(score) submitted to \(leaderboardID) successfully!")
             }
         }
     }
 
-    // 3. MOSTRAR A INTERFACE DO GAME CENTER (PLACAR DE LÍDERES)
-    // Chame isso quando o jogador tocar em um botão "Ranking" ou "Leaderboard".
     func showLeaderboard(presentingVC: UIViewController) {
         guard isEnabled else {
             print("Game Center not enabled. Cannot show leaderboard.")
@@ -68,14 +71,19 @@ final class GameCenterHelper {
         }
         
         let gameCenterVC = GKGameCenterViewController(state: .leaderboards)
-        gameCenterVC.gameCenterDelegate = presentingVC as? GKGameCenterControllerDelegate
+        // O helper também se torna o delegate aqui, para consistência
+        gameCenterVC.gameCenterDelegate = self
         presentingVC.present(gameCenterVC, animated: true)
     }
-}
 
-// Extensão para que o GameViewController possa fechar a tela do Game Center
-extension GameViewController: GKGameCenterControllerDelegate {
+    // Este método é chamado quando qualquer tela do Game Center (login, placar) é fechada.
     func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController) {
-        gameCenterViewController.dismiss(animated: true)
+        gameCenterViewController.dismiss(animated: true) {
+            // Executa a tarefa de conclusão que estava guardada
+            DispatchQueue.main.async {
+                self.authenticationCompletion?()
+                self.authenticationCompletion = nil // Limpa a tarefa
+            }
+        }
     }
 }

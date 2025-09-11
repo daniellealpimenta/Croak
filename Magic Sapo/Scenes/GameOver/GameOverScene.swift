@@ -132,12 +132,11 @@ class GameOverScene: SKScene {
         let currentHighScore = UserDefaults.standard.integer(forKey: key)
         var scoreToDisplay = currentHighScore
         
-        GameCenterHelper.shared.submitScore(currentHighScore, to: "ranking_global")
-        
         // Check if the final score is a new high score
         if finalScore > currentHighScore {
             UserDefaults.standard.set(finalScore, forKey: key)
             scoreToDisplay = finalScore
+            GameCenterHelper.shared.submitScore(finalScore, to: "ranking_global")
         }
         
         // Configure the high score number
