@@ -15,6 +15,7 @@ class MenuScene_iphone: SKScene {
     private let settingsOverlayFactory = SettingsOverlayComponent()
     private var settingsButton: SKSpriteNode?
     var isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    private var rankingButton: SKSpriteNode?
     
     // MARK: - Ciclo de Vida da Cena
     
@@ -30,6 +31,7 @@ class MenuScene_iphone: SKScene {
 
         if !isOnboarding {
             setupSettingsButton()
+            setupRankingButton()
         }
     }
     
@@ -76,6 +78,25 @@ class MenuScene_iphone: SKScene {
         settingsButton?.size = CGSize(width: 90, height: 90)
         settingsButton?.zPosition = 10
         if let button = settingsButton { self.addChild(button) }
+    }
+    
+    func setupRankingButton() {
+        rankingButton = SKSpriteNode(imageNamed: "ranking_button")
+        rankingButton?.name = "ranking_button"
+        
+        let topPadding: CGFloat = 100
+        let trailingPadding: CGFloat = 600
+        rankingButton?.position = CGPoint(
+            x: self.frame.maxX - trailingPadding,
+            y: self.frame.maxY - topPadding
+        )
+        
+        rankingButton?.size = CGSize(width: 90, height: 90)
+        rankingButton?.zPosition = 10
+        
+        if let button = rankingButton {
+            self.addChild(button)
+        }
     }
 
     // MARK: - Entrada do Usuário
@@ -140,6 +161,13 @@ class MenuScene_iphone: SKScene {
                 let settingsOverlay = settingsOverlayFactory.makeOverlay(for: self, inMenuScene: true)
                 self.addChild(settingsOverlay)
             }
+            
+        case "ranking_button":
+           if let button = touchedNode as? SKSpriteNode {
+               button.runButtonAnimation {
+                   self.transitionToScene(named: "RankingSceneIphone", isGestureMode: false)
+               }
+           }
 
         case "GestureMode", "JogarLabel":
             let buttonToAnimate = (nodeName == "JogarLabel") ? touchedNode.parent : touchedNode
@@ -179,6 +207,13 @@ class MenuScene_iphone: SKScene {
                 buttonScene.scaleMode = self.scaleMode
                 let transition = SKTransition.fade(withDuration: 1.0)
                 view?.presentScene(buttonScene, transition: transition)
+            }
+        }
+        else if sceneName == "RankingSceneIphone" {
+            if let rankingScene = SKScene(fileNamed: "RankingSceneIphone") {
+                rankingScene.scaleMode = self.scaleMode
+                let transition = SKTransition.fade(withDuration: 0.5)
+                view?.presentScene(rankingScene, transition: transition)
             }
         }
     }
