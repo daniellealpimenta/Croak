@@ -78,7 +78,7 @@ final class GameCenterHelper: NSObject, GKGameCenterControllerDelegate {
         presentingVC.present(gameCenterVC, animated: true)
     }
     
-    func fetchLeaderboardEntries(completion: @escaping (Result<[GKLeaderboard.Entry], Error>) -> Void) {
+    func fetchLeaderboardEntries(completion: @escaping (Result<[RankingEntry], Error>) -> Void) {
         let leaderboardID = "ranking_global"
 
         guard isEnabled else {
@@ -97,12 +97,16 @@ final class GameCenterHelper: NSObject, GKGameCenterControllerDelegate {
                     return
                 }
 
-                // A variável 'entries' aqui é a tupla de 3 partes.
-                let entries = try await leaderboard.loadEntries(for: .global, timeScope: .allTime, range: NSRange(location: 1, length: 100))
+                // Busca as 100 primeiras entradas
+                let allEntries = try await leaderboard.loadEntries(for: .global, timeScope: .allTime, range: NSRange(location: 1, length: 100))
                 
-                // --- CORREÇÃO FINAL AQUI ---
-                // Acessamos o SEGUNDO item da tupla (a lista de pontuações) com o índice .1
-                completion(.success(entries.1))
+                // Converte os dados brutos do GameKit para o nosso struct 'RankingEntry'
+                let rankingEntries = allEntries.1.map { entry in
+                    return RankingEntry(rank: entry.rank, playerName: entry.player.displayName, score: entry.formattedScore)
+                }
+                
+                // Devolve a lista já convertida e pronta para o SwiftUI
+                completion(.success(rankingEntries))
                 
             } catch {
                 print("Erro ao buscar o placar do Game Center: \(error.localizedDescription)")

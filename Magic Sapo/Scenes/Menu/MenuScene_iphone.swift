@@ -6,6 +6,7 @@
 //
 
 import SpriteKit
+import SwiftUI
 
 class MenuScene_iphone: SKScene {
     
@@ -165,7 +166,8 @@ class MenuScene_iphone: SKScene {
         case "ranking_button":
            if let button = touchedNode as? SKSpriteNode {
                button.runButtonAnimation {
-                   self.transitionToScene(named: "RankingSceneIphone", isGestureMode: false)
+                   self.showRankingView()
+//                   self.transitionToScene(named: "RankingSceneIphone", isGestureMode: false)
                }
            }
 
@@ -209,14 +211,39 @@ class MenuScene_iphone: SKScene {
                 view?.presentScene(buttonScene, transition: transition)
             }
         }
-        else if sceneName == "RankingSceneIphone" {
-            if let rankingScene = SKScene(fileNamed: "RankingSceneIphone") {
-                rankingScene.scaleMode = self.scaleMode
-                let transition = SKTransition.fade(withDuration: 0.5)
-                view?.presentScene(rankingScene, transition: transition)
+//        else if sceneName == "RankingSceneIphone" {
+//            if let rankingScene = SKScene(fileNamed: "RankingSceneIphone") {
+//                rankingScene.scaleMode = self.scaleMode
+//                let transition = SKTransition.fade(withDuration: 0.5)
+//                view?.presentScene(rankingScene, transition: transition)
+//            }
+//        }
+    }
+
+    func showRankingView() {
+        GameCenterHelper.shared.fetchLeaderboardEntries { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let entries):
+                    let rankingView = RankingView(entries: entries)
+                    
+                    let hostingController = UIHostingController(rootView: rankingView)
+                    hostingController.modalPresentationStyle = .fullScreen
+                    
+                    // --- AQUI ESTÁ A MUDANÇA PARA A ANIMAÇÃO ---
+                    // Define o estilo da transição para "cross dissolve" (fade in/out).
+                    // Isso faz a tela aparecer e desaparecer esmaecendo, em vez de deslizar.
+                    hostingController.modalTransitionStyle = .crossDissolve
+                    
+                    self?.view?.window?.rootViewController?.present(hostingController, animated: true, completion: nil)
+                    
+                case .failure(let error):
+                    print("Não foi possível mostrar o ranking: \(error.localizedDescription)")
+                }
             }
         }
     }
+
     
     // MARK: - Funções Auxiliares
 
